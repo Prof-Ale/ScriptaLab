@@ -1,0 +1,31 @@
+{
+  "templateId": "anhanguera-uam-standard",
+  "institution": "Rede Privada (Padrão Anhanguera / UAM / Unicesumar)",
+  "pageSetup": {
+    "paperSize": "A4",
+    "margins": {
+      "topCm": 3.0,
+      "leftCm": 3.0,
+      "bottomCm": 2.0,
+      "rightCm": 2.0
+    }
+  },
+  "typography": {
+    "fontFamily": "Arial",
+    "bodyFontSizePt": 12,
+    "lineSpacing": 1.5,
+    "paragraphFirstLineIndentCm": 1.25
+  },
+  "citations": {
+    "standard": "NBR-10520-2023",
+    "parentheticalCapitalization": "TitleCase",
+    "italicizeEtAl": true,
+    "longQuote": {
+      "minChars": 200,
+      "indentLeftCm": 4.0,
+      "fontSizePt": 10,
+      "lineSpacing": 1.0,
+      "requiresQuotes": false
+    }
+  }
+}
