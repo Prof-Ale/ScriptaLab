@@ -1,18 +1,15 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ScriptaLab | LabTech — Higienização, Humanização e Normas Acadêmicas</title>
-  <!-- Favicon SVG Inline -->
+  <title>ScriptaLab | LabTech — Engenharia e Conformidade Acadêmica</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M46 14L20 40l-4 12 12-4 26-26-8-8z' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M38 22l8 8' stroke='%2322c55e' stroke-width='4'/%3E%3C/svg%3E">
   
-  <!-- Bibliotecas para exportação e leitura de arquivos (PDF, Docx) -->
   <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
-    // Configurar o worker do PDF.js
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
 
@@ -47,235 +44,110 @@
     }
     .brand { display: flex; align-items: center; gap: 14px; }
     .brand-logo-box {
-      width: 42px;
-      height: 42px;
+      width: 42px; height: 42px;
       background: #0b1120;
       border: 1px solid var(--accent);
       border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      color: var(--accent);
-      font-size: 1.2rem;
-      letter-spacing: -1px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; color: var(--accent); font-size: 1.2rem;
     }
-    .brand-title { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; color: var(--text-main); }
+    .brand-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
     .brand-title span { color: var(--accent); }
     .badge-labtech {
       background: rgba(56, 189, 248, 0.15);
       color: var(--accent);
       border: 1px solid rgba(56, 189, 248, 0.4);
-      font-size: 0.75rem;
-      padding: 3px 10px;
-      border-radius: 99px;
-      font-weight: 600;
+      font-size: 0.75rem; padding: 3px 10px; border-radius: 99px; font-weight: 600;
     }
     .ies-selector {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      flex-wrap: wrap;
+      display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap;
     }
     select {
-      background: var(--bg-input);
-      color: var(--text-main);
-      border: 1px solid var(--border);
-      padding: 7px 12px;
-      border-radius: 6px;
-      outline: none;
-      font-weight: 500;
+      background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border);
+      padding: 7px 12px; border-radius: 6px; outline: none; font-weight: 500;
     }
 
     .metrics-bar {
-      max-width: 1400px;
-      margin: 20px auto;
-      padding: 0 24px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
+      max-width: 1400px; margin: 20px auto; padding: 0 24px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;
     }
     .metric-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 4px;
     }
-    .metric-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .metric-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; }
     .metric-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
     .metric-sub { font-size: 0.76rem; color: var(--text-muted); }
 
     .workspace {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 0 24px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      max-width: 1400px; margin: 0 auto; padding: 0 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
     }
     @media (max-width: 960px) { .workspace { grid-template-columns: 1fr; } }
 
     .panel {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;
     }
     .panel-header {
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(15, 23, 42, 0.5);
-      flex-wrap: wrap;
-      gap: 8px;
+      padding: 14px 20px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.5); flex-wrap: wrap; gap: 8px;
     }
     .panel-title { font-size: 0.95rem; font-weight: 600; }
     .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
     button, .file-upload-btn {
-      background: var(--accent);
-      color: #0f172a;
-      border: none;
-      padding: 7px 14px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.82rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      text-decoration: none;
+      background: var(--accent); color: #0f172a; border: none; padding: 7px 14px;
+      border-radius: 6px; font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
     }
     button:hover, .file-upload-btn:hover { background: var(--accent-hover); color: #fff; }
-    button.btn-secondary {
-      background: transparent;
-      color: var(--text-main);
-      border: 1px solid var(--border);
-    }
+    button.btn-secondary { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
     button.btn-secondary:hover { background: var(--border); }
-    button.btn-success {
-      background: var(--success);
-      color: #052e16;
-    }
+    button.btn-success { background: var(--success); color: #052e16; }
     button.btn-success:hover { background: #16a34a; color: #fff; }
-    button.btn-purple {
-      background: var(--purple);
-      color: #fff;
-    }
+    button.btn-purple { background: var(--purple); color: #fff; }
     button.btn-purple:hover { background: #9333ea; }
 
     textarea {
-      width: 100%;
-      height: 420px;
-      background: var(--bg-input);
-      color: var(--text-main);
-      border: none;
-      padding: 20px;
-      font-size: 0.96rem;
-      line-height: 1.7;
-      resize: vertical;
-      outline: none;
+      width: 100%; height: 420px; background: var(--bg-input); color: var(--text-main);
+      border: none; padding: 20px; font-size: 0.96rem; line-height: 1.7; resize: vertical; outline: none;
     }
-
     .output-viewer {
-      height: 420px;
-      background: var(--bg-input);
-      padding: 20px;
-      font-size: 0.96rem;
-      line-height: 1.7;
-      overflow-y: auto;
-      white-space: pre-wrap;
+      height: 420px; background: var(--bg-input); padding: 20px; font-size: 0.96rem; line-height: 1.7; overflow-y: auto; white-space: pre-wrap;
     }
 
     .cliche-flag {
-      background: rgba(234, 179, 8, 0.22);
-      border-bottom: 2px dashed var(--warning);
-      color: #fde047;
-      padding: 1px 5px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: background 0.2s;
+      background: rgba(234, 179, 8, 0.22); border-bottom: 2px dashed var(--warning); color: #fde047; padding: 1px 5px; border-radius: 4px; cursor: pointer;
     }
     .cliche-flag:hover { background: rgba(234, 179, 8, 0.45); }
     .abnt-fix {
-      background: rgba(34, 197, 94, 0.2);
-      border-bottom: 2px solid var(--success);
-      color: #86efac;
-      padding: 1px 4px;
-      border-radius: 4px;
+      background: rgba(34, 197, 94, 0.2); border-bottom: 2px solid var(--success); color: #86efac; padding: 1px 4px; border-radius: 4px;
     }
 
     .options-bar {
-      padding: 12px 20px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      background: rgba(15, 23, 42, 0.4);
+      padding: 12px 20px; border-top: 1px solid var(--border);
+      display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8rem; color: var(--text-muted); background: rgba(15, 23, 42, 0.4);
     }
     .options-bar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 
     .diagnostic-section {
-      max-width: 1400px;
-      margin: 24px auto 0;
-      padding: 0 24px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      max-width: 1400px; margin: 24px auto 0; padding: 0 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
     }
     @media (max-width: 960px) { .diagnostic-section { grid-template-columns: 1fr; } }
 
     .sentence-bars {
-      display: flex;
-      align-items: flex-end;
-      gap: 6px;
-      height: 100px;
-      padding: 16px 0 8px;
-      overflow-x: auto;
+      display: flex; align-items: flex-end; gap: 6px; height: 100px; padding: 16px 0 8px; overflow-x: auto;
     }
     .s-bar {
-      min-width: 26px;
-      background: var(--accent);
-      border-radius: 4px 4px 0 0;
-      text-align: center;
-      font-size: 0.7rem;
-      color: #0f172a;
-      font-weight: 700;
-      transition: height 0.3s;
+      min-width: 26px; background: var(--accent); border-radius: 4px 4px 0 0; text-align: center; font-size: 0.7rem; color: #0f172a; font-weight: 700;
     }
-
-    .audit-list {
-      margin-top: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 220px;
-      overflow-y: auto;
-    }
+    .audit-list { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; max-height: 220px; overflow-y: auto; }
     .audit-item {
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--accent);
-      border-radius: 6px;
-      padding: 10px 14px;
-      font-size: 0.83rem;
+      background: var(--bg-input); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 6px; padding: 10px 14px; font-size: 0.83rem;
     }
     .audit-item.verified { border-left-color: var(--success); }
     .audit-item.warning { border-left-color: var(--warning); }
     .audit-item a { color: var(--accent); text-decoration: none; }
-    .audit-item a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -289,14 +161,12 @@
       </div>
     </div>
     <div class="ies-selector">
-      <label for="iesTemplate">Perfil Normativo (IES):</label>
-      <select id="iesTemplate" onchange="updateIesProfile()">
-        <option value="abnt2023">ABNT Padrão (Times 12 | Recuo 4cm | NBR 10520:2023)</option>
-        <option value="unesp">Manual UNESP (Arial 12 | Recuo 4cm | NBR 10520:2023)</option>
-        <option value="ifsp">Manual IFSP (Times 12 | Recuo 4cm | Pós-Graduação)</option>
-        <option value="unicamp">Manual UNICAMP (Times 12 | Recuo 2cm em Citações)</option>
+      <label for="iesProfileSelect">Perfil Normativo (IES):</label>
+      <select id="iesProfileSelect" onchange="loadIesProfile()">
+        <option value="abnt-padrao-2023.json">ABNT Padrão (Times New Roman 12 | 4cm)</option>
+        <option value="anhanguera-uam.json">Rede Privada / Anhanguera / UAM (Arial 12 | 4cm)</option>
       </select>
-      <span id="iesActiveBadge" style="font-size:0.75rem; color:var(--success);">● Ativo</span>
+      <span id="iesActiveBadge" style="font-size:0.75rem; color:var(--success);">● Motor Desacoplado Ativo</span>
     </div>
   </header>
 
@@ -304,40 +174,39 @@
     <div class="metric-card">
       <span class="metric-label">Rastros de IA Removidos</span>
       <span class="metric-value" id="metricArtifacts">0</span>
-      <span class="metric-sub">Tags de chat, links UTM e Unicode invisível</span>
+      <span class="metric-sub">Tags, links UTM e Unicode invisível</span>
     </div>
     <div class="metric-card">
       <span class="metric-label">Clichês de IA Restantes</span>
       <span class="metric-value" id="metricCliches" style="color: var(--warning);">0</span>
-      <span class="metric-sub">Clique nos termos amarelos para substituir</span>
+      <span class="metric-sub">Clique para humanizar interativamente</span>
     </div>
     <div class="metric-card">
-      <span class="metric-label">Índice de Burstiness (Ritmo)</span>
+      <span class="metric-label">Índice de Burstiness</span>
       <span class="metric-value" id="metricBurstiness">0%</span>
       <span class="metric-sub" id="metricBurstinessStatus">Aguardando texto</span>
     </div>
     <div class="metric-card">
-      <span class="metric-label">Citações Adequação ABNT 2023</span>
+      <span class="metric-label">Citações ABNT 2023</span>
       <span class="metric-value" id="metricAbnt" style="color: var(--success);">0</span>
-      <span class="metric-sub">Padronizadas para (Autor, Ano) e et al.</span>
+      <span class="metric-sub">Padronizadas (Autor, Ano) e et al.</span>
     </div>
   </section>
 
   <main class="workspace">
-    <!-- Coluna 1: Entrada Bruta com Upload de PDF / DOCX -->
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">1. Texto Bruto ou Artigo Carregado</span>
+        <span class="panel-title">1. Artigo ou Texto Bruto (Upload PDF / DOCX)</span>
         <div class="btn-group">
-          <label class="file-upload-btn" title="Carregar arquivo PDF ou Word(.docx)">
-            📁 Carregar PDF / DOCX
+          <label class="file-upload-btn" title="Carregar PDF ou Word">
+            📁 Carregar Ficheiro
             <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none;" onchange="handleFileUpload(event)">
           </label>
           <button class="btn-secondary" onclick="loadSampleText()">Exemplo</button>
           <button class="btn-secondary" onclick="clearEditor()">Limpar</button>
         </div>
       </div>
-      <textarea id="rawInput" placeholder="Cole aqui o texto ou carregue um arquivo PDF / DOCX no botão acima..." oninput="processText()"></textarea>
+      <textarea id="rawInput" placeholder="Cole o texto ou carregue o seu artigo completo..." oninput="processText()"></textarea>
       <div class="options-bar">
         <label><input type="checkbox" id="optRemoveCitations" checked onchange="processText()"> Remover tags 【†source】</label>
         <label><input type="checkbox" id="optCleanUtm" checked onchange="processText()"> Limpar ?utm_source</label>
@@ -346,74 +215,87 @@
       </div>
     </div>
 
-    <!-- Coluna 2: Texto Higienizado e Exportação -->
     <div class="panel">
       <div class="panel-header">
-        <span class="panel-title">2. Texto Higienizado + Humanização Interativa</span>
+        <span class="panel-title">2. Texto Higienizado & Preservação Científica</span>
         <div class="btn-group">
-          <button class="btn-secondary" onclick="copyCleanText()">Copiar Texto</button>
-          <button class="btn-success" onclick="exportToDocx()">⬇ Baixar Word (.docx)</button>
+          <button class="btn-secondary" onclick="copyCleanText()">Copiar</button>
+          <button class="btn-success" onclick="exportToDocx()">⬇ Baixar Word na Norma</button>
         </div>
       </div>
-      <div id="processedOutput" class="output-viewer">O texto processado e as sugestões de humanização aparecerão aqui...</div>
+      <div id="processedOutput" class="output-viewer">O texto processado aparecerá aqui... O sentido e os objetivos científicos permanecem rigorosamente inviolados.</div>
       <div class="options-bar">
-        <span>✨ <strong>Dica:</strong> Clique em cima de qualquer termo em <strong style="color:#fde047;">amarelo</strong> para corrigi-lo instantaneamente.</span>
+        <span>🛡️ <strong>Zero-Tampering Ativo:</strong> Nenhuma alteração automática de vocabulário ou conteúdo é feita sem o seu aval.</span>
       </div>
     </div>
   </main>
 
-  <!-- Seção Inferior: Gráfico Sintático + Auditor Anti-Alucinação de DOIs -->
   <section class="diagnostic-section">
     <div class="panel" style="padding: 18px 20px;">
-      <span class="panel-title">📊 Mapa de Ritmo Sintático (Palavras por Frase)</span>
-      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">
-        Alterne frases curtas e longas para manter o Burstiness acima de 35% (padrão humano).
-      </p>
+      <span class="panel-title">📊 Ritmo Sintático (Burstiness)</span>
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Avalia a variação no comprimento dos períodos para garantir naturalidade.</p>
       <div id="sentenceBars" class="sentence-bars"></div>
     </div>
 
     <div class="panel" style="padding: 18px 20px;">
       <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <div>
-          <span class="panel-title">🔍 Auditor de Citações e DOIs (OpenAlex)</span>
-          <p style="font-size: 0.8rem; color: var(--text-muted);">Verifica se os autores citados existem nas bases científicas.</p>
+          <span class="panel-title">🔍 Auditor de Citações (OpenAlex API)</span>
+          <p style="font-size: 0.8rem; color: var(--text-muted);">Validação anti-alucinação bibliográfica.</p>
         </div>
         <button class="btn-purple" onclick="auditCitations()">Auditar Citações</button>
       </div>
       <div id="auditResults" class="audit-list">
-        <div class="audit-item">Carregue um artigo ou cole o texto e clique em <strong>"Auditar Citações"</strong>.</div>
+        <div class="audit-item">Carregue um artigo e clique em <strong>"Auditar Citações"</strong>.</div>
       </div>
     </div>
   </section>
 
   <script>
-    const IES_PROFILES = {
-      abnt2023: { name: "ABNT Padrão (NBR 14724 / 10520:2023)", font: "Times New Roman", quoteIndentCm: 4 },
-      unesp:    { name: "Manual UNESP", font: "Arial", quoteIndentCm: 4 },
-      ifsp:     { name: "Manual IFSP", font: "Times New Roman", quoteIndentCm: 4 },
-      unicamp:  { name: "Manual UNICAMP", font: "Times New Roman", quoteIndentCm: 2 }
+    // Motor de Configuração Carregado Dinamicamente
+    let activeProfile = {
+      templateId: "abnt-padrao-2023",
+      institution: "ABNT Padrão",
+      pageSetup: { margins: { topCm: 3, leftCm: 3, bottomCm: 2, rightCm: 2 } },
+      typography: { fontFamily: "Times New Roman", bodyFontSizePt: 12 },
+      citations: { longQuote: { indentLeftCm: 4, fontSizePt: 10 } }
     };
 
+    async function loadIesProfile() {
+      const filename = document.getElementById("iesProfileSelect").value;
+      try {
+        const response = await fetch(`templates-ies/${filename}`);
+        if (response.ok) {
+          activeProfile = await response.json();
+          document.getElementById("iesActiveBadge").innerText = `● Perfil ativo: ${activeProfile.institution}`;
+          processText();
+        }
+      } catch (e) {
+        console.warn("Executando com perfil padrão integrado.");
+      }
+    }
+
     const AI_CLICHES = [
-      { pattern: /\bNesse sentido\b/g, replacement: "Sob essa perspectiva", suggestion: "Sob essa perspectiva" },
-      { pattern: /\bnesse sentido\b/g, replacement: "sob essa perspectiva", suggestion: "sob essa perspectiva" },
-      { pattern: /\bVale ressaltar que\b/g, replacement: "Cabe observar que", suggestion: "Cabe observar que" },
-      { pattern: /\bvale ressaltar que\b/g, replacement: "cabe observar que", suggestion: "cabe observar que" },
-      { pattern: /\bÉ crucial destacar\b/g, replacement: "Torna-se necessário apontar", suggestion: "Torna-se necessário apontar" },
-      { pattern: /\bé crucial destacar\b/g, replacement: "torna-se necessário apontar", suggestion: "torna-se necessário apontar" },
-      { pattern: /\bdesempenha um papel fundamental\b/gi, replacement: "exerce função estruturante", suggestion: "exerce função estruturante" },
-      { pattern: /\bNo cenário atual\b/g, replacement: "No contexto contemporâneo", suggestion: "No contexto contemporâneo" },
-      { pattern: /\bno cenário atual\b/g, replacement: "no contexto contemporâneo", suggestion: "no contexto contemporâneo" },
-      { pattern: /\bEm suma\b/g, replacement: "Portanto", suggestion: "Portanto" },
-      { pattern: /\bem suma\b/g, replacement: "portanto", suggestion: "portanto" },
-      { pattern: /\buma rica tapeçaria\b/gi, replacement: "um repertório articulado", suggestion: "um repertório articulado" },
-      { pattern: /\bÉ importante notar que\b/g, replacement: "Observa-se que", suggestion: "Observa-se que" },
-      { pattern: /\bé importante notar que\b/g, replacement: "observa-se que", suggestion: "observa-se que" }
+      { pattern: /\bNesse sentido\b/g, replacement: "Sob essa perspectiva" },
+      { pattern: /\bnesse sentido\b/g, replacement: "sob essa perspectiva" },
+      { pattern: /\bVale ressaltar que\b/g, replacement: "Cabe observar que" },
+      { pattern: /\bvale ressaltar que\b/g, replacement: "cabe observar que" },
+      { pattern: /\bÉ crucial destacar\b/g, replacement: "Torna-se necessário apontar" },
+      { pattern: /\bé crucial destacar\b/g, replacement: "torna-se necessário apontar" },
+      { pattern: /\bdesempenha um papel fundamental\b/gi, replacement: "exerce função estruturante" },
+      { pattern: /\bNo cenário atual\b/g, replacement: "No contexto contemporâneo" },
+      { pattern: /\bno cenário atual\b/g, replacement: "no contexto contemporâneo" },
+      { pattern: /\bEm suma\b/g, replacement: "Portanto" },
+      { pattern: /\bem suma\b/g, replacement: "portanto" },
+      { pattern: /\buma rica tapeçaria\b/gi, replacement: "um repertório articulado" },
+      { pattern: /\bÉ importante notar que\b/g, replacement: "Observa-se que" },
+      { pattern: /\bé importante notar que\b/g, replacement: "observa-se que" }
     ];
 
     let cleanPlainTextCache = "";
 
     window.addEventListener("DOMContentLoaded", () => {
+      loadIesProfile();
       const saved = localStorage.getItem("scriptalab_draft");
       if (saved) {
         document.getElementById("rawInput").value = saved;
@@ -421,27 +303,20 @@
       }
     });
 
-    function updateIesProfile() {
-      processText();
-    }
-
-    // Leitor de Arquivos Locais (PDF, DOCX e TXT)
     async function handleFileUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
-
       const ext = file.name.split('.').pop().toLowerCase();
       const outputArea = document.getElementById("rawInput");
-      outputArea.value = `Lendo o arquivo ${file.name}... Por favor, aguarde.`;
+      outputArea.value = `A carregar ${file.name}...`;
 
       try {
         if (ext === 'txt') {
-          const text = await file.text();
-          outputArea.value = text;
+          outputArea.value = await file.text();
         } else if (ext === 'docx') {
-          const arrayBuffer = await file.arrayBuffer();
-          const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-          outputArea.value = result.value;
+          const buffer = await file.arrayBuffer();
+          const res = await mammoth.extractRawText({ arrayBuffer: buffer });
+          outputArea.value = res.value;
         } else if (ext === 'pdf') {
           const typedarray = new Uint8Array(await file.arrayBuffer());
           const pdf = await pdfjsLib.getDocument(typedarray).promise;
@@ -449,30 +324,24 @@
           for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
-            const pageText = textContent.items.map(item => item.str).join(" ");
-            fullText += `[Página ${i}]\n` + pageText + "\n\n";
+            fullText += `[Página ${i}]\n` + textContent.items.map(item => item.str).join(" ") + "\n\n";
           }
           outputArea.value = fullText;
-        } else {
-          alert("Formato não suportado. Utilize .pdf, .docx ou .txt");
-          outputArea.value = "";
         }
         processText();
       } catch (err) {
-        alert("Erro ao ler o arquivo: " + err.message);
-        outputArea.value = "";
+        alert("Erro ao ler ficheiro: " + err.message);
       }
     }
 
     function loadSampleText() {
       const sample = `No cenário atual, a inclusão escolar no ensino de matemática desempenha um papel fundamental para o desenvolvimento cognitivo dos estudantes【4:0†source】. Nesse sentido, o Desenho Universal para a Aprendizagem (DUA) — enquanto abordagem pedagógica — oferece caminhos acessíveis para todos (MANTOAN, 2015, p. 34).\u200B\u200B
 
-Vale ressaltar que a mediação pedagógica exige intencionalidade docente e planejamento colaborativo contínuo (VYGOTSKY, 1998; SKOVSMOSE et al., 2019)【12:2†source】. É importante notar que plataformas digitais como https://prof-ale.github.io/MathLab/?utm_source=chatgpt.com&utm_medium=referral ampliam o engajamento discente.
+Vale ressaltar que a mediação pedagógica exige intencionalidade docente e planejamento colaborativo contínuo (VYGOTSKY, 1998; SKOVSMOSE et al., 2019)【12:2†source】.
 
 "A inclusão implica uma mudança de perspectiva educacional, pois não atinge apenas alunos com deficiência, mas todos os demais, para que obtenham sucesso na corrente educativa geral, transformando a organização pedagógica da escola." (MANTOAN, 2015, p. 28).
 
-Em suma, é crucial destacar que a formação docente contínua constrói uma rica tapeçaria de saberes práticos e teóricos na educação básica (GATTI et al., 2021, p. 88).`;
-
+Em suma, é crucial destacar que a formação docente contínua constrói uma rica tapeçaria de saberes práticos na educação básica (GATTI et al., 2021, p. 88).`;
       document.getElementById("rawInput").value = sample;
       processText();
     }
@@ -497,7 +366,7 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
       localStorage.setItem("scriptalab_draft", raw);
 
       if (!raw.trim()) {
-        document.getElementById("processedOutput").innerHTML = "O texto processado e as sugestões de humanização aparecerão aqui...";
+        document.getElementById("processedOutput").innerHTML = "O texto processado aparecerá aqui...";
         resetMetrics();
         return;
       }
@@ -508,36 +377,24 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
 
       const zeroWidthRegex = /[\u200B\u200C\u200D\uFEFF\u202F]/g;
       const zwMatches = text.match(zeroWidthRegex);
-      if (zwMatches) {
-        artifactsCount += zwMatches.length;
-        text = text.replace(zeroWidthRegex, (m) => m === '\u202F' ? ' ' : '');
-      }
+      if (zwMatches) { artifactsCount += zwMatches.length; text = text.replace(zeroWidthRegex, ''); }
 
       if (document.getElementById("optRemoveCitations").checked) {
         const citRegex = /【[^】]+】|\[oai_citation:[^\]]+\]/g;
         const citMatches = text.match(citRegex);
-        if (citMatches) {
-          artifactsCount += citMatches.length;
-          text = text.replace(citRegex, "");
-        }
+        if (citMatches) { artifactsCount += citMatches.length; text = text.replace(citRegex, ""); }
       }
 
       if (document.getElementById("optCleanUtm").checked) {
         const utmRegex = /(\?|&)utm_[a-zA-Z0-9_=-]+(&utm_[a-zA-Z0-9_=-]+)*/g;
         const utmMatches = text.match(utmRegex);
-        if (utmMatches) {
-          artifactsCount += utmMatches.length;
-          text = text.replace(utmRegex, "");
-        }
+        if (utmMatches) { artifactsCount += utmMatches.length; text = text.replace(utmRegex, ""); }
       }
 
       if (document.getElementById("optNormalizeDashes").checked) {
         const dashRegex = /\s—\s([^—\n]+)\s—\s/g;
         const dashMatches = text.match(dashRegex);
-        if (dashMatches) {
-          artifactsCount += dashMatches.length;
-          text = text.replace(dashRegex, ", $1, ");
-        }
+        if (dashMatches) { artifactsCount += dashMatches.length; text = text.replace(dashRegex, ", $1, "); }
       }
 
       let workingText = text;
@@ -554,18 +411,17 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
       cleanPlainTextCache = workingText;
 
       let htmlOutput = escapeHtml(workingText);
-      htmlOutput = htmlOutput.replace(/\bet al\./g, '<em class="abnt-fix" title="ABNT NBR 10520:2023: et al. em itálico">et al.</em>');
+      htmlOutput = htmlOutput.replace(/\bet al\./g, '<em class="abnt-fix" title="NBR 10520:2023: et al. em itálico">et al.</em>');
 
       let clicheCount = 0;
       AI_CLICHES.forEach((item, idx) => {
         htmlOutput = htmlOutput.replace(item.pattern, (matched) => {
           clicheCount++;
-          return `<span class="cliche-flag" onclick="replaceCliche(${idx})" title="Clique para trocar por: '${item.replacement}'">${matched}</span>`;
+          return `<span class="cliche-flag" onclick="replaceCliche(${idx})" title="Clique para substituir por: ${item.replacement}">${matched}</span>`;
         });
       });
 
       document.getElementById("processedOutput").innerHTML = htmlOutput;
-
       calculateBurstiness(workingText);
       document.getElementById("metricArtifacts").innerText = artifactsCount;
       document.getElementById("metricCliches").innerText = clicheCount;
@@ -573,47 +429,34 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
     }
 
     function calculateBurstiness(text) {
-      const sentences = text
-        .split(/[.!?]+/)
-        .map(s => s.trim())
-        .filter(s => s.split(/\s+/).length >= 3);
-
+      const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(s => s.split(/\s+/).length >= 3);
       const barsContainer = document.getElementById("sentenceBars");
       barsContainer.innerHTML = "";
 
       if (sentences.length < 2) {
         document.getElementById("metricBurstiness").innerText = "--";
-        document.getElementById("metricBurstinessStatus").innerText = "Insira ao menos 2 períodos";
+        document.getElementById("metricBurstinessStatus").innerText = "Insira mais períodos";
         return;
       }
 
       const lengths = sentences.map(s => s.split(/\s+/).length);
       const mean = lengths.reduce((a, b) => a + b, 0) / lengths.length;
       const variance = lengths.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / lengths.length;
-      const stdDev = Math.sqrt(variance);
-      const cv = Math.round((stdDev / mean) * 100);
+      const cv = Math.round((Math.sqrt(variance) / mean) * 100);
 
       const burstEl = document.getElementById("metricBurstiness");
       const statusEl = document.getElementById("metricBurstinessStatus");
       burstEl.innerText = cv + "%";
 
-      if (cv < 25) {
-        burstEl.style.color = "var(--danger)";
-        statusEl.innerText = "Ritmo Monótono (IA)";
-      } else if (cv < 38) {
-        burstEl.style.color = "var(--warning)";
-        statusEl.innerText = "Variação Moderada";
-      } else {
-        burstEl.style.color = "var(--success)";
-        statusEl.innerText = "Ritmo Humano Natural";
-      }
+      if (cv < 25) { burstEl.style.color = "var(--danger)"; statusEl.innerText = "Monótono (Padrão IA)"; }
+      else if (cv < 38) { burstEl.style.color = "var(--warning)"; statusEl.innerText = "Variação Moderada"; }
+      else { burstEl.style.color = "var(--success)"; statusEl.innerText = "Ritmo Humano Natural"; }
 
       const maxLen = Math.max(...lengths, 35);
       lengths.forEach((len, idx) => {
         const bar = document.createElement("div");
         bar.className = "s-bar";
-        const heightPct = Math.max(18, Math.min(100, Math.round((len / maxLen) * 100)));
-        bar.style.height = heightPct + "%";
+        bar.style.height = Math.max(18, Math.min(100, Math.round((len / maxLen) * 100))) + "%";
         bar.innerText = len;
         bar.title = `Frase ${idx + 1}: ${len} palavras`;
         barsContainer.appendChild(bar);
@@ -623,106 +466,72 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
     async function auditCitations() {
       const container = document.getElementById("auditResults");
       if (!cleanPlainTextCache.trim()) {
-        container.innerHTML = `<div class="audit-item warning">Insira um texto com citações primeiro.</div>`;
+        container.innerHTML = `<div class="audit-item warning">Insira texto com citações primeiro.</div>`;
         return;
       }
 
       const citRegex = /\b([A-ZÁÉÍÓÚÂÊÔÃÕÇ][a-záéíóúâêôãõç]+)(?:\s+et\s+al\.)?,\s*(\d{4})\b/g;
       const matches = [...cleanPlainTextCache.matchAll(citRegex)];
-
       const uniqueCitations = [];
       const seen = new Set();
       for (const m of matches) {
         const key = `${m[1]}-${m[2]}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          uniqueCitations.push({ author: m[1], year: m[2] });
-        }
+        if (!seen.has(key)) { seen.add(key); uniqueCitations.push({ author: m[1], year: m[2] }); }
       }
 
       if (uniqueCitations.length === 0) {
-        container.innerHTML = `<div class="audit-item warning">Nenhuma citação no padrão (Autor, Ano) encontrada.</div>`;
+        container.innerHTML = `<div class="audit-item warning">Nenhuma citação no formato (Autor, Ano) detetada.</div>`;
         return;
       }
 
-      container.innerHTML = `<div class="audit-item">🔎 Consultando OpenAlex para ${uniqueCitations.length} citação(ões)...</div>`;
+      container.innerHTML = `<div class="audit-item">🔎 A consultar OpenAlex para ${uniqueCitations.length} citação(ões)...</div>`;
       let resultsHtml = "";
 
       for (const cit of uniqueCitations) {
         try {
-          const url = `https://api.openalex.org/works?search=${encodeURIComponent(cit.author + " " + cit.year)}&per_page=1`;
-          const res = await fetch(url);
+          const res = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(cit.author + " " + cit.year)}&per_page=1`);
           const data = await res.json();
-
           if (data.results && data.results.length > 0) {
             const work = data.results[0];
-            const title = work.title || "Título registrado";
-            const pubYear = work.publication_year || cit.year;
-            const doiLink = work.doi ? `<a href="${work.doi}" target="_blank">${work.doi}</a>` : "Indexado sem DOI";
-            resultsHtml += `
-              <div class="audit-item verified">
-                <strong>✅ (${cit.author}, ${cit.year}):</strong> Obra localizada.<br>
-                <span style="color:var(--text-muted);">NBR 6023:</span> ${cit.author.toUpperCase()}. <strong>${title}</strong>. (${pubYear}). Disponível em: ${doiLink}
-              </div>`;
+            resultsHtml += `<div class="audit-item verified"><strong>✅ (${cit.author}, ${cit.year}):</strong> Obra validada na base científica.<br><span style="color:var(--text-muted);">NBR 6023:</span> ${cit.author.toUpperCase()}. <strong>${work.title}</strong>. (${work.publication_year || cit.year}).</div>`;
           } else {
-            resultsHtml += `
-              <div class="audit-item warning">
-                <strong>⚠️ (${cit.author}, ${cit.year}):</strong> Obra não localizada automaticamente. Verifique se é livro impresso.
-              </div>`;
+            resultsHtml += `<div class="audit-item warning"><strong>⚠️ (${cit.author}, ${cit.year}):</strong> Não localizada automaticamente (verificar se é livro físico).</div>`;
           }
-        } catch (err) {
-          resultsHtml += `<div class="audit-item warning">Erro de conexão ao consultar (${cit.author}, ${cit.year}).</div>`;
+        } catch (e) {
+          resultsHtml += `<div class="audit-item warning">Erro na consulta de (${cit.author}, ${cit.year}).</div>`;
         }
       }
       container.innerHTML = resultsHtml;
     }
 
     async function exportToDocx() {
-      if (!cleanPlainTextCache.trim()) {
-        alert("Insira e processe um texto antes de exportar.");
-        return;
-      }
+      if (!cleanPlainTextCache.trim()) { alert("Insira um texto para exportar."); return; }
 
       const { Document, Packer, Paragraph, TextRun, AlignmentType, convertMillimetersToTwip } = window.docx;
-      const iesKey = document.getElementById("iesTemplate").value;
-      const profile = IES_PROFILES[iesKey];
+      const fontName = activeProfile.typography?.fontFamily || "Times New Roman";
+      const quoteIndent = activeProfile.citations?.longQuote?.indentLeftCm || 4;
+      const quoteFontSize = activeProfile.citations?.longQuote?.fontSizePt ? activeProfile.citations.longQuote.fontSizePt * 2 : 20;
 
       const paragraphsRaw = cleanPlainTextCache.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
       const docParagraphs = [];
 
       paragraphsRaw.forEach(pText => {
-        const isLongQuote = (pText.startsWith('"') || pText.startsWith('“')) && pText.length > 240;
+        const isLongQuote = (pText.startsWith('"') || pText.startsWith('“')) && pText.length > 200;
 
         if (isLongQuote) {
-          docParagraphs.push(
-            new Paragraph({
-              alignment: AlignmentType.JUSTIFIED,
-              indent: { left: convertMillimetersToTwip(profile.quoteIndentCm * 10) },
-              spacing: { before: 240, after: 240, line: 240 },
-              children: [
-                new TextRun({
-                  text: pText.replace(/^["“]|["”]$/g, ""),
-                  font: profile.font,
-                  size: 20
-                })
-              ]
-            })
-          );
+          docParagraphs.push(new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { left: convertMillimetersToTwip(quoteIndent * 10) },
+            spacing: { before: 240, after: 240, line: 240 },
+            children: [new TextRun({ text: pText.replace(/^["“]|["”]$/g, ""), font: fontName, size: quoteFontSize })]
+          }));
         } else {
-          docParagraphs.push(
-            new Paragraph({
-              alignment: AlignmentType.JUSTIFIED,
-              indent: { firstLine: convertMillimetersToTwip(12.5) },
-              spacing: { after: 160, line: 360 },
-              children: [
-                new TextRun({
-                  text: pText,
-                  font: profile.font,
-                  size: 24
-                })
-              ]
-            })
-          );
+          docParagraphs.push(new Paragraph({
+            alignment: AlignmentType.JUSTIFIED,
+            indent: { firstLine: convertMillimetersToTwip(12.5) },
+            spacing: { after: 160, line: 360 },
+            children: [new TextRun({ text: pText, font: fontName, size: 24 })]
+          }));
         }
       });
 
@@ -731,10 +540,10 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
           properties: {
             page: {
               margin: {
-                top: convertMillimetersToTwip(30),
-                left: convertMillimetersToTwip(30),
-                bottom: convertMillimetersToTwip(20),
-                right: convertMillimetersToTwip(20)
+                top: convertMillimetersToTwip(activeProfile.pageSetup.margins.topCm * 10),
+                left: convertMillimetersToTwip(activeProfile.pageSetup.margins.leftCm * 10),
+                bottom: convertMillimetersToTwip(activeProfile.pageSetup.margins.bottomCm * 10),
+                right: convertMillimetersToTwip(activeProfile.pageSetup.margins.rightCm * 10)
               }
             }
           },
@@ -746,7 +555,7 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Artigo_ScriptaLab_${iesKey.toUpperCase()}.docx`;
+      a.download = `ScriptaLab_${activeProfile.templateId}.docx`;
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -766,7 +575,7 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
     function copyCleanText() {
       if (!cleanPlainTextCache) return;
       navigator.clipboard.writeText(cleanPlainTextCache);
-      alert("Texto limpo copiado para a área de transferência!");
+      alert("Texto limpo copiado com sucesso!");
     }
   </script>
 </body>
