@@ -1,503 +1,301 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ScriptaLab | LabTech — Diagnóstico e Conformidade Acadêmica</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M46 14L20 40l-4 12 12-4 26-26-8-8z' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M38 22l8 8' stroke='%2322c55e' stroke-width='4'/%3E%3C/svg%3E">
-  
-  <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  </script>
-
-  <style>
-    :root {
-      --bg-dark: #0f172a;
-      --bg-card: #1e293b;
-      --bg-input: #0b1120;
-      --accent: #38bdf8;
-      --accent-hover: #0284c7;
-      --success: #22c55e;
-      --warning: #eab308;
-      --danger: #ef4444;
-      --purple: #a855f7;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --border: #334155;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
-    body { background-color: var(--bg-dark); color: var(--text-main); line-height: 1.6; padding-bottom: 60px; }
-
-    header {
-      background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 16px 32px;
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
-    }
-    .brand { display: flex; align-items: center; gap: 14px; }
-    .brand-logo-box {
-      width: 42px; height: 42px; background: #0b1120; border: 1px solid var(--accent); border-radius: 8px;
-      display: flex; align-items: center; justify-content: center; font-weight: 900; color: var(--accent); font-size: 1.2rem;
-    }
-    .brand-title { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
-    .brand-title span { color: var(--accent); }
-    .badge-labtech {
-      background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.4);
-      font-size: 0.75rem; padding: 3px 10px; border-radius: 99px; font-weight: 600;
-    }
-    .ies-selector { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--text-muted); flex-wrap: wrap; }
-    select {
-      background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border);
-      padding: 7px 12px; border-radius: 6px; outline: none; font-weight: 500;
-    }
-
-    .container { max-width: 1400px; margin: 20px auto; padding: 0 24px; display: flex; flex-direction: column; gap: 24px; }
-
-    /* Painel de Diagnóstico Prévio */
-    .diagnostic-panel {
-      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
-      display: flex; flex-direction: column; gap: 14px;
-    }
-    .diagnostic-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .diagnostic-title { font-size: 1.05rem; font-weight: 700; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-    .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
-    .report-item { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 12px; font-size: 0.85rem; }
-    .report-item strong { display: block; color: var(--text-main); margin-bottom: 4px; }
-
-    .workspace { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    @media (max-width: 960px) { .workspace { grid-template-columns: 1fr; } }
-
-    .panel {
-      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;
-    }
-    .panel-header {
-      padding: 14px 20px; border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center; background: rgba(15, 23, 42, 0.5); flex-wrap: wrap; gap: 8px;
-    }
-    .panel-title { font-size: 0.95rem; font-weight: 600; }
-    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-    button, .file-upload-btn {
-      background: var(--accent); color: #0f172a; border: none; padding: 7px 14px;
-      border-radius: 6px; font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
-      display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
-    }
-    button:hover, .file-upload-btn:hover { background: var(--accent-hover); color: #fff; }
-    button.btn-secondary { background: transparent; color: var(--text-main); border: 1px solid var(--border); }
-    button.btn-secondary:hover { background: var(--border); }
-    button.btn-success { background: var(--success); color: #052e16; }
-    button.btn-success:hover { background: #16a34a; color: #fff; }
-    button.btn-purple { background: var(--purple); color: #fff; }
-    button.btn-purple:hover { background: #9333ea; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    textarea {
-      width: 100%; height: 380px; background: var(--bg-input); color: var(--text-main);
-      border: none; padding: 20px; font-size: 0.95rem; line-height: 1.7; resize: vertical; outline: none;
-    }
-    .output-viewer {
-      height: 380px; background: var(--bg-input); padding: 20px; font-size: 0.95rem; line-height: 1.7; overflow-y: auto; white-space: pre-wrap;
-    }
-
-    .cliche-flag { background: rgba(234, 179, 8, 0.22); border-bottom: 2px dashed var(--warning); color: #fde047; padding: 1px 5px; border-radius: 4px; cursor: pointer; }
-    .abnt-fix { background: rgba(34, 197, 94, 0.2); border-bottom: 2px solid var(--success); color: #86efac; padding: 1px 4px; border-radius: 4px; }
-
-    .options-bar {
-      padding: 12px 20px; border-top: 1px solid var(--border);
-      display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.8rem; color: var(--text-muted); background: rgba(15, 23, 42, 0.4);
-    }
-    .options-bar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-
-    .audit-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; max-height: 180px; overflow-y: auto; }
-    .audit-item {
-      background: var(--bg-input); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 6px; padding: 10px; font-size: 0.82rem;
-    }
-    .audit-item.verified { border-left-color: var(--success); }
-    .audit-item.warning { border-left-color: var(--warning); }
-    .audit-item a { color: var(--accent); text-decoration: none; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ScriptaLab | LabTech — Diagnóstico e Conformidade Acadêmica</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M46 14L20 40l-4 12 12-4 26-26-8-8z' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{--bg:#0f172a;--card:#1e293b;--inp:#0b1120;--ac:#38bdf8;--ach:#0284c7;--ok:#22c55e;--warn:#eab308;--bad:#ef4444;--pur:#a855f7;--tx:#f8fafc;--mut:#94a3b8;--bd:#334155}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
+body{background:var(--bg);color:var(--tx);line-height:1.6;padding-bottom:60px}
+header{background:linear-gradient(90deg,#0f172a,#1e293b);border-bottom:1px solid var(--bd);padding:16px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:42px;height:42px;background:var(--inp);border:1px solid var(--ac);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--ac)}
+.title{font-size:1.5rem;font-weight:800}.title span{color:var(--ac)}
+.badge{background:rgba(56,189,248,.15);color:var(--ac);border:1px solid rgba(56,189,248,.4);font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600}
+.sel{display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--mut);flex-wrap:wrap}
+select{background:var(--inp);color:var(--tx);border:1px solid var(--bd);padding:7px 12px;border-radius:6px}
+.container{max-width:1400px;margin:20px auto;padding:0 24px;display:flex;flex-direction:column;gap:24px}
+.dp{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.dh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.dt{font-size:1.05rem;font-weight:700;color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.ri{background:var(--inp);border:1px solid var(--bd);border-radius:8px;padding:12px;font-size:.85rem}
+.ri strong{display:block;margin-bottom:4px}
+#status{display:none;padding:10px 14px;border-radius:8px;font-size:.88rem;border:1px solid var(--ac);background:rgba(56,189,248,.1)}
+#status.ok{border-color:var(--ok);background:rgba(34,197,94,.1)}
+#status.err{border-color:var(--bad);background:rgba(239,68,68,.1)}
+.ws{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:960px){.ws{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+.ph{padding:14px 20px;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.bg{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+button,.fub{background:var(--ac);color:#0f172a;border:0;padding:7px 14px;border-radius:6px;font-weight:600;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+button:hover,.fub:hover{background:var(--ach);color:#fff}
+.b2{background:transparent;color:var(--tx);border:1px solid var(--bd)}.b2:hover{background:var(--bd)}
+.bs{background:var(--ok);color:#052e16}.bp{background:var(--pur);color:#fff}
+button:disabled{opacity:.5;cursor:not-allowed}
+textarea{width:100%;height:380px;background:var(--inp);color:var(--tx);border:0;padding:20px;font-size:.95rem;line-height:1.7;resize:vertical;outline:0}
+.out{height:380px;background:var(--inp);padding:20px;font-size:.95rem;line-height:1.7;overflow-y:auto;white-space:pre-wrap}
+.fix{background:rgba(34,197,94,.2);border-bottom:2px solid var(--ok);color:#86efac;padding:1px 4px;border-radius:4px}
+.opt{padding:12px 20px;border-top:1px solid var(--bd);display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--mut)}
+.opt label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.al{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto}
+.ai{background:var(--inp);border:1px solid var(--bd);border-left:4px solid var(--ac);border-radius:6px;padding:10px;font-size:.82rem}
+.ai.v{border-left-color:var(--ok)}.ai.w{border-left-color:var(--warn)}
+.ai a{color:var(--ac)}
+</style>
 </head>
 <body>
-
-  <header>
-    <div class="brand">
-      <div class="brand-logo-box">SL</div>
-      <div>
-        <div class="brand-title">Scripta<span>Lab</span></div>
-        <span class="badge-labtech">LabTech • MathLab Educação</span>
-      </div>
-    </div>
-    <div class="ies-selector">
-      <label for="iesProfileSelect">Perfil Normativo (IES):</label>
-      <select id="iesProfileSelect" onchange="loadIesProfile()">
-        <option value="abnt-padrao-2023.json">ABNT Padrão (NBR 14724 / NBR 10520:2023)</option>
-        <option value="anhanguera-uam.json">Rede Privada / Anhanguera / UAM / Unicesumar</option>
-      </select>
-      <span id="iesActiveBadge" style="font-size:0.75rem; color:var(--success);">● Ativo</span>
-    </div>
-  </header>
-
-  <div class="container">
-
-    <!-- PASSO A PASSO: PAINEL DE DIAGNÓSTICO PRÉVIO -->
-    <section class="diagnostic-panel">
-      <div class="diagnostic-header">
-        <div class="diagnostic-title">
-          <span>🛡️</span> Módulo de Diagnóstico Prévio & Integridade Científica (Human-in-the-Loop)
-        </div>
-        <div class="btn-group">
-          <label class="file-upload-btn">
-            📁 1. Carregar Artigo (PDF / DOCX / TXT)
-            <input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none;" onchange="handleFileUpload(event)">
-          </label>
-          <button class="btn-purple" id="btnRunDiagnostic" onclick="runDiagnostic()" disabled>2. Executar Diagnóstico</button>
-          <button class="btn-success" id="btnAuthorize" onclick="authorizeCorrections()" disabled>3. Autorizar Correções & Normatizar</button>
-        </div>
-      </div>
-      <div id="diagnosticReport" class="report-grid">
-        <div class="report-item">
-          <strong>Estado do Sistema:</strong>
-          Aguardando o carregamento do documento acadêmico para auditoria estrutural e tipográfica.
-        </div>
-        <div class="report-item">
-          <strong>Integridade Textual:</strong>
-          Modo <em>Zero-Tampering</em> ativo. O vocabulário, objetivos e conclusões permanecerão inviolados.
-        </div>
-      </div>
-    </section>
-
-    <!-- ÁREA DE TRABALHO (WORKSPACE) -->
-    <main class="workspace">
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">Texto Bruto Extraído</span>
-          <div class="btn-group">
-            <button class="btn-secondary" onclick="loadSampleText()">Exemplo</button>
-            <button class="btn-secondary" onclick="clearEditor()">Limpar</button>
-          </div>
-        </div>
-        <textarea id="rawInput" placeholder="O texto extraído do ficheiro aparecerá aqui para inspeção..." oninput="markDirty()"></textarea>
-        <div class="options-bar">
-          <label><input type="checkbox" id="optRemoveCitations" checked> Remover tags 【†source】</label>
-          <label><input type="checkbox" id="optCleanUtm" checked> Limpar ?utm_source</label>
-          <label><input type="checkbox" id="optAbnt2023" checked> Adequar (Autor, Ano)</label>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-header">
-          <span class="panel-title">Texto Normatizado & Pronto para Exportação</span>
-          <div class="btn-group">
-            <button class="btn-secondary" onclick="copyCleanText()">Copiar Texto</button>
-            <button class="btn-success" onclick="exportToDocx()">⬇ Baixar Word na Norma</button>
-          </div>
-        </div>
-        <div id="processedOutput" class="output-viewer">O texto processado após a autorização do diagnóstico aparecerá aqui...</div>
-        <div class="options-bar">
-          <span>✨ <strong>Relatório de Mudanças:</strong> O resumo das correções aplicadas constará no relatório final.</span>
-        </div>
-      </div>
-    </main>
-
-    <!-- SEÇÃO INFERIOR: AUDITOR DE CITAÇÕES E DOIS -->
-    <section class="diagnostic-panel" style="padding: 16px 20px;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <div>
-          <span class="diagnostic-title" style="font-size: 0.95rem;">🔍 Auditor de Citações e DOIs (OpenAlex API)</span>
-          <p style="font-size: 0.8rem; color: var(--text-muted);">Validação anti-alucinação bibliográfica baseada nas referências reais.</p>
-        </div>
-        <button class="btn-purple" onclick="auditCitations()">Verificar Existência das Obras</button>
-      </div>
-      <div id="auditResults" class="audit-list">
-        <div class="audit-item">Carregue o documento e execute o diagnóstico para auditar as referências.</div>
-      </div>
-    </section>
-
+<header>
+  <div class="brand"><div class="logo">SL</div><div><div class="title">Scripta<span>Lab</span></div><span class="badge">LabTech • MathLab Educação</span></div></div>
+  <div class="sel">
+    <label for="ies">Perfil Normativo (IES):</label>
+    <select id="ies" onchange="loadIesProfile()">
+      <option value="abnt-padrao-2023.json">ABNT Padrão (Times New Roman 12 | 4 cm)</option>
+      <option value="anhanguera-uam.json">Rede Privada / Anhanguera / UAM / Unicesumar (Arial 12)</option>
+    </select>
+    <span id="badge" style="font-size:.75rem;color:var(--ok)">● Carregando perfil...</span>
   </div>
+</header>
 
-  <script>
-    let activeProfile = {
-      templateId: "abnt-padrao-2023",
-      institution: "ABNT Padrão",
-      pageSetup: { margins: { topCm: 3, leftCm: 3, bottomCm: 2, rightCm: 2 } },
-      typography: { fontFamily: "Times New Roman", bodyFontSizePt: 12 },
-      citations: { longQuote: { indentLeftCm: 4, fontSizePt: 10 } }
-    };
+<div class="container">
+  <section class="dp">
+    <div class="dh">
+      <div class="dt">🛡️ Diagnóstico Prévio & Integridade Científica (Human-in-the-Loop)</div>
+      <div class="bg">
+        <label class="fub">📁 1. Carregar (PDF / DOCX / TXT)<input type="file" id="fileInput" accept=".pdf,.docx,.txt" style="display:none" onchange="handleFileUpload(event)"></label>
+        <button class="bp" id="btnDiag" onclick="runDiagnostic()" disabled>2. Executar Diagnóstico</button>
+        <button class="bs" id="btnAuth" onclick="authorizeCorrections()" disabled>3. Autorizar Correções & Normatizar</button>
+      </div>
+    </div>
+    <div id="status" role="status"></div>
+    <div id="report" class="grid">
+      <div class="ri"><strong>Estado do sistema:</strong>Aguardando o carregamento do documento para auditoria.</div>
+      <div class="ri"><strong>Integridade textual:</strong>Modo <em>Zero-Tampering</em>: vocabulário, objetivos e conclusões não são alterados.</div>
+    </div>
+  </section>
 
-    let cleanPlainTextCache = "";
-    let diagnosticData = { hifensEncontrados: 0, acentosFragmentados: 0, citacoesDetectadas: 0, artefatosIa: 0 };
+  <main class="ws">
+    <div class="panel">
+      <div class="ph"><b>Texto Bruto Extraído</b><div class="bg"><button class="b2" onclick="loadSample()">Exemplo</button><button class="b2" onclick="clearEditor()">Limpar</button></div></div>
+      <textarea id="raw" placeholder="O texto extraído aparecerá aqui para inspeção..." oninput="markDirty()"></textarea>
+      <div class="opt">
+        <label><input type="checkbox" id="oCit" checked> Remover tags 【†source】</label>
+        <label><input type="checkbox" id="oUtm" checked> Limpar ?utm_source</label>
+        <label><input type="checkbox" id="oAbnt" checked> Adequar (Autor, Ano)</label>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="ph"><b>Texto Normatizado</b><div class="bg"><button class="b2" onclick="copyClean()">Copiar Texto</button><button class="bs" onclick="exportToDocx()">⬇ Baixar Word na Norma</button></div></div>
+      <div id="out" class="out">O texto processado aparecerá aqui após a autorização...</div>
+      <div class="opt"><span>✨ O resumo das correções aparece na faixa de status acima.</span></div>
+    </div>
+  </main>
 
-    async function loadIesProfile() {
-      const filename = document.getElementById("iesProfileSelect").value;
-      try {
-        const response = await fetch(`templates-ies/${filename}`);
-        if (response.ok) {
-          activeProfile = await response.json();
-          document.getElementById("iesActiveBadge").innerText = `● Perfil ativo: ${activeProfile.institution}`;
-        }
-      } catch (e) {
-        console.warn("Usando perfil padrão integrado.");
-      }
+  <section class="dp">
+    <div class="dh">
+      <div><div class="dt" style="font-size:.95rem">🔍 Auditor de Citações e DOIs (OpenAlex)</div>
+      <p style="font-size:.8rem;color:var(--mut)">Verifica DOIs (confiável) e procura obras compatíveis com Autor+Ano (indício, não prova).</p></div>
+      <button class="bp" onclick="audit()">Verificar Existência das Obras</button>
+    </div>
+    <div id="audit" class="al"><div class="ai">Carregue o documento e execute o diagnóstico para auditar.</div></div>
+  </section>
+</div>
+
+<script>
+// ===== Perfis: o JSON de templates-ies/ tem prioridade; estes são o plano B (também funciona offline/file://) =====
+const BASE = { pageSetup:{margins:{topCm:3,leftCm:3,bottomCm:2,rightCm:2}},
+  typography:{fontFamily:"Times New Roman",bodyFontSizePt:12,lineSpacing:1.5,paragraphFirstLineIndentCm:1.25},
+  longQuote:{minChars:240,indentLeftCm:4,fontSizePt:10,lineSpacing:1.0} };
+const FALLBACK = {
+  "abnt-padrao-2023.json":{templateId:"abnt-padrao-2023",institution:"ABNT Padrão (NBR 14724 / NBR 10520:2023)"},
+  "anhanguera-uam.json":{templateId:"anhanguera-uam-standard",institution:"Rede Privada (Anhanguera / UAM / Unicesumar)",
+    typography:{fontFamily:"Arial"},citations:{longQuote:{minChars:200}}}
+};
+let profile = null, cleanText = "";
+
+function normProfile(p){
+  return { templateId:p.templateId||"perfil", institution:p.institution||"Perfil",
+    margins:{...BASE.pageSetup.margins,...(p.pageSetup&&p.pageSetup.margins)},
+    typo:{...BASE.typography,...p.typography},
+    italicEtAl:!(p.citations&&p.citations.italicizeEtAl===false),
+    lq:{...BASE.longQuote,...(p.citations&&p.citations.longQuote)} };
+}
+async function loadIesProfile(){
+  const f = document.getElementById("ies").value;
+  let p = FALLBACK[f], src = "embutido";
+  try{ const r = await fetch("templates-ies/"+f,{cache:"no-cache"}); if(r.ok){ p = await r.json(); src = "JSON"; } }catch(e){}
+  profile = normProfile(p);
+  document.getElementById("badge").textContent = `● ${profile.institution} (${src})`;
+}
+window.addEventListener("DOMContentLoaded",()=>{ profile=normProfile(FALLBACK["abnt-padrao-2023.json"]); loadIesProfile(); });
+
+// ===== Utilitários =====
+function setStatus(msg,type){ const s=document.getElementById("status"); s.className=type||""; s.textContent=msg; s.style.display="block"; }
+function escapeHtml(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+const INVIS = /[\u200B-\u200D\u2060\uFEFF\u202F]/g;
+const AI_TAGS = /【[^】]*】|\[oai_citation:[^\]]*\]/g;
+const UTM = /[?&]utm_[a-z0-9_]+=[^\s&)\]]*/gi;
+const HYPH_BREAK = /([a-zà-ÿ])-[ \t]*\r?\n[ \t]*([a-zà-ÿ])/gi;
+const UP = "[A-ZÁÉÍÓÚÂÊÔÃÕÇ]";
+const NAME = `(?:${UP}{2,}(?:\\s+${UP}{2,})*|${UP}[A-Za-zÀ-ÿ'’]+(?:\\s+(?:[Dd][aeo]s?|[Ee])\\s+${UP}[A-Za-zÀ-ÿ'’]+)*)`;
+const mkCit = () => new RegExp(`\\b(${NAME})(\\s+et\\s+al\\.)?,\\s*(\\d{4}[a-z]?)`,"g");
+const titleCase = s => s.toLowerCase().replace(/(^|\s)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase());
+const normStr = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+function isLongQuote(p){ return /^["“]/.test(p) && p.length > profile.lq.minChars; }
+const paras = t => t.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+
+// ===== Upload =====
+async function handleFileUpload(ev){
+  const file = ev.target.files[0]; if(!file) return;
+  const ext = file.name.split(".").pop().toLowerCase();
+  const box = document.getElementById("raw"), previous = box.value;
+  if(!["txt","docx","pdf"].includes(ext)){ setStatus(`Formato ".${ext}" não suportado. Use PDF, DOCX ou TXT (salve .doc como .docx).`,"err"); ev.target.value=""; return; }
+  setStatus(`Extraindo ${file.name}...`);
+  try{
+    let t = "";
+    if(ext==="txt") t = await file.text();
+    else if(ext==="docx"){ if(!window.mammoth) throw new Error("biblioteca DOCX não carregou (verifique a conexão)"); t = (await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value; }
+    else {
+      if(!window.pdfjsLib) throw new Error("biblioteca PDF não carregou (verifique a conexão)");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const pdf = await pdfjsLib.getDocument(new Uint8Array(await file.arrayBuffer())).promise;
+      for(let i=1;i<=pdf.numPages;i++){ const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x=>x.str).join(" ")+"\n\n"; }
     }
+    box.value = t; document.getElementById("btnDiag").disabled = false;
+    setStatus(`"${file.name}" carregado. Clique em "Executar Diagnóstico".`,"ok");
+  }catch(err){ box.value = previous; setStatus("Erro na extração: "+err.message,"err"); }
+  ev.target.value = "";
+}
+function markDirty(){ if(document.getElementById("raw").value.trim()) document.getElementById("btnDiag").disabled = false; }
 
-    window.addEventListener("DOMContentLoaded", () => {
-      loadIesProfile();
-    });
+// ===== Diagnóstico (só mede; não altera o texto) =====
+function runDiagnostic(){
+  const text = document.getElementById("raw").value;
+  if(!text.trim()){ setStatus("O campo de texto está vazio.","err"); return; }
+  const n = (re)=>(text.match(re)||[]).length;
+  const inv = n(INVIS), hy = n(HYPH_BREAK), spaced = n(/[a-zà-ÿ]{2,} - [a-zà-ÿ]{2,}/gi);
+  const ai = n(AI_TAGS)+n(UTM), cits = n(mkCit()), upper = (text.match(mkCit())||[]).filter(c=>/^[^a-z]*[A-Z]{2,}/.test(c)).length;
+  const lq = paras(text).filter(isLongQuote).length;
+  const secs = ["introdu[cç][aã]o","metodologia|m[eé]todo","resultados","conclus[aã]o|considera[cç][oõ]es finais","refer[eê]ncias"]
+    .map(r=>new RegExp(r,"i").test(text)?r.split("|")[0].replace(/\[.*?\]/g,"").replace("introdu","Introdução").replace("metodologia","Metodologia").replace("resultados","Resultados").replace("conclus","Conclusão").replace("refer","Referências"):null).filter(Boolean);
+  document.getElementById("report").innerHTML = `
+    <div class="ri"><strong>1. Estrutura:</strong>${secs.length?"Seções reconhecidas por palavra-chave: "+secs.join(", ")+".":"Nenhuma seção padrão reconhecida."}</div>
+    <div class="ri" style="border-color:var(--warn)"><strong>2. Tipografia:</strong>${hy} palavras quebradas por hífen no fim da linha (serão unidas); ${inv} caracteres invisíveis (serão removidos); ${spaced} ocorrências "palavra - palavra" (apenas sinalizadas, não alteradas).</div>
+    <div class="ri" style="border-color:var(--ac)"><strong>3. Citações e rastros:</strong>${cits} citações (Autor, Ano), ${upper} em caixa alta a converter; ${lq} citação(ões) longa(s); ${ai} rastros de IA.</div>
+    <div class="ri" style="border-color:var(--ok)"><strong>4. Perfil:</strong>${escapeHtml(profile.institution)}</div>`;
+  document.getElementById("btnAuth").disabled = false;
+  setStatus('Diagnóstico concluído. Revise e clique em "Autorizar Correções & Normatizar".',"ok");
+}
 
-    async function handleFileUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const ext = file.name.split('.').pop().toLowerCase();
-      const outputArea = document.getElementById("rawInput");
-      outputArea.value = `A extrair o ficheiro ${file.name}...`;
+// ===== Normatização =====
+function authorizeCorrections(){
+  let t = document.getElementById("raw").value; if(!t.trim()) return;
+  const c = {inv:0,hy:0,ai:0,cit:0};
+  t = t.normalize("NFKC");
+  t = t.replace(INVIS,m=>{c.inv++; return m==="\u202F"?" ":"";});
+  t = t.replace(HYPH_BREAK,(m,a,b)=>{c.hy++; return a+b;});
+  if(document.getElementById("oCit").checked) t = t.replace(AI_TAGS,()=>{c.ai++; return "";});
+  if(document.getElementById("oUtm").checked) t = t.replace(UTM,()=>{c.ai++; return "";});
+  if(document.getElementById("oAbnt").checked)
+    t = t.replace(mkCit(),(m,name,etal,year)=>{
+      if(name!==name.toUpperCase()) return m;
+      c.cit++; return titleCase(name)+(etal?" et al.":"")+", "+year; });
+  cleanText = t;
+  let h = escapeHtml(t);
+  if(profile.italicEtAl) h = h.replace(/\bet al\./g,'<em class="fix" title="NBR 10520:2023">et al.</em>');
+  document.getElementById("out").innerHTML = h;
+  setStatus(`Normatizado: ${c.hy} quebras de hífen unidas, ${c.inv} invisíveis removidos, ${c.ai} rastros de IA expurgados, ${c.cit} citações ajustadas para (Autor, Ano). Vocabulário preservado.`,"ok");
+}
 
-      try {
-        let extractedText = "";
-        if (ext === 'txt') {
-          extractedText = await file.text();
-        } else if (ext === 'docx') {
-          const buffer = await file.arrayBuffer();
-          const res = await mammoth.extractRawText({ arrayBuffer: buffer });
-          extractedText = res.value;
-        } else if (ext === 'pdf') {
-          const typedarray = new Uint8Array(await file.arrayBuffer());
-          const pdf = await pdfjsLib.getDocument(typedarray).promise;
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            extractedText += textContent.items.map(item => item.str).join(" ") + "\n\n";
-          }
-        }
-        outputArea.value = extractedText;
-        document.getElementById("btnRunDiagnostic").disabled = false;
-        alert("Ficheiro carregado com sucesso! Clique agora em 'Executar Diagnóstico'.");
-      } catch (err) {
-        alert("Erro na extração do ficheiro: " + err.message);
-      }
+// ===== Auditor =====
+async function oa(url){ const r = await fetch(url); if(!r.ok){ const e=new Error("HTTP "+r.status); e.status=r.status; throw e; } return r.json(); }
+async function audit(){
+  const box = document.getElementById("audit");
+  const text = cleanText || document.getElementById("raw").value;
+  if(!text.trim()){ box.innerHTML='<div class="ai w">Nenhum texto para auditar.</div>'; return; }
+  const dois = [...new Set((text.match(/10\.\d{4,9}\/[^\s"<>\]【]+/g)||[]).map(d=>d.replace(/[.,;:)]+$/,"")))];
+  const seen = new Set(), cits = [];
+  for(const m of text.matchAll(mkCit())){
+    const sur = m[1].trim().split(/\s+/).pop(), year = m[3].replace(/[a-z]/,""), key = normStr(sur)+year;
+    if(!seen.has(key)){ seen.add(key); cits.push({name:titleCase(m[1]),sur,year}); }
+  }
+  if(!dois.length && !cits.length){ box.innerHTML='<div class="ai w">Nenhum DOI nem citação (Autor, Ano) encontrado.</div>'; return; }
+  let html = ""; box.innerHTML = `<div class="ai">🔎 Consultando OpenAlex (${dois.length} DOI, ${cits.length} citações)...</div>`;
+  for(const d of dois){
+    try{ const w = await oa("https://api.openalex.org/works/https://doi.org/"+d);
+      html += `<div class="ai v"><strong>✅ DOI ${escapeHtml(d)}</strong> existe: ${escapeHtml(w.title||"(sem título)")} (${w.publication_year||"s.d."}). Confira se corresponde à referência citada.</div>`;
+    }catch(e){ html += e.status===404
+      ? `<div class="ai w"><strong>⚠️ DOI ${escapeHtml(d)}</strong> não encontrado: forte indício de referência inventada ou DOI digitado errado.</div>`
+      : `<div class="ai w">Erro ao consultar o DOI ${escapeHtml(d)}.</div>`; }
+  }
+  for(const c of cits){
+    try{
+      let data; const q = encodeURIComponent(c.sur);
+      try{ data = await oa(`https://api.openalex.org/works?filter=raw_author_name.search:${q},publication_year:${c.year}&per_page=25`); }
+      catch(e){ data = await oa(`https://api.openalex.org/works?search=${q}&filter=publication_year:${c.year}&per_page=25`); }
+      const w = (data.results||[]).find(x=>(x.authorships||[]).some(a=>normStr((a.author&&a.author.display_name)||"").includes(normStr(c.sur))));
+      html += w
+        ? `<div class="ai"><strong>🔎 (${escapeHtml(c.name)}, ${c.year}):</strong> há obra compatível: <a href="${escapeHtml(w.doi||w.id)}" target="_blank" rel="noopener">${escapeHtml(w.title||"(sem título)")}</a>. É um indício; confirme manualmente.</div>`
+        : `<div class="ai w"><strong>⚠️ (${escapeHtml(c.name)}, ${c.year}):</strong> nenhuma obra compatível na base aberta. Pode ser falta de cobertura ou referência inventada: verifique.</div>`;
+    }catch(e){ html += `<div class="ai w">Erro na consulta de (${escapeHtml(c.name)}, ${c.year}).</div>`; }
+  }
+  box.innerHTML = html;
+}
+
+// ===== Exportação .docx =====
+function runs(text,size,italicEtAl){
+  const {TextRun} = window.docx, f = profile.typo.fontFamily;
+  return text.split(/(et al\.)/).filter(Boolean).map(s=>new TextRun({text:s,font:f,size,italics:italicEtAl&&s==="et al."}));
+}
+async function exportToDocx(){
+  if(!cleanText.trim()){ setStatus("Execute o diagnóstico e autorize as correções antes de exportar.","err"); return; }
+  if(!window.docx){ setStatus("A biblioteca de exportação (docx) não carregou. Verifique a conexão e recarregue a página.","err"); return; }
+  const {Document,Packer,Paragraph,AlignmentType,convertMillimetersToTwip:mm} = window.docx;
+  const T = profile.typo, L = profile.lq, M = profile.margins;
+  const children = paras(cleanText).map(p=>{
+    if(isLongQuote(p)){
+      const q = p.replace(/^["“]\s*/,"").replace(/["”](\s*\([^)]*\)\.?)\s*$/,"$1").replace(/["”]\s*$/,"");
+      return new Paragraph({alignment:AlignmentType.JUSTIFIED,indent:{left:mm(L.indentLeftCm*10)},
+        spacing:{before:240,after:240,line:Math.round(240*L.lineSpacing)},children:runs(q,L.fontSizePt*2,profile.italicEtAl)});
     }
+    return new Paragraph({alignment:AlignmentType.JUSTIFIED,indent:{firstLine:mm(T.paragraphFirstLineIndentCm*10)},
+      spacing:{after:160,line:Math.round(240*T.lineSpacing)},children:runs(p,T.bodyFontSizePt*2,profile.italicEtAl)});
+  });
+  const doc = new Document({sections:[{properties:{page:{margin:{top:mm(M.topCm*10),left:mm(M.leftCm*10),bottom:mm(M.bottomCm*10),right:mm(M.rightCm*10)}}},children}]});
+  const url = URL.createObjectURL(await Packer.toBlob(doc));
+  const a = document.createElement("a"); a.href = url; a.download = `ScriptaLab_Normatizado_${profile.templateId}.docx`; a.click();
+  URL.revokeObjectURL(url); setStatus("Documento Word gerado.","ok");
+}
 
-    function markDirty() {
-      if(document.getElementById("rawInput").value.trim()) {
-        document.getElementById("btnRunDiagnostic").disabled = false;
-      }
-    }
-
-    // PASSO 3 & 4: EXECUTAR DIAGNÓSTICO PRÉVIO
-    function runDiagnostic() {
-      let text = document.getElementById("rawInput").value;
-      if (!text.trim()) {
-        alert("O campo de texto está vazio.");
-        return;
-      }
-
-      // Normalização Unicode NFKC (corrige acentos espaçados tipo 'FERN Á NDEZ')
-      text = text.normalize("NFKC");
-
-      // Diagnóstico de hifenizações partidas por quebras de linha (ex: "matérias - primas" ou "constitu i")
-      const hifenMatches = text.match(/\b[a-zÀ-ÿ]+[\s\-]+[a-zÀ-ÿ]+\b/g) || [];
-      diagnosticData.hifensEncontrados = hifenMatches.length;
-
-      // Diagnóstico de artefatos de IA
-      const citMatches = text.match(/【[^】]+】|\[oai_citation:[^\]]+\]/g) || [];
-      const utmMatches = text.match(/utm_[a-zA-Z0-9_=-]+/g) || [];
-      diagnosticData.artefatosIa = citMatches.length + utmMatches.length;
-
-      // Citações no formato Autor, Ano
-      const citations = text.match(/\b([A-ZÁÉÍÓÚÂÊÔÃÕÇ][a-záéíóúâêôãõç]+)(?:\s+et\s+al\.)?,\s*(\d{4})\b/g) || [];
-      diagnosticData.citacoesDetectadas = citations.length;
-
-      // Renderizar Relatório Visual no Painel de Diagnóstico
-      const reportContainer = document.getElementById("diagnosticReport");
-      reportContainer.innerHTML = `
-        <div class="report-item">
-          <strong>1. Integridade Estrutural:</strong>
-          Detetados blocos de Introdução, Metodologia e Conclusão.
-        </div>
-        <div class="report-item" style="border-color: var(--warning);">
-          <strong>2. Anomalias Tipográficas:</strong>
-          Encontradas ${diagnosticData.hifensEncontrados} ocorrências de espaçamentos/hifenizações irregulares passíveis de correção.
-        </div>
-        <div class="report-item" style="border-color: var(--accent);">
-          <strong>3. Citações e Rastros:</strong>
-          ${diagnosticData.citacoesDetectadas} citações detetadas | ${diagnosticData.artefatosIa} marcações residuais de IA identificadas.
-        </div>
-        <div class="report-item" style="border-color: var(--success);">
-          <strong>4. Conclusão da Auditoria:</strong>
-          Pronto para aplicação cirúrgica das regras da instituição <strong>${activeProfile.institution}</strong>.
-        </div>
-      `;
-
-      document.getElementById("btnAuthorize").disabled = false;
-      alert("Diagnóstico concluído! Verifique o relatório acima e clique em 'Autorizar Correções & Normatizar'.");
-    }
-
-    // PASSO 5 & 6: AUTORIZAR CORREÇÕES E APLICAR MOTOR DE REGRAS
-    function authorizeCorrections() {
-      let text = document.getElementById("rawInput").value;
-      if (!text.trim()) return;
-
-      // 1. Normalização Unicode de ponta a ponta
-      text = text.normalize("NFKC");
-
-      // 2. Limpeza de hifenizações irregulares geradas por quebras de linha em extração
-      text = text.replace(/\b([a-zÀ-ÿ]{2,})\s*-\s*([a-zÀ-ÿ]{2,})\b/g, "$1-$2");
-
-      // 3. Remover tags de IA
-      if (document.getElementById("optRemoveCitations").checked) {
-        text = text.replace(/【[^】]+】|\[oai_citation:[^\]]+\]/g, "");
-      }
-
-      // 4. Limpar UTMs
-      if (document.getElementById("optCleanUtm").checked) {
-        text = text.replace(/(\?|&)utm_[a-zA-Z0-9_=-]+(&utm_[a-zA-Z0-9_=-]+)*/g, "");
-      }
-
-      // 5. Adequação ABNT NBR 10520:2023 de citações entre parênteses
-      if (document.getElementById("optAbnt2023").checked) {
-        text = text.replace(/\b([A-ZÁÉÍÓÚÂÊÔÃÕÇ]{3,})(\s+et\s+al\.)?(,\s*\d{4})/g, (match, surname, etal, yearPart) => {
-          const formattedSurname = surname.charAt(0).toUpperCase() + surname.slice(1).toLowerCase();
-          const formattedEtAl = etal ? " et al." : "";
-          return `${formattedSurname}${formattedEtAl}${yearPart}`;
-        });
-      }
-
-      cleanPlainTextCache = text;
-
-      // Renderizar na tela mantendo o Zero-Tampering (sem mexer no vocabulário científico)
-      let htmlOutput = escapeHtml(text);
-      htmlOutput = htmlOutput.replace(/\bet al\./g, '<em class="abnt-fix" title="NBR 10520:2023">et al.</em>');
-      
-      document.getElementById("processedOutput").innerHTML = htmlOutput;
-      alert(`Autorização aceite com sucesso!\n\nRelatório de Alterações:\n- Hifenizações corrigidas: ${diagnosticData.hifensEncontrados}\n- Artefatos de IA expurgados: ${diagnosticData.artefatosIa}\n- Citações padronizadas conforme NBR 10520:2023.\n\nO seu vocabulário e objetivos originais foram rigorosamente preservados.`);
-    }
-
-    async function auditCitations() {
-      const container = document.getElementById("auditResults");
-      const textToSearch = cleanPlainTextCache || document.getElementById("rawInput").value;
-      
-      const citRegex = /\b([A-ZÁÉÍÓÚÂÊÔÃÕÇ][a-záéíóúâêôãõç]+)(?:\s+et\s+al\.)?,\s*(\d{4})\b/g;
-      const matches = [...textToSearch.matchAll(citRegex)];
-      const uniqueCitations = [];
-      const seen = new Set();
-      for (const m of matches) {
-        const key = `${m[1]}-${m[2]}`;
-        if (!seen.has(key)) { seen.add(key); uniqueCitations.push({ author: m[1], year: m[2] }); }
-      }
-
-      if (uniqueCitations.length === 0) {
-        container.innerHTML = `<div class="audit-item warning">Nenhuma citação no formato (Autor, Ano) encontrada para auditar.</div>`;
-        return;
-      }
-
-      container.innerHTML = `<div class="audit-item">🔎 A consultar base OpenAlex para ${uniqueCitations.length} citação(ões)...</div>`;
-      let resultsHtml = "";
-
-      for (const cit of uniqueCitations) {
-        try {
-          const res = await fetch(`https://api.openalex.org/works?search=${encodeURIComponent(cit.author + " " + cit.year)}&per_page=1`);
-          const data = await res.json();
-          if (data.results && data.results.length > 0) {
-            const work = data.results[0];
-            resultsHtml += `<div class="audit-item verified"><strong>✅ (${cit.author}, ${cit.year}):</strong> Obra validada.<br><span style="color:var(--text-muted);">Referência:</span> ${cit.author.toUpperCase()}. <strong>${work.title}</strong>. (${work.publication_year || cit.year}).</div>`;
-          } else {
-            resultsHtml += `<div class="audit-item warning"><strong>⚠️ (${cit.author}, ${cit.year}):</strong> Não localizada automaticamente na base aberta.</div>`;
-          }
-        } catch (e) {
-          resultsHtml += `<div class="audit-item warning">Erro na consulta de (${cit.author}, ${cit.year}).</div>`;
-        }
-      }
-      container.innerHTML = resultsHtml;
-    }
-
-    async function exportToDocx() {
-      if (!cleanPlainTextCache.trim()) { alert("Execute o diagnóstico e autorize as correções antes de exportar."); return; }
-
-      const { Document, Packer, Paragraph, TextRun, AlignmentType, convertMillimetersToTwip } = window.docx;
-      const fontName = activeProfile.typography?.fontFamily || "Times New Roman";
-      const quoteIndent = activeProfile.citations?.longQuote?.indentLeftCm || 4;
-      const quoteFontSize = activeProfile.citations?.longQuote?.fontSizePt ? activeProfile.citations.longQuote.fontSizePt * 2 : 20;
-
-      const paragraphsRaw = cleanPlainTextCache.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
-      const docParagraphs = [];
-
-      paragraphsRaw.forEach(pText => {
-        const isLongQuote = (pText.startsWith('"') || pText.startsWith('“')) && pText.length > 200;
-
-        if (isLongQuote) {
-          docParagraphs.push(new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            indent: { left: convertMillimetersToTwip(quoteIndent * 10) },
-            spacing: { before: 240, after: 240, line: 240 },
-            children: [new TextRun({ text: pText.replace(/^["“]|["”]$/g, ""), font: fontName, size: quoteFontSize })]
-          }));
-        } else {
-          docParagraphs.push(new Paragraph({
-            alignment: AlignmentType.JUSTIFIED,
-            indent: { firstLine: convertMillimetersToTwip(12.5) },
-            spacing: { after: 160, line: 360 },
-            children: [new TextRun({ text: pText, font: fontName, size: 24 })]
-          }));
-        }
-      });
-
-      const doc = new Document({
-        sections: [{
-          properties: {
-            page: {
-              margin: {
-                top: convertMillimetersToTwip(activeProfile.pageSetup.margins.topCm * 10),
-                left: convertMillimetersToTwip(activeProfile.pageSetup.margins.leftCm * 10),
-                bottom: convertMillimetersToTwip(activeProfile.pageSetup.margins.bottomCm * 10),
-                right: convertMillimetersToTwip(activeProfile.pageSetup.margins.rightCm * 10)
-              }
-            }
-          },
-          children: docParagraphs
-        }]
-      });
-
-      const blob = await Packer.toBlob(doc);
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `ScriptaLab_Normatizado_${activeProfile.templateId}.docx`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function loadSampleText() {
-      const sample = `No cenário atual, a inclusão escolar no ensino de matemática desempenha um papel fundamental para o desenvolvimento cognitivo dos estudantes【4:0†source】. Nesse sentido, o Desenho Universal para a Aprendizagem (DUA) — enquanto abordagem pedagógica — oferece caminhos acessíveis para todos (MANTOAN, 2015, p. 34).\u200B\u200B
+// ===== Auxiliares =====
+function loadSample(){
+  document.getElementById("raw").value = `No cenário atual, a inclusão escolar no ensino de matemática desempenha um papel fundamental para o desenvolvimento cognitivo dos estudantes【4:0†source】. Nesse sentido, o Desenho Universal para a Aprendizagem (DUA) — enquanto abordagem pedagógica — oferece caminhos acessíveis para todos (MANTOAN, 2015, p. 34).\u200B\u200B
 
 Vale ressaltar que a mediação pedagógica exige intencionalidade docente e planejamento colaborativo contínuo (VYGOTSKY, 1998; SKOVSMOSE et al., 2019)【12:2†source】.
 
 "A inclusão implica uma mudança de perspectiva educacional, pois não atinge apenas alunos com deficiência, mas todos os demais, para que obtenham sucesso na corrente educativa geral, transformando a organização pedagógica da escola." (MANTOAN, 2015, p. 28).
 
 Em suma, é crucial destacar que a formação docente contínua constrói uma rica tapeçaria de saberes práticos e teóricos na educação básica (GATTI et al., 2021, p. 88).`;
-      document.getElementById("rawInput").value = sample;
-      document.getElementById("btnRunDiagnostic").disabled = false;
-      alert("Exemplo carregado. Clique em 'Executar Diagnóstico'.");
-    }
-
-    function clearEditor() {
-      document.getElementById("rawInput").value = "";
-      document.getElementById("processedOutput").innerHTML = "O texto processado aparecerá aqui...";
-      document.getElementById("btnRunDiagnostic").disabled = true;
-      document.getElementById("btnAuthorize").disabled = true;
-    }
-
-    function escapeHtml(str) {
-      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    function copyCleanText() {
-      if (!cleanPlainTextCache) return;
-      navigator.clipboard.writeText(cleanPlainTextCache);
-      alert("Texto normatizado copiado com sucesso!");
-    }
-  </script>
+  document.getElementById("btnDiag").disabled = false;
+  setStatus('Exemplo carregado. Clique em "Executar Diagnóstico".');
+}
+function clearEditor(){
+  document.getElementById("raw").value = ""; cleanText = "";
+  document.getElementById("out").textContent = "O texto processado aparecerá aqui após a autorização...";
+  document.getElementById("btnDiag").disabled = true; document.getElementById("btnAuth").disabled = true;
+  document.getElementById("status").style.display = "none";
+}
+async function copyClean(){
+  if(!cleanText) return;
+  try{ await navigator.clipboard.writeText(cleanText); setStatus("Texto normatizado copiado.","ok"); }
+  catch(e){ setStatus("Não foi possível copiar automaticamente. Selecione o texto e use Ctrl+C.","err"); }
+}
+</script>
 </body>
 </html>
