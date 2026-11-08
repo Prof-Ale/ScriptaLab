@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "templateId": "ifsuldeminas-carmo-tcc-artigo",
+  "institution": "IFSULDEMINAS – Campus Carmo de Minas (Administração, TCC em artigo)",
+  "status": "verificado",
+  "scopeNote": "Baseado na normalização do curso (2025). O documento original restringe o uso a esse curso e campus; não use como padrão geral do IFSULDEMINAS.",
+  "norms": { "nbr14724": "2024", "nbr10520": "2023", "nbr6023": "2025", "nbr6024": "2012", "nbr6027": "2012", "nbr6028": "2021" },
+  "verifiedOn": "2026-11-07",
+  "sources": [
+    "https://cdm.ifsuldeminas.edu.br/images/Campus/tcc/Normalizacao_TCC_-_IFSULDEMINAS_CMD.pdf"
+  ],
+  "pageSetup": {
+    "paperSize": "A4",
+    "margins": { "topCm": 3.0, "leftCm": 3.0, "bottomCm": 2.0, "rightCm": 2.0 }
+  },
+  "typography": {
+    "fontFamily": "Arial",
+    "bodyFontSizePt": 12,
+    "lineSpacing": 1.5,
+    "paragraphFirstLineIndentCm": 1.25,
+    "paragraphSpacingAfterPt": 0
+  },
+  "citations": {
+    "standard": "NBR-10520-2023",
+    "parentheticalCapitalization": "TitleCase",
+    "italicizeEtAl": true,
+    "etAlFromAuthors": 4,
+    "longQuote": { "minChars": 240, "indentLeftCm": 4.0, "fontSizePt": 10, "lineSpacing": 1.0, "requiresQuotes": false }
+  },
+  "notes": [
+    "Citação longa: mais de três linhas, sem aspas, recuo de 4 cm, fonte 10, espaçamento simples.",
+    "Até 3 autores: todos os sobrenomes; 4 ou mais: primeiro autor + et al.",
+    "Numeração de páginas: algarismos arábicos no canto superior direito (ainda não aplicada pelo exportador).",
+    "Fonte 10 também em notas de rodapé, legendas e fontes de figuras, quadros e tabelas (ainda não aplicado pelo exportador)."
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://prof-ale.github.io/ScriptaLab/templates-ies/schema.json",
+  "title": "Perfil normativo de IES do ScriptaLab",
+  "type": "object",
+  "required": ["schemaVersion", "templateId", "institution", "pageSetup", "typography", "citations"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "templateId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "institution": { "type": "string", "minLength": 3 },
+    "status": { "enum": ["verificado", "base", "em-validacao"], "description": "verificado = conferido no manual oficial; base = regra geral da ABNT; em-validacao = ainda sem conferência." },
+    "scopeNote": { "type": "string" },
+    "norms": { "type": "object", "additionalProperties": { "type": "string", "pattern": "^(19|20)\\d{2}$" } },
+    "verifiedOn": { "type": "string", "pattern": "^(\\d{4}-\\d{2}-\\d{2}|AAAA-MM-DD)$" },
+    "sources": { "type": "array", "items": { "type": "string", "format": "uri" } },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "pageSetup": {
+      "type": "object", "required": ["paperSize", "margins"], "additionalProperties": false,
+      "properties": {
+        "paperSize": { "enum": ["A4"] },
+        "margins": {
+          "type": "object", "required": ["topCm", "leftCm", "bottomCm", "rightCm"], "additionalProperties": false,
+          "properties": {
+            "topCm": { "type": "number", "minimum": 0.5, "maximum": 6 }, "leftCm": { "type": "number", "minimum": 0.5, "maximum": 6 },
+            "bottomCm": { "type": "number", "minimum": 0.5, "maximum": 6 }, "rightCm": { "type": "number", "minimum": 0.5, "maximum": 6 }
+          }
+        }
+      }
+    },
+    "typography": {
+      "type": "object", "required": ["fontFamily", "bodyFontSizePt", "lineSpacing", "paragraphFirstLineIndentCm"], "additionalProperties": false,
+      "properties": {
+        "fontFamily": { "type": "string" }, "bodyFontSizePt": { "type": "number", "minimum": 8, "maximum": 16 },
+        "lineSpacing": { "type": "number", "minimum": 1, "maximum": 3 }, "paragraphFirstLineIndentCm": { "type": "number", "minimum": 0, "maximum": 4 },
+        "paragraphSpacingAfterPt": { "type": "number", "minimum": 0, "maximum": 24 }
+      }
+    },
+    "citations": {
+      "type": "object", "required": ["standard", "longQuote"], "additionalProperties": false,
+      "properties": {
+        "citationStyle": { "enum": ["ABNT", "APA", "Vancouver", "ISO"] },
+        "standard": { "type": "string" }, "parentheticalCapitalization": { "enum": ["TitleCase"] },
+        "italicizeEtAl": { "type": "boolean" }, "etAlFromAuthors": { "type": "integer", "minimum": 2, "maximum": 10 },
+        "longQuote": {
+          "type": "object", "required": ["minChars", "indentLeftCm", "fontSizePt", "lineSpacing"], "additionalProperties": false,
+          "properties": {
+            "minChars": { "type": "integer", "minimum": 50 }, "indentLeftCm": { "type": "number", "minimum": 0, "maximum": 8 },
+            "fontSizePt": { "type": "number", "minimum": 8, "maximum": 14 }, "lineSpacing": { "type": "number", "minimum": 1, "maximum": 2 },
+            "requiresQuotes": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

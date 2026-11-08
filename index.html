@@ -3,22 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- CSP: o texto do usuário nunca sai da página. connect-src lista só os domínios de consulta (CrossRef/OpenAlex) e do CDN do worker do PDF. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://api.crossref.org https://api.openalex.org https://cdnjs.cloudflare.com; worker-src blob:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <title>ScriptaLab | LabTech — Diagnóstico e Conformidade Acadêmica</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230f172a'/%3E%3Cpath d='M46 14L20 40l-4 12 12-4 26-26-8-8z' fill='none' stroke='%2338bdf8' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="manifest" href="./manifest.webmanifest">
+<meta name="theme-color" content="#10294B">
+<!-- Bibliotecas com versão fixa + SRI (SHA-384). Ao atualizar uma versão, recalcule com tools/sri.sh -->
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" integrity="sha384-4xaIisuLEy2lo2HkB2C4rEf7v8jbTb2kuogX6TkuEt9feTWKBSFSOzsqNNbV+sKh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" integrity="sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <style>
 :root{--bg:#0f172a;--card:#1e293b;--inp:#0b1120;--ac:#38bdf8;--ach:#0284c7;--ok:#22c55e;--warn:#eab308;--bad:#ef4444;--pur:#a855f7;--tx:#f8fafc;--mut:#94a3b8;--bd:#334155}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif}
 body{background:var(--bg);color:var(--tx);line-height:1.6;padding-bottom:60px}
 header{background:linear-gradient(90deg,#0f172a,#1e293b);border-bottom:1px solid var(--bd);padding:16px 32px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
 .brand{display:flex;align-items:center;gap:14px}
-.logo{width:42px;height:42px;background:var(--inp);border:1px solid var(--ac);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--ac)}
+.logo{width:42px;height:42px;border-radius:8px;display:block;flex-shrink:0}
 .title{font-size:1.5rem;font-weight:800}.title span{color:var(--ac)}
 .badge{background:rgba(56,189,248,.15);color:var(--ac);border:1px solid rgba(56,189,248,.4);font-size:.75rem;padding:3px 10px;border-radius:99px;font-weight:600}
 .sel{display:flex;align-items:center;gap:10px;font-size:.85rem;color:var(--mut);flex-wrap:wrap}
-select{background:var(--inp);color:var(--tx);border:1px solid var(--bd);padding:7px 12px;border-radius:6px}
+select,input[type=email],input[type=password]{background:var(--inp);color:var(--tx);border:1px solid var(--bd);padding:7px 12px;border-radius:6px;font-size:.82rem}
 .container{max-width:1400px;margin:20px auto;padding:0 24px;display:flex;flex-direction:column;gap:24px}
 .dp{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:14px}
 .dh{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
@@ -44,22 +52,36 @@ textarea{width:100%;height:380px;background:var(--inp);color:var(--tx);border:0;
 .fix{background:rgba(34,197,94,.2);border-bottom:2px solid var(--ok);color:#86efac;padding:1px 4px;border-radius:4px}
 .opt{padding:12px 20px;border-top:1px solid var(--bd);display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--mut)}
 .opt label{display:flex;align-items:center;gap:6px;cursor:pointer}
-.al{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto}
+.al{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
 .ai{background:var(--inp);border:1px solid var(--bd);border-left:4px solid var(--ac);border-radius:6px;padding:10px;font-size:.82rem}
-.ai.v{border-left-color:var(--ok)}.ai.w{border-left-color:var(--warn)}
+.ai.v{border-left-color:var(--ok)}.ai.w{border-left-color:var(--warn)}.ai.x{border-left-color:var(--bad)}
 .ai a{color:var(--ac)}
+.hint{font-size:.78rem;color:var(--mut)}
+.cfg{display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:.8rem;color:var(--mut)}
+/* Estilometria */
+.chart{position:relative;height:140px;background:var(--inp);border:1px solid var(--bd);border-radius:8px;padding:0 6px}
+.bars{display:flex;align-items:flex-end;gap:3px;height:100%;overflow-x:auto;overflow-y:hidden}
+.bar{flex:0 0 auto;width:10px;background:var(--ac);border-radius:3px 3px 0 0;cursor:pointer;min-height:2px}
+.bar.long{background:var(--pur)}.bar.short{background:var(--warn)}.bar.sel{outline:2px solid var(--tx)}
+.meanline{position:absolute;left:0;right:0;border-top:1px dashed var(--ok);pointer-events:none}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.75rem;color:var(--mut)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+.styleout{max-height:260px;overflow-y:auto;background:var(--inp);border:1px solid var(--bd);border-radius:8px;padding:14px;font-size:.9rem;line-height:1.7;white-space:pre-wrap}
+mark.cl{background:rgba(234,179,8,.22);color:#fde68a;border-bottom:2px solid var(--warn);border-radius:3px;padding:0 2px;cursor:help}
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><div class="logo">SL</div><div><div class="title">Scripta<span>Lab</span></div><span class="badge">LabTech • MathLab Educação</span></div></div>
+  <div class="brand"><img src="./icon-app.svg" alt="ScriptaLab" class="logo" width="42" height="42"><div><div class="title">Scripta<span>Lab</span></div><span class="badge">LabTech • MathLab Educação</span></div></div>
   <div class="sel">
     <label for="ies">Perfil Normativo (IES):</label>
     <select id="ies" onchange="loadIesProfile()">
       <option value="abnt-padrao-2023.json">ABNT Padrão (Times New Roman 12 | 4 cm)</option>
       <option value="anhanguera-uam.json">Rede Privada / Anhanguera / UAM / Unicesumar (Arial 12)</option>
+      <option value="ifsuldeminas-carmo-tcc-artigo.json">IFSULDEMINAS – Carmo de Minas (Administração, TCC em artigo | Arial 12)</option>
     </select>
     <span id="badge" style="font-size:.75rem;color:var(--ok)">● Carregando perfil...</span>
+    <span id="scope" class="hint" style="flex-basis:100%"></span>
   </div>
 </header>
 
@@ -97,30 +119,257 @@ textarea{width:100%;height:380px;background:var(--inp);color:var(--tx);border:0;
     </div>
   </main>
 
+  <section class="dp" id="stylePanel">
+    <div class="dh">
+      <div>
+        <div class="dt" style="font-size:.95rem">📊 Estilometria Acadêmica (Burstiness + Radar de Clichês PT-BR)</div>
+        <p class="hint">Só mede e sinaliza: o seu texto não é alterado. Os indicadores são apoio à revisão, não detector de autoria nem prova de uso de IA.</p>
+      </div>
+      <button class="bp" id="btnStyle" onclick="runStyle()">Analisar estilo</button>
+    </div>
+    <div id="styleStats" class="grid"></div>
+    <div id="styleChartWrap" style="display:none">
+      <div class="chart"><div class="bars" id="styleBars" role="img" aria-label="Comprimento de cada período em palavras"></div><div class="meanline" id="meanLine"></div></div>
+      <div class="legend" style="margin-top:6px"><span><i style="background:var(--ac)"></i>dentro da média ± 1 desvio</span><span><i style="background:var(--pur)"></i>período longo</span><span><i style="background:var(--warn)"></i>período curto</span><span><i style="border-top:1px dashed var(--ok);height:0;width:14px"></i>média</span></div>
+      <div id="styleDetail" class="hint" style="margin-top:6px;min-height:1.4em">Clique em uma barra para ver o período.</div>
+    </div>
+    <div id="styleCliches" class="al" style="max-height:220px"></div>
+    <div id="styleOut" class="styleout" style="display:none" aria-label="Texto com expressões destacadas (somente leitura)"></div>
+  </section>
+
   <section class="dp">
     <div class="dh">
-      <div><div class="dt" style="font-size:.95rem">🔍 Auditor de Citações e DOIs (OpenAlex)</div>
-      <p style="font-size:.8rem;color:var(--mut)">Verifica DOIs (confiável) e procura obras compatíveis com Autor+Ano (indício, não prova).</p></div>
-      <button class="bp" onclick="audit()">Verificar Existência das Obras</button>
+      <div><div class="dt" style="font-size:.95rem">🔍 Auditor de Citações e DOIs (CrossRef + OpenAlex opcional)</div>
+      <p class="hint">Confere (1) citações no texto × lista de referências, (2) DOIs e se batem com a referência, (3) obras compatíveis com Autor+Ano. Resultados são indícios, não prova.</p></div>
+      <button class="bp" id="btnAudit" onclick="audit()">Verificar Existência das Obras</button>
     </div>
+    <div class="cfg">
+      <label>E-mail para a CrossRef (opcional, melhora o limite de requisições): <input type="email" id="apiMail" placeholder="voce@exemplo.com" autocomplete="off"></label>
+      <label>Chave OpenAlex (opcional, só nesta sessão): <input type="password" id="oaKey" placeholder="api_key" autocomplete="off"></label>
+    </div>
+    <p class="hint">Privacidade: o texto não é enviado. Saem do navegador apenas DOIs e pares sobrenome+ano, para api.crossref.org (e api.openalex.org, se você informar uma chave). O e-mail, a chave e o cache das respostas ficam só na sessão desta aba (sessionStorage) e somem ao fechá-la. Sem chave, o OpenAlex é tentado só como apoio e desligado em silêncio se recusar.</p>
     <div id="audit" class="al"><div class="ai">Carregue o documento e execute o diagnóstico para auditar.</div></div>
   </section>
 </div>
+<!-- NÚCLEO: funções puras, sem DOM nem rede (testáveis em Node: tests/core.test.js) -->
+<script id="core">
+(function(root){
+"use strict";
+const INVIS = /[\u200B-\u200D\u2060\uFEFF\u202F]/g;
+const AI_TAGS = /【[^】]*】|\[oai_citation:[^\]]*\]/g;
+const UTM = /[?&]utm_[a-z0-9_]+=[^\s&)\]]*/gi;
+const HYPH_BREAK = /([a-zà-ÿ])-[ \t]*\r?\n[ \t]*([a-zà-ÿ])/gi;
+const UP = "[A-ZÁÉÍÓÚÂÊÔÃÕÇ]";
+const NAME = `(?:${UP}{2,}(?:\\s+${UP}{2,})*|${UP}[A-Za-zÀ-ÿ'’]+(?:\\s+(?:[Dd][aeo]s?|[Ee])\\s+${UP}[A-Za-zÀ-ÿ'’]+)*)`;
+const mkCit = () => new RegExp(`\\b(${NAME})(\\s+et\\s+al\\.)?,\\s*(\\d{4}[a-z]?)`,"g");
+const titleCase = s => s.toLowerCase().replace(/(^|\s)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase());
+const normStr = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const paras = t => t.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+const isLongQuote = (p,minChars) => /^["“]/.test(p) && p.length > minChars;
 
-<script>
+// Siglas de instituições permanecem em maiúsculas na citação (NBR 10520:2023). Lista editável.
+const SIGLAS = new Set(["ABNT","BNCC","CAPES","CNE","CNPQ","FGV","FIOCRUZ","IBGE","IBICT","IFSP","INEP","INSS","IPEA","MEC","OCDE","OMS","ONU","SBPC","UFSCAR","UNESCO","UNESP","UNICAMP","UNICEF","UNIVESP","USP","UEL","UFMG","UFRJ","UFRGS","UNB","PUC","FAPESP","CEP","CONEP","MCTI","OIT","OMC","FMI","BID","CEPAL","IFRS","IFSULDEMINAS"]);
+const isSigla = n => !/\s/.test(n) && SIGLAS.has(n.toUpperCase());
+const LATIN_ITALIC = /(\bet al\.|\bapud\b)/g;
+
+// Verifica uniformidade no uso de et al. vs 4+ coautores listados por extenso na mesma citação (NBR 10520:2023).
+function checkEtAlUniformity(text){
+  const body = splitReferences(text).body;
+  const etAlCount = (body.match(/\bet\s+al\./g)||[]).length;
+  const fourPlusRe = new RegExp(`\\((?:${NAME}\\s*[;,]\\s*){3,}${NAME},\\s*\\d{4}[a-z]?`, "g");
+  const fourPlusCount = (body.match(fourPlusRe)||[]).length;
+  return { etAlCount, fourPlusCount, mixed: etAlCount > 0 && fourPlusCount > 0 };
+}
+
+// ---------- Segmentação de períodos (PT-BR) ----------
+const ABBR = new Set(["p","pp","v","vol","n","nº","no","ed","dr","dra","prof","profa","sr","sra","fig","tab","cap","art","etc","cf","ex","obs","org","orgs","trad","min","sec","séc","apud","ibid","op","cit","av","ca","ltda","al","vs","ref","aprox","depto","univ","inst","cia","ph"]);
+function splitSentences(text){
+  const out = [];
+  for(const para of paras(String(text))){
+    const s = para.replace(/\s+/g," ");
+    const re = /([.!?…]+)(["”’')\]]*)\s+(?=["“‘(\[]?[A-ZÁÉÍÓÚÂÊÔÃÕÇ0-9])/g;
+    let start = 0, m;
+    while((m = re.exec(s))){
+      const before = s.slice(start, m.index);
+      const last = (before.match(/([\p{L}\d]+)$/u)||[])[1] || "";
+      if(m[1]==="." && m[2]===""){
+        if(ABBR.has(last.toLowerCase())) continue;           // p. 34 · et al. · Dr. · Fig.
+        if(/^\p{Lu}$/u.test(last)) continue;                  // iniciais: J. K. Rowling
+      }
+      const end = m.index + m[1].length + m[2].length;
+      out.push(s.slice(start,end)); start = re.lastIndex;
+    }
+    const rest = s.slice(start).trim(); if(rest) out.push(rest);
+  }
+  return out.map(x=>x.trim()).filter(Boolean);
+}
+const wordsOf = s => s.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) || [];
+const countWords = s => wordsOf(s).length;
+function sentenceStats(sentences){
+  const w = sentences.map(countWords), n = w.length;
+  if(!n) return {n:0,mean:0,sd:0,cv:null,min:0,max:0,median:0,words:[]};
+  const sum = w.reduce((a,b)=>a+b,0), mean = sum/n;
+  const sd = Math.sqrt(w.reduce((a,b)=>a+(b-mean)**2,0)/n);          // desvio-padrão populacional
+  const sorted = [...w].sort((a,b)=>a-b);
+  const median = n%2 ? sorted[(n-1)/2] : (sorted[n/2-1]+sorted[n/2])/2;
+  return {n,mean,sd,cv: n>1 && mean>0 ? sd/mean*100 : null, min:sorted[0], max:sorted[n-1], median, words:w, total:sum};
+}
+// Faixas indicativas definidas pelo ScriptaLab (heurística editorial; não são limiares científicos)
+const CV_BANDS = [[30,"ritmo muito uniforme"],[50,"ritmo moderado"],[Infinity,"ritmo bem variado"]];
+const cvBand = cv => cv==null ? "amostra pequena demais" : CV_BANDS.find(b=>cv<b[0])[1];
+
+// ---------- Radar de clichês (nunca altera o texto) ----------
+const CLICHES_DEFAULT = [
+ {id:"nesse-sentido",label:"Nesse sentido",pattern:"nesse\\s+sentido",alt:["Assim","Por isso","Com base nisso"]},
+ {id:"vale-ressaltar",label:"Vale ressaltar / destacar",pattern:"vale\\s+(?:a\\s+pena\\s+)?(?:ressaltar|destacar|salientar|mencionar|lembrar)(?:\\s+que)?",alt:["Apresente o dado ou o argumento direto","Use “Note-se que” com parcimônia"]},
+ {id:"cabe-ressaltar",label:"Cabe ressaltar / destacar",pattern:"cabe\\s+(?:ressaltar|destacar|salientar|mencionar)(?:\\s+que)?",alt:["Apresente o dado ou o argumento direto"]},
+ {id:"e-importante",label:"É importante / crucial destacar",pattern:"é\\s+(?:importante|crucial|fundamental|essencial|imprescindível|necessário)\\s+(?:ressaltar|destacar|salientar|enfatizar|notar|lembrar|mencionar)(?:\\s+que)?",alt:["Afirme a ideia sem o prefixo","Justifique a importância com uma evidência"]},
+ {id:"ressalta-se",label:"Ressalta-se / destaca-se que",pattern:"(?:ressalta|destaca|salienta)-se\\s+que",alt:["Afirme a ideia sem o prefixo"]},
+ {id:"cenario-atual",label:"No cenário atual",pattern:"no\\s+cenário\\s+(?:atual|contemporâneo)",alt:["Situe com ano ou contexto concreto (ex.: “Desde 2018…”)"]},
+ {id:"dias-atuais",label:"Nos dias de hoje / atuais",pattern:"nos\\s+dias\\s+(?:de\\s+hoje|atuais)",alt:["Situe com ano ou contexto concreto"]},
+ {id:"mundo-cada-vez",label:"Em um mundo cada vez mais…",pattern:"(?:em|num|no)\\s+(?:um\\s+)?mundo\\s+(?:cada\\s+vez\\s+mais|contemporâneo|moderno|atual|globalizado)",alt:["Comece pelo problema de pesquisa"]},
+ {id:"constante-evolucao",label:"Em constante evolução / transformação",pattern:"em\\s+constante\\s+(?:evolução|transformação|mudança)",alt:["Cite a mudança específica e quando ocorreu"]},
+ {id:"rica-tapecaria",label:"Rica tapeçaria",pattern:"(?:rica\\s+)?tapeçaria\\s+de",alt:["Use um termo literal (ex.: “conjunto”, “variedade”)"]},
+ {id:"papel-fundamental",label:"Desempenha um papel fundamental",pattern:"desempenh(?:a|am|ar|ando)\\s+um\\s+papel\\s+(?:fundamental|crucial|essencial|central|vital|importante|significativo)",alt:["Diga o que faz, concretamente (ex.: “reduz…”, “permite…”)"]},
+ {id:"nao-apenas",label:"Não é apenas X, mas (sim/também) Y",pattern:"não\\s+(?:é|são|foi|foram)\\s+apenas[^.!?]{1,140}?\\bmas\\s+(?:sim|também)",alt:["Afirme Y diretamente, sem a oposição retórica"]},
+ {id:"e-inegavel",label:"É inegável / incontestável que",pattern:"é\\s+(?:inegável|incontestável|indiscutível)\\s+que",alt:["Apoie a afirmação com fonte, em vez de adjetivar"]},
+ {id:"suma-importancia",label:"De suma importância",pattern:"de\\s+suma\\s+importância",alt:["Justifique a relevância com evidência"]},
+ {id:"pilar-fundamental",label:"Pilar fundamental",pattern:"pilar(?:es)?\\s+fundament(?:al|ais)",alt:["Nomeie a função exata"]},
+ {id:"multifacetado",label:"Multifacetado",pattern:"multifacetad[oa]s?",alt:["Liste as facetas ou use “complexo”, se couber"]},
+ {id:"adentrar",label:"Adentrar / mergulhar",pattern:"adentr(?:ar|ando|amos|a)|mergulh(?:ar|ando|amos)\\s+(?:em|no|na|nos|nas)",alt:["Prefira “analisar”, “examinar”, “discutir”"]},
+ {id:"navegar-complexidades",label:"Navegar pelas complexidades",pattern:"navegar\\s+(?:pel[ao]s?|n[ao]s?)\\s+complexidades?",alt:["Prefira “lidar com”, “enfrentar”"]},
+ {id:"em-suma",label:"Em suma",pattern:"em\\s+suma",alt:["Conectivo legítimo; atenção à repetição"]},
+ {id:"crucial-destacar",label:"Crucial destacar",pattern:"(?:é\\s+)?crucial\\s+(?:destacar|ressaltar|notar)",alt:["Afirme a ideia sem o prefixo"]}
+];
+const compileCliche = c => new RegExp(`(?<![\\p{L}\\p{N}])(?:${c.pattern})(?![\\p{L}\\p{N}])`,"giu");
+function findCliches(text, list){
+  const found = [];
+  for(const c of (list||CLICHES_DEFAULT)){
+    const re = compileCliche(c); let m;
+    while((m = re.exec(text))){ if(!m[0]){ re.lastIndex++; continue; } found.push({start:m.index,end:m.index+m[0].length,id:c.id,label:c.label,alt:c.alt||[],text:m[0]}); }
+  }
+  found.sort((a,b)=>a.start-b.start || b.end-a.end);
+  const out = []; let cursor = 0;
+  for(const f of found){ if(f.start>=cursor){ out.push(f); cursor = f.end; } }   // sem sobreposição
+  return out;
+}
+function highlightHtml(text, matches){
+  let html = "", pos = 0;
+  for(const m of matches){
+    html += escapeHtml(text.slice(pos,m.start));
+    const tip = `${m.label}. Sugestões (revisão manual, nada é trocado automaticamente): ${m.alt.join(" · ")}`;
+    html += `<mark class="cl" title="${escapeHtml(tip)}">${escapeHtml(text.slice(m.start,m.end))}</mark>`;
+    pos = m.end;
+  }
+  return html + escapeHtml(text.slice(pos));
+}
+function analyzeStyle(text, list){
+  const sentences = splitSentences(text), stats = sentenceStats(sentences);
+  const matches = findCliches(text, list), total = countWords(text);
+  const byId = new Map();
+  for(const m of matches){ const e = byId.get(m.id) || {id:m.id,label:m.label,alt:m.alt,count:0}; e.count++; byId.set(m.id,e); }
+  return { sentences, stats, matches, groups:[...byId.values()].sort((a,b)=>b.count-a.count), totalWords:total,
+           clichePer1000: total ? matches.length/total*1000 : 0,
+           emDashPer1000: total ? (text.match(/—/g)||[]).length/total*1000 : 0, emDash:(text.match(/—/g)||[]).length };
+}
+
+// ---------- Citações × referências ----------
+const lastSurname = n => n.trim().split(/\s+/).pop();
+function collectCitations(text){
+  const seen = new Map();
+  const add = (rawName, year) => {
+    const sur = lastSurname(rawName), y = year.replace(/[a-z]$/,""), key = normStr(sur)+y;
+    if(!seen.has(key)) seen.set(key,{sur, name: rawName===rawName.toUpperCase()&&!isSigla(rawName)?titleCase(rawName):rawName, year:y, sigla:isSigla(rawName)});
+  };
+  for(const m of text.matchAll(mkCit())) add(m[1], m[3]);
+  const narr = new RegExp(`\\b(${UP}[A-Za-zÀ-ÿ'’]+(?:\\s+(?:[Dd][aeo]s?|[Ee])\\s+${UP}[A-Za-zÀ-ÿ'’]+)*)(?:\\s+et\\s+al\\.)?\\s*\\((\\d{4}[a-z]?)`,"g");
+  for(const m of text.matchAll(narr)) add(m[1], m[2]);
+  return [...seen.values()];
+}
+const REF_HEAD = /^\s*(?:\d+(?:\.\d+)*\s+)?REFER[ÊE]NCIAS(?:\s+BIBLIOGR[ÁA]FICAS)?\s*$/gim;
+const startsRef = l => /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ' -]{1,}[,.]/.test(l.trim());
+function splitReferences(text){
+  let idx = -1, len = 0, m; REF_HEAD.lastIndex = 0;
+  while((m = REF_HEAD.exec(text))){ idx = m.index; len = m[0].length; }
+  if(idx < 0) return {has:false, body:text, entries:[]};
+  const lines = text.slice(idx+len).split(/\r?\n/), entries = [];
+  for(const raw of lines){
+    const l = raw.trim(); if(!l) continue;
+    if(startsRef(l) || !entries.length) entries.push(l); else entries[entries.length-1] += " "+l;
+  }
+  return {has:true, body:text.slice(0,idx), entries};
+}
+function parseEntry(e){
+  const m = e.match(/^([A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ' -]*),\s/);
+  const years = [...e.matchAll(/\b((?:19|20)\d{2})[a-z]?\b/g)].map(x=>x[1]);
+  return { text:e, personal: !!m, sur: m ? normStr(lastSurname(m[1])) : "", years };
+}
+function crossCheckRefs(text){
+  const r = splitReferences(text);
+  if(!r.has) return {has:false, missing:[], uncited:[], skipped:0, entries:0};
+  const cites = collectCitations(r.body).filter(c=>!c.sigla);
+  const entries = r.entries.map(parseEntry);
+  const missing = cites.filter(c=>!entries.some(e=>normStr(e.text).includes(normStr(c.sur)) && e.years.includes(c.year)));
+  const uncited = entries.filter(e=>e.personal && !cites.some(c=>normStr(c.sur)===e.sur && e.years.includes(c.year)))
+                         .map(e=>e.text.length>110 ? e.text.slice(0,107)+"…" : e.text);
+  return {has:true, missing, uncited, skipped: entries.filter(e=>!e.personal).length, entries: entries.length};
+}
+
+// ---------- DOIs ----------
+function extractDois(text){
+  const map = new Map();
+  for(const d of (text.match(/10\.\d{4,9}\/[^\s"<>\]【]+/g)||[])){
+    const doi = d.replace(/[.,;:)]+$/,""); if(!map.has(doi.toLowerCase())) map.set(doi.toLowerCase(), doi);
+  }
+  return [...map.values()];
+}
+function refBlockFor(text, doi){
+  const lines = text.split(/\r?\n/), i = lines.findIndex(l=>l.toLowerCase().includes(doi.toLowerCase()));
+  if(i<0) return "";
+  let s = i; while(s>0 && lines[s-1].trim() && !startsRef(lines[s])) s--;
+  return lines.slice(s,i+1).join(" ");
+}
+const STOP = new Set(["para","como","sobre","entre","uma","dos","das","com","por","que","the","and","of","for","from","uma","nos","nas"]);
+const tokens = s => normStr(s).split(/[^a-z0-9]+/).filter(w=>w.length>3 && !STOP.has(w));
+function compareRef(block, meta){
+  if(!block || block.length<25 || !meta) return {verdict:"inconclusivo", detail:"não localizei a referência completa ao lado do DOI"};
+  const bt = new Set(tokens(block)), tt = tokens(meta.title||""), cov = tt.length ? tt.filter(w=>bt.has(w)).length/tt.length : 0;
+  const years = [...block.matchAll(/\b((?:19|20)\d{2})\b/g)].map(x=>+x[1]);
+  const yearOk = !meta.year || years.some(y=>Math.abs(y-meta.year)<=1);
+  const surOk = !meta.family || normStr(block).includes(normStr(meta.family));
+  const pct = Math.round(cov*100);
+  if(cov>=0.6 && (yearOk||surOk)) return {verdict:"coerente", detail:`título ${pct}% compatível, ano/autor conferem`};
+  if(cov<0.3 && (!yearOk||!surOk)) return {verdict:"divergente", detail:`título só ${pct}% compatível${!yearOk?`, ano ≠ ${meta.year}`:""}${!surOk?`, autor “${meta.family}” ausente`:""}`};
+  return {verdict:"parcial", detail:`título ${pct}% compatível${!yearOk?`, ano ≠ ${meta.year}`:""}${!surOk?`, autor “${meta.family}” ausente`:""}`};
+}
+
+root.ScriptaCore = { INVIS, AI_TAGS, UTM, HYPH_BREAK, mkCit, titleCase, normStr, escapeHtml, paras, isLongQuote, SIGLAS, isSigla,
+  LATIN_ITALIC, checkEtAlUniformity,
+  splitSentences, countWords, sentenceStats, cvBand, CV_BANDS, CLICHES_DEFAULT, findCliches, highlightHtml, analyzeStyle,
+  collectCitations, splitReferences, crossCheckRefs, extractDois, refBlockFor, compareRef };
+})(typeof window !== "undefined" ? window : globalThis);
+</script>
+<script id="app">
+const C = window.ScriptaCore;
+const {INVIS,AI_TAGS,UTM,HYPH_BREAK,mkCit,titleCase,normStr,escapeHtml,paras,isSigla} = C;
+
 // ===== Perfis: o JSON de templates-ies/ tem prioridade; estes são o plano B (também funciona offline/file://) =====
 const BASE = { pageSetup:{margins:{topCm:3,leftCm:3,bottomCm:2,rightCm:2}},
-  typography:{fontFamily:"Times New Roman",bodyFontSizePt:12,lineSpacing:1.5,paragraphFirstLineIndentCm:1.25},
+  typography:{fontFamily:"Times New Roman",bodyFontSizePt:12,lineSpacing:1.5,paragraphFirstLineIndentCm:1.25,paragraphSpacingAfterPt:8},
   longQuote:{minChars:240,indentLeftCm:4,fontSizePt:10,lineSpacing:1.0} };
 const FALLBACK = {
   "abnt-padrao-2023.json":{templateId:"abnt-padrao-2023",institution:"ABNT Padrão (NBR 14724 / NBR 10520:2023)"},
   "anhanguera-uam.json":{templateId:"anhanguera-uam-standard",institution:"Rede Privada (Anhanguera / UAM / Unicesumar)",
-    typography:{fontFamily:"Arial"},citations:{longQuote:{minChars:200}}}
+    typography:{fontFamily:"Arial"},citations:{longQuote:{minChars:200}}},
+  "ifsuldeminas-carmo-tcc-artigo.json":{templateId:"ifsuldeminas-carmo-tcc-artigo",institution:"IFSULDEMINAS – Campus Carmo de Minas (Administração, TCC em artigo)",
+    scopeNote:"Baseado na normalização do curso (2025). O documento original restringe o uso a esse curso e campus.",
+    typography:{fontFamily:"Arial",paragraphSpacingAfterPt:0},citations:{longQuote:{minChars:240}}}
 };
 let profile = null, cleanText = "";
 
 function normProfile(p){
-  return { templateId:p.templateId||"perfil", institution:p.institution||"Perfil",
+  return { templateId:p.templateId||"perfil", institution:p.institution||"Perfil", scopeNote:p.scopeNote||"",
     margins:{...BASE.pageSetup.margins,...(p.pageSetup&&p.pageSetup.margins)},
     typo:{...BASE.typography,...p.typography},
     italicEtAl:!(p.citations&&p.citations.italicizeEtAl===false),
@@ -132,23 +381,27 @@ async function loadIesProfile(){
   try{ const r = await fetch("templates-ies/"+f,{cache:"no-cache"}); if(r.ok){ p = await r.json(); src = "JSON"; } }catch(e){}
   profile = normProfile(p);
   document.getElementById("badge").textContent = `● ${profile.institution} (${src})`;
+  document.getElementById("scope").textContent = profile.scopeNote;
 }
-window.addEventListener("DOMContentLoaded",()=>{ profile=normProfile(FALLBACK["abnt-padrao-2023.json"]); loadIesProfile(); });
+window.addEventListener("DOMContentLoaded",()=>{ profile=normProfile(FALLBACK["abnt-padrao-2023.json"]); loadIesProfile(); loadCliches(); restoreCfg();
+  for(const id of ["apiMail","oaKey"]) document.getElementById(id).addEventListener("input",saveCfg); });
 
 // ===== Utilitários =====
 function setStatus(msg,type){ const s=document.getElementById("status"); s.className=type||""; s.textContent=msg; s.style.display="block"; }
-function escapeHtml(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-const INVIS = /[\u200B-\u200D\u2060\uFEFF\u202F]/g;
-const AI_TAGS = /【[^】]*】|\[oai_citation:[^\]]*\]/g;
-const UTM = /[?&]utm_[a-z0-9_]+=[^\s&)\]]*/gi;
-const HYPH_BREAK = /([a-zà-ÿ])-[ \t]*\r?\n[ \t]*([a-zà-ÿ])/gi;
-const UP = "[A-ZÁÉÍÓÚÂÊÔÃÕÇ]";
-const NAME = `(?:${UP}{2,}(?:\\s+${UP}{2,})*|${UP}[A-Za-zÀ-ÿ'’]+(?:\\s+(?:[Dd][aeo]s?|[Ee])\\s+${UP}[A-Za-zÀ-ÿ'’]+)*)`;
-const mkCit = () => new RegExp(`\\b(${NAME})(\\s+et\\s+al\\.)?,\\s*(\\d{4}[a-z]?)`,"g");
-const titleCase = s => s.toLowerCase().replace(/(^|\s)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase());
-const normStr = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-function isLongQuote(p){ return /^["“]/.test(p) && p.length > profile.lq.minChars; }
-const paras = t => t.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
+const isLQ = p => C.isLongQuote(p, profile.lq.minChars);
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+// ===== PDF: worker verificado por SRI (fetch com integrity) e isEvalSupported:false (mitiga CVE-2024-4367) =====
+const PDF_WORKER = { url:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
+  integrity:"sha384-SnzOobpRMLXZ52iJvZm/C0fYw0OQemTXzTjIsdsfMcrCtCEe9qgzxTd3RSklO5x2" };
+let pdfWorkerBlobUrl = null;
+async function pdfWorkerUrl(){
+  if(pdfWorkerBlobUrl) return pdfWorkerBlobUrl;
+  const r = await fetch(PDF_WORKER.url,{integrity:PDF_WORKER.integrity,mode:"cors",credentials:"omit",referrerPolicy:"no-referrer"});
+  if(!r.ok) throw new Error("worker do PDF indisponível (HTTP "+r.status+")");
+  pdfWorkerBlobUrl = URL.createObjectURL(new Blob([await r.arrayBuffer()],{type:"text/javascript"}));
+  return pdfWorkerBlobUrl;
+}
 
 // ===== Upload =====
 async function handleFileUpload(ev){
@@ -163,8 +416,8 @@ async function handleFileUpload(ev){
     else if(ext==="docx"){ if(!window.mammoth) throw new Error("biblioteca DOCX não carregou (verifique a conexão)"); t = (await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value; }
     else {
       if(!window.pdfjsLib) throw new Error("biblioteca PDF não carregou (verifique a conexão)");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-      const pdf = await pdfjsLib.getDocument(new Uint8Array(await file.arrayBuffer())).promise;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = await pdfWorkerUrl();
+      const pdf = await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()), isEvalSupported:false}).promise;
       for(let i=1;i<=pdf.numPages;i++){ const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x=>x.str).join(" ")+"\n\n"; }
     }
     box.value = t; document.getElementById("btnDiag").disabled = false;
@@ -180,14 +433,17 @@ function runDiagnostic(){
   if(!text.trim()){ setStatus("O campo de texto está vazio.","err"); return; }
   const n = (re)=>(text.match(re)||[]).length;
   const inv = n(INVIS), hy = n(HYPH_BREAK), spaced = n(/[a-zà-ÿ]{2,} - [a-zà-ÿ]{2,}/gi);
-  const ai = n(AI_TAGS)+n(UTM), cits = n(mkCit()), upper = (text.match(mkCit())||[]).filter(c=>/^[^a-z]*[A-Z]{2,}/.test(c)).length;
-  const lq = paras(text).filter(isLongQuote).length;
+  const ai = n(AI_TAGS)+n(UTM), all = text.match(mkCit())||[];
+  const names = all.map(c=>c.match(/^[^,]+?(?=(?:\s+et\s+al\.)?,)/)[0]);
+  const upper = names.filter(x=>x===x.toUpperCase() && !isSigla(x)).length, siglas = names.filter(x=>x===x.toUpperCase() && isSigla(x)).length;
+  const lq = paras(text).filter(isLQ).length, unif = C.checkEtAlUniformity(text);
+  const unifNote = unif.mixed ? ` ⚠️ Mistura de <em>et al.</em> (${unif.etAlCount}) e 4+ coautores por extenso (${unif.fourPlusCount}): a NBR 10520:2023 pede uniformidade.` : "";
   const secs = ["introdu[cç][aã]o","metodologia|m[eé]todo","resultados","conclus[aã]o|considera[cç][oõ]es finais","refer[eê]ncias"]
     .map(r=>new RegExp(r,"i").test(text)?r.split("|")[0].replace(/\[.*?\]/g,"").replace("introdu","Introdução").replace("metodologia","Metodologia").replace("resultados","Resultados").replace("conclus","Conclusão").replace("refer","Referências"):null).filter(Boolean);
   document.getElementById("report").innerHTML = `
     <div class="ri"><strong>1. Estrutura:</strong>${secs.length?"Seções reconhecidas por palavra-chave: "+secs.join(", ")+".":"Nenhuma seção padrão reconhecida."}</div>
     <div class="ri" style="border-color:var(--warn)"><strong>2. Tipografia:</strong>${hy} palavras quebradas por hífen no fim da linha (serão unidas); ${inv} caracteres invisíveis (serão removidos); ${spaced} ocorrências "palavra - palavra" (apenas sinalizadas, não alteradas).</div>
-    <div class="ri" style="border-color:var(--ac)"><strong>3. Citações e rastros:</strong>${cits} citações (Autor, Ano), ${upper} em caixa alta a converter; ${lq} citação(ões) longa(s); ${ai} rastros de IA.</div>
+    <div class="ri" style="border-color:var(--ac)"><strong>3. Citações e rastros:</strong>${all.length} citações (Autor, Ano), ${upper} em caixa alta a converter${siglas?` (${siglas} sigla(s) de instituição mantida(s) em maiúsculas)`:""}; ${lq} citação(ões) longa(s); ${ai} rastros de IA.${unifNote}</div>
     <div class="ri" style="border-color:var(--ok)"><strong>4. Perfil:</strong>${escapeHtml(profile.institution)}</div>`;
   document.getElementById("btnAuth").disabled = false;
   setStatus('Diagnóstico concluído. Revise e clique em "Autorizar Correções & Normatizar".',"ok");
@@ -204,54 +460,182 @@ function authorizeCorrections(){
   if(document.getElementById("oUtm").checked) t = t.replace(UTM,()=>{c.ai++; return "";});
   if(document.getElementById("oAbnt").checked)
     t = t.replace(mkCit(),(m,name,etal,year)=>{
-      if(name!==name.toUpperCase()) return m;
+      if(name!==name.toUpperCase() || isSigla(name)) return m;     // siglas (IBGE, FGV…) permanecem em maiúsculas
       c.cit++; return titleCase(name)+(etal?" et al.":"")+", "+year; });
   cleanText = t;
   let h = escapeHtml(t);
-  if(profile.italicEtAl) h = h.replace(/\bet al\./g,'<em class="fix" title="NBR 10520:2023">et al.</em>');
+  if(profile.italicEtAl) h = h.replace(C.LATIN_ITALIC,'<em class="fix" title="NBR 10520:2023">$1</em>');
   document.getElementById("out").innerHTML = h;
   setStatus(`Normatizado: ${c.hy} quebras de hífen unidas, ${c.inv} invisíveis removidos, ${c.ai} rastros de IA expurgados, ${c.cit} citações ajustadas para (Autor, Ano). Vocabulário preservado.`,"ok");
 }
 
-// ===== Auditor =====
-async function oa(url){ const r = await fetch(url); if(!r.ok){ const e=new Error("HTTP "+r.status); e.status=r.status; throw e; } return r.json(); }
+// ===== Estilometria (Zero-Tampering: só lê o texto) =====
+const fmt = (x,d=1) => x==null ? "—" : x.toFixed(d).replace(".",",");
+let styleSentences = [], CLICHES = null;
+async function loadCliches(){
+  try{ const r = await fetch("data/cliches-ptbr.json",{cache:"no-cache"}); if(r.ok){ const j = await r.json(); if(Array.isArray(j.items)&&j.items.length) CLICHES = j.items; } }catch(e){}
+}
+function runStyle(){
+  const raw = document.getElementById("raw").value;
+  const text = cleanText.trim() ? cleanText : raw;
+  if(!text.trim()){ setStatus("Nada para analisar: o campo de texto está vazio.","err"); return; }
+  const a = C.analyzeStyle(text, CLICHES || undefined), st = a.stats; styleSentences = a.sentences;
+  document.getElementById("styleStats").innerHTML = `
+    <div class="ri"><strong>Períodos / palavras</strong>${st.n} períodos · ${a.totalWords} palavras<br><span class="hint">Analisando o ${cleanText.trim()?"texto normatizado":"texto bruto"}.</span></div>
+    <div class="ri"><strong>Média e desvio-padrão</strong>${fmt(st.mean)} ± ${fmt(st.sd)} palavras por período<br><span class="hint">mediana ${fmt(st.median)} · mín. ${st.min} · máx. ${st.max}</span></div>
+    <div class="ri" style="border-color:var(--pur)"><strong>Burstiness (CV = σ/μ × 100)</strong>${fmt(st.cv)}% — ${C.cvBand(st.cv)}<br><span class="hint">Faixas indicativas do ScriptaLab; não são limiar científico.</span></div>
+    <div class="ri" style="border-color:var(--warn)"><strong>Radar de clichês</strong>${a.matches.length} ocorrência(s) · ${fmt(a.clichePer1000)} por 1.000 palavras<br><span class="hint">Travessões longos (—): ${a.emDash} (${fmt(a.emDashPer1000)} por 1.000)</span></div>`;
+  const wrap = document.getElementById("styleChartWrap"), bars = document.getElementById("styleBars");
+  wrap.style.display = st.n ? "block" : "none"; bars.innerHTML = "";
+  const max = Math.max(...st.words, 1);
+  st.words.forEach((w,i)=>{
+    const d = document.createElement("div");
+    d.className = "bar" + (w>st.mean+st.sd?" long":"") + (w<st.mean-st.sd?" short":"");
+    d.style.height = Math.max(2, w/max*100)+"%"; d.title = `Período ${i+1}: ${w} palavra(s)`; d.dataset.i = i;
+    d.addEventListener("click",()=>{ bars.querySelectorAll(".sel").forEach(x=>x.classList.remove("sel")); d.classList.add("sel");
+      document.getElementById("styleDetail").textContent = `Período ${i+1} (${w} palavras): ${styleSentences[i]}`; });
+    bars.appendChild(d);
+  });
+  document.getElementById("meanLine").style.bottom = (st.mean/max*100)+"%";
+  document.getElementById("styleDetail").textContent = "Clique em uma barra para ver o período.";
+  const cl = document.getElementById("styleCliches");
+  cl.innerHTML = a.groups.length ? a.groups.map(g=>`<div class="ai w"><strong>${escapeHtml(g.label)}</strong> ×${g.count}<br><span class="hint">Sugestões (decisão sua; nada é trocado): ${g.alt.map(escapeHtml).join(" · ")}</span></div>`).join("")
+    : '<div class="ai v">Nenhuma expressão da lista foi encontrada. A lista é um apoio e não esgota o estilo de IA.</div>';
+  const out = document.getElementById("styleOut"); out.style.display = a.matches.length ? "block" : "none";
+  out.innerHTML = C.highlightHtml(text, a.matches);
+}
+
+// ===== Auditor: CrossRef (sem chave) + OpenAlex (opcional, com chave do usuário) =====
+const NET = { last:{single:0,list:0,oa:0}, cache:new Map(), oaOff:false };
+// Cache de respostas das APIs na sessão da aba (some ao fechar). A chave de cache não inclui mailto nem api_key.
+const cacheKey = u => "sl:c:" + u.replace(/([?&])(?:mailto|api_key)=[^&]*&?/g,"$1").replace(/[?&]$/,"");
+function cacheGet(u){
+  if(NET.cache.has(u)) return NET.cache.get(u);
+  try{ const v = sessionStorage.getItem(cacheKey(u)); if(v){ const r = JSON.parse(v); NET.cache.set(u,r); return r; } }catch(e){}
+  return null;
+}
+function cacheSet(u,res){
+  NET.cache.set(u,res);
+  try{ const v = JSON.stringify(res); if(v.length < 250000) sessionStorage.setItem(cacheKey(u), v); }catch(e){}
+}
+// E-mail e chave OpenAlex: só na sessão desta aba (sessionStorage), nunca em localStorage nem enviados a terceiros além das próprias APIs.
+function restoreCfg(){ try{ for(const [id,k] of [["apiMail","sl:mail"],["oaKey","sl:oakey"]]){ const v = sessionStorage.getItem(k); if(v) document.getElementById(id).value = v; } }catch(e){} }
+function saveCfg(){ try{ const c = netCfg(); c.email ? sessionStorage.setItem("sl:mail",c.email) : sessionStorage.removeItem("sl:mail"); c.key ? sessionStorage.setItem("sl:oakey",c.key) : sessionStorage.removeItem("sl:oakey"); }catch(e){} }
+const AUDIT = { running:false, cancel:false };
+function netCfg(){
+  const email = (document.getElementById("apiMail").value||"").trim(), key = (document.getElementById("oaKey").value||"").trim();
+  return { email:/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)?email:"", key };
+}
+async function paced(type,cfg){
+  // CrossRef (jul/2026): registro único 5/s público, 10/s polite; listas 1/s público, 3/s polite.
+  const gap = type==="oa" ? 150 : cfg.email ? (type==="list"?400:150) : (type==="list"?1100:250);
+  const wait = NET.last[type] + gap - Date.now(); if(wait>0) await sleep(wait);
+  NET.last[type] = Date.now();
+}
+async function getJSON(url,type,cfg,tries=3){
+  const hit = cacheGet(url); if(hit) return hit;
+  for(let attempt=0; attempt<tries; attempt++){
+    await paced(type,cfg);
+    let r;
+    try{ r = await fetch(url,{credentials:"omit",referrerPolicy:"no-referrer"}); }
+    catch(e){ if(attempt===tries-1) throw e; await sleep(800*(attempt+1)); continue; }
+    if(r.status===429||r.status===503){ const ra=parseInt(r.headers.get("Retry-After")||"",10); await sleep(Math.min(8000,ra>0?ra*1000:1500*(attempt+1))); continue; }
+    if(r.status===404){ const res={status:404}; cacheSet(url,res); return res; }
+    if(!r.ok){ const e=new Error("HTTP "+r.status); e.status=r.status; throw e; }
+    const res={status:200,data:await r.json()}; cacheSet(url,res); return res;
+  }
+  const e=new Error("limite de requisições (HTTP 429/503)"); e.status=429; throw e;
+}
+const yearOf = m => { const d=(m.issued||m["published-print"]||m["published-online"]||{})["date-parts"]; return (d&&d[0]&&d[0][0])||null; };
+const mailQ = (cfg,first) => cfg.email ? `${first?"?":"&"}mailto=${encodeURIComponent(cfg.email)}` : "";
+async function crossrefDOI(doi,cfg){
+  const path = doi.split("/").map(encodeURIComponent).join("/");
+  const r = await getJSON(`https://api.crossref.org/works/${path}${mailQ(cfg,true)}`,"single",cfg);
+  if(r.status===200){ const m=r.data.message||{};
+    return {state:"found", meta:{title:(m.title||[])[0]||"", family:((m.author||[])[0]||{}).family||"", year:yearOf(m)}}; }
+  const a = await getJSON(`https://api.crossref.org/works/${path}/agency${mailQ(cfg,true)}`,"single",cfg);   // DOIs de DataCite (Zenodo, arXiv…) não estão na CrossRef
+  if(a.status===200){ const ag=a.data.message&&a.data.message.agency; return {state:"other-agency", agency:(ag&&(ag.label||ag.id))||"outra agência"}; }
+  return {state:"missing"};
+}
+async function crossrefAuthorYear(sur,year,cfg){
+  const url = `https://api.crossref.org/works?query.author=${encodeURIComponent(sur)}&filter=from-pub-date:${year},until-pub-date:${year}&rows=30&select=DOI,title,author,issued${mailQ(cfg,false)}`;
+  const r = await getJSON(url,"list",cfg); const items = r.status===200 ? ((r.data.message||{}).items||[]) : [];
+  const w = items.find(it=>(it.author||[]).some(a=>{ const f=normStr(a.family||""); return f && (f===normStr(sur) || f.includes(normStr(sur))); }));
+  return w ? {doi:w.DOI, title:(w.title||[])[0]||"(sem título)"} : null;
+}
+// OpenAlex é complementar: com chave (BYOK) usa a cota da chave; sem chave tenta a cota gratuita e, ao primeiro 401/403/409/429, desliga-se em silêncio nesta sessão.
+async function openalexAuthorYear(sur,year,cfg){
+  if(NET.oaOff) return {ok:false};
+  const q = encodeURIComponent(sur), k = cfg.key ? `&api_key=${encodeURIComponent(cfg.key)}` : "";
+  try{
+    let r = await getJSON(`https://api.openalex.org/works?filter=raw_author_name.search:${q},publication_year:${year}&per_page=25${k}`,"oa",cfg,1).catch(e=>{ if([401,403,409,429].includes(e.status)) throw e; return null; });
+    if(!r || r.status!==200) r = await getJSON(`https://api.openalex.org/works?search=${q}&filter=publication_year:${year}&per_page=25${k}`,"oa",cfg,1);
+    const w = ((r.data&&r.data.results)||[]).find(x=>(x.authorships||[]).some(a=>normStr((a.author&&a.author.display_name)||"").includes(normStr(sur))));
+    return {ok:true, hit: w ? {url:w.doi||w.id, title:w.title||"(sem título)"} : null};
+  }catch(e){
+    if([401,403,409,429].includes(e.status)) NET.oaOff = true;     // cota/chave: silencioso
+    return {ok:false};
+  }
+}
+const card = (cls,html) => `<div class="ai ${cls}">${html}</div>`;
 async function audit(){
-  const box = document.getElementById("audit");
+  const btn = document.getElementById("btnAudit"), box = document.getElementById("audit");
+  if(AUDIT.running){ AUDIT.cancel = true; btn.textContent = "Parando…"; return; }
   const text = cleanText || document.getElementById("raw").value;
-  if(!text.trim()){ box.innerHTML='<div class="ai w">Nenhum texto para auditar.</div>'; return; }
-  const dois = [...new Set((text.match(/10\.\d{4,9}\/[^\s"<>\]【]+/g)||[]).map(d=>d.replace(/[.,;:)]+$/,"")))];
-  const seen = new Set(), cits = [];
-  for(const m of text.matchAll(mkCit())){
-    const sur = m[1].trim().split(/\s+/).pop(), year = m[3].replace(/[a-z]/,""), key = normStr(sur)+year;
-    if(!seen.has(key)){ seen.add(key); cits.push({name:titleCase(m[1]),sur,year}); }
-  }
-  if(!dois.length && !cits.length){ box.innerHTML='<div class="ai w">Nenhum DOI nem citação (Autor, Ano) encontrado.</div>'; return; }
-  let html = ""; box.innerHTML = `<div class="ai">🔎 Consultando OpenAlex (${dois.length} DOI, ${cits.length} citações)...</div>`;
-  for(const d of dois){
-    try{ const w = await oa("https://api.openalex.org/works/https://doi.org/"+d);
-      html += `<div class="ai v"><strong>✅ DOI ${escapeHtml(d)}</strong> existe: ${escapeHtml(w.title||"(sem título)")} (${w.publication_year||"s.d."}). Confira se corresponde à referência citada.</div>`;
-    }catch(e){ html += e.status===404
-      ? `<div class="ai w"><strong>⚠️ DOI ${escapeHtml(d)}</strong> não encontrado: forte indício de referência inventada ou DOI digitado errado.</div>`
-      : `<div class="ai w">Erro ao consultar o DOI ${escapeHtml(d)}.</div>`; }
-  }
-  for(const c of cits){
-    try{
-      let data; const q = encodeURIComponent(c.sur);
-      try{ data = await oa(`https://api.openalex.org/works?filter=raw_author_name.search:${q},publication_year:${c.year}&per_page=25`); }
-      catch(e){ data = await oa(`https://api.openalex.org/works?search=${q}&filter=publication_year:${c.year}&per_page=25`); }
-      const w = (data.results||[]).find(x=>(x.authorships||[]).some(a=>normStr((a.author&&a.author.display_name)||"").includes(normStr(c.sur))));
-      html += w
-        ? `<div class="ai"><strong>🔎 (${escapeHtml(c.name)}, ${c.year}):</strong> há obra compatível: <a href="${escapeHtml(w.doi||w.id)}" target="_blank" rel="noopener">${escapeHtml(w.title||"(sem título)")}</a>. É um indício; confirme manualmente.</div>`
-        : `<div class="ai w"><strong>⚠️ (${escapeHtml(c.name)}, ${c.year}):</strong> nenhuma obra compatível na base aberta. Pode ser falta de cobertura ou referência inventada: verifique.</div>`;
-    }catch(e){ html += `<div class="ai w">Erro na consulta de (${escapeHtml(c.name)}, ${c.year}).</div>`; }
-  }
-  box.innerHTML = html;
+  if(!text.trim()){ box.innerHTML = card("w","Nenhum texto para auditar."); return; }
+  const cfg = netCfg(), dois = C.extractDois(text), refs = C.splitReferences(text);
+  const cits = C.collectCitations(refs.body).filter(c=>!c.sigla);
+  const parts = [], render = ()=>{ box.innerHTML = parts.join("") || card("","…"); };
+  if(!dois.length && !cits.length){ box.innerHTML = card("w","Nenhum DOI nem citação (Autor, Ano) encontrado."); return; }
+  AUDIT.running = true; AUDIT.cancel = false; btn.textContent = "⏹ Parar auditoria";
+  try{
+    // 1) Offline: citações × lista de referências
+    const x = C.crossCheckRefs(text);
+    if(x.has){
+      parts.push(card(x.missing.length?"w":"v", x.missing.length
+        ? `<strong>⚠️ ${x.missing.length} citação(ões) sem referência correspondente:</strong> ${x.missing.map(c=>escapeHtml(`${c.name}, ${c.year}`)).join("; ")}.`
+        : `<strong>✅ Todas as citações (Autor, Ano) têm referência correspondente</strong> na lista (${x.entries} entradas).`));
+      if(x.uncited.length) parts.push(card("w",`<strong>ℹ️ ${x.uncited.length} referência(s) sem citação localizada no texto:</strong><br>${x.uncited.map(escapeHtml).join("<br>")}`));
+      if(x.skipped) parts.push(card("",`${x.skipped} referência(s) institucionais ou sem autor pessoal não foram comparadas.`));
+    } else parts.push(card("","Não encontrei o título “REFERÊNCIAS” em linha própria: pulei a conferência citações × lista."));
+    render();
+    // 2) DOIs
+    let step = 0; const total = dois.length + cits.length;
+    for(const d of dois){
+      if(AUDIT.cancel) break; step++;
+      try{
+        const r = await crossrefDOI(d,cfg), dd = escapeHtml(d);
+        if(r.state==="found"){
+          const cmp = C.compareRef(C.refBlockFor(text,d), r.meta);
+          const cls = cmp.verdict==="coerente"?"v":cmp.verdict==="divergente"?"x":"w";
+          const ic = cmp.verdict==="coerente"?"✅":cmp.verdict==="divergente"?"🚩":"⚠️";
+          parts.push(card(cls,`<strong>${ic} DOI ${dd}</strong> existe na CrossRef: ${escapeHtml(r.meta.title||"(sem título)")} (${r.meta.year||"s.d."}). Conferência com a referência: <b>${cmp.verdict}</b> (${escapeHtml(cmp.detail)}).`));
+        } else if(r.state==="other-agency") parts.push(card("v",`<strong>✅ DOI ${dd}</strong> está registrado (agência: ${escapeHtml(r.agency)}); os metadados não estão na CrossRef, então não consegui comparar com a referência.`));
+        else parts.push(card("x",`<strong>🚩 DOI ${dd}</strong> não está registrado: forte indício de referência inventada ou DOI digitado errado.`));
+      }catch(e){ parts.push(card("w",`Erro ao consultar o DOI ${escapeHtml(d)}: ${escapeHtml(e.message)}.`)); }
+      render(); btn.textContent = `⏹ Parar (${step}/${total})`;
+    }
+    // 3) Autor + Ano
+    for(const c of cits){
+      if(AUDIT.cancel) break; step++;
+      try{
+        let hit = await crossrefAuthorYear(c.sur,c.year,cfg), link = hit && `https://doi.org/${hit.doi}`, title = hit && hit.title, src = "CrossRef", oaAnswered = false;
+        if(!hit){ const o = await openalexAuthorYear(c.sur,c.year,cfg); oaAnswered = o.ok; if(o.ok && o.hit){ hit=o.hit; link=o.hit.url; title=o.hit.title; src="OpenAlex"; } }
+        parts.push(hit
+          ? card("",`<strong>🔎 (${escapeHtml(c.name)}, ${c.year}):</strong> há obra compatível (${src}): <a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>. É um indício; confirme manualmente.`)
+          : card("w",`<strong>⚠️ (${escapeHtml(c.name)}, ${c.year}):</strong> nenhuma obra compatível encontrada${oaAnswered?" na CrossRef nem no OpenAlex":" na CrossRef"}. Pode ser livro, capítulo, norma ou outro material sem DOI, ou referência inventada: verifique.`));
+      }catch(e){ parts.push(card("w",`Erro na consulta de (${escapeHtml(c.name)}, ${c.year}): ${escapeHtml(e.message)}.`)); }
+      render(); btn.textContent = `⏹ Parar (${step}/${total})`;
+    }
+    if(AUDIT.cancel) parts.push(card("","Auditoria interrompida a pedido."));
+    render();
+  } finally { AUDIT.running = false; AUDIT.cancel = false; btn.textContent = "Verificar Existência das Obras"; }
 }
 
 // ===== Exportação .docx =====
 function runs(text,size,italicEtAl){
   const {TextRun} = window.docx, f = profile.typo.fontFamily;
-  return text.split(/(et al\.)/).filter(Boolean).map(s=>new TextRun({text:s,font:f,size,italics:italicEtAl&&s==="et al."}));
+  return text.split(/(\bet al\.|\bapud\b)/).filter(Boolean).map(s=>new TextRun({text:s,font:f,size,italics:italicEtAl&&(s==="et al."||s==="apud")}));
 }
 async function exportToDocx(){
   if(!cleanText.trim()){ setStatus("Execute o diagnóstico e autorize as correções antes de exportar.","err"); return; }
@@ -259,13 +643,13 @@ async function exportToDocx(){
   const {Document,Packer,Paragraph,AlignmentType,convertMillimetersToTwip:mm} = window.docx;
   const T = profile.typo, L = profile.lq, M = profile.margins;
   const children = paras(cleanText).map(p=>{
-    if(isLongQuote(p)){
+    if(isLQ(p)){
       const q = p.replace(/^["“]\s*/,"").replace(/["”](\s*\([^)]*\)\.?)\s*$/,"$1").replace(/["”]\s*$/,"");
       return new Paragraph({alignment:AlignmentType.JUSTIFIED,indent:{left:mm(L.indentLeftCm*10)},
         spacing:{before:240,after:240,line:Math.round(240*L.lineSpacing)},children:runs(q,L.fontSizePt*2,profile.italicEtAl)});
     }
     return new Paragraph({alignment:AlignmentType.JUSTIFIED,indent:{firstLine:mm(T.paragraphFirstLineIndentCm*10)},
-      spacing:{after:160,line:Math.round(240*T.lineSpacing)},children:runs(p,T.bodyFontSizePt*2,profile.italicEtAl)});
+      spacing:{after:Math.round(T.paragraphSpacingAfterPt*20),line:Math.round(240*T.lineSpacing)},children:runs(p,T.bodyFontSizePt*2,profile.italicEtAl)});
   });
   const doc = new Document({sections:[{properties:{page:{margin:{top:mm(M.topCm*10),left:mm(M.leftCm*10),bottom:mm(M.bottomCm*10),right:mm(M.rightCm*10)}}},children}]});
   const url = URL.createObjectURL(await Packer.toBlob(doc));

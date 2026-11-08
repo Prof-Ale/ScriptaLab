@@ -1,0 +1,12 @@
+{
+  "name": "scriptalab",
+  "version": "0.2.0",
+  "private": true,
+  "description": "ScriptaLab | LabTech: engenharia textual e conformidade acadêmica (client-side)",
+  "scripts": {
+    "test": "node --test tests/core.test.js",
+    "validate": "node tools/validate-templates.js",
+    "check": "npm run test && npm run validate"
+  },
+  "devDependencies": { "ajv": "^8.17.1", "ajv-formats": "^3.0.1" }
+}

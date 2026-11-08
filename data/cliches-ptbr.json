@@ -1,0 +1,170 @@
+{
+  "schemaVersion": 1,
+  "description": "Expressões frequentes em textos gerados por LLMs (PT-BR). Serve só para sinalizar na revisão; o ScriptaLab nunca troca o texto automaticamente. Cada item: id, label, pattern (regex JS, sem \\\\b nas bordas), alt (sugestões).",
+  "items": [
+    {
+      "id": "nesse-sentido",
+      "label": "Nesse sentido",
+      "pattern": "nesse\\s+sentido",
+      "alt": [
+        "Assim",
+        "Por isso",
+        "Com base nisso"
+      ]
+    },
+    {
+      "id": "vale-ressaltar",
+      "label": "Vale ressaltar / destacar",
+      "pattern": "vale\\s+(?:a\\s+pena\\s+)?(?:ressaltar|destacar|salientar|mencionar|lembrar)(?:\\s+que)?",
+      "alt": [
+        "Apresente o dado ou o argumento direto",
+        "Use “Note-se que” com parcimônia"
+      ]
+    },
+    {
+      "id": "cabe-ressaltar",
+      "label": "Cabe ressaltar / destacar",
+      "pattern": "cabe\\s+(?:ressaltar|destacar|salientar|mencionar)(?:\\s+que)?",
+      "alt": [
+        "Apresente o dado ou o argumento direto"
+      ]
+    },
+    {
+      "id": "e-importante",
+      "label": "É importante / crucial destacar",
+      "pattern": "é\\s+(?:importante|crucial|fundamental|essencial|imprescindível|necessário)\\s+(?:ressaltar|destacar|salientar|enfatizar|notar|lembrar|mencionar)(?:\\s+que)?",
+      "alt": [
+        "Afirme a ideia sem o prefixo",
+        "Justifique a importância com uma evidência"
+      ]
+    },
+    {
+      "id": "ressalta-se",
+      "label": "Ressalta-se / destaca-se que",
+      "pattern": "(?:ressalta|destaca|salienta)-se\\s+que",
+      "alt": [
+        "Afirme a ideia sem o prefixo"
+      ]
+    },
+    {
+      "id": "cenario-atual",
+      "label": "No cenário atual",
+      "pattern": "no\\s+cenário\\s+(?:atual|contemporâneo)",
+      "alt": [
+        "Situe com ano ou contexto concreto (ex.: “Desde 2018…”)"
+      ]
+    },
+    {
+      "id": "dias-atuais",
+      "label": "Nos dias de hoje / atuais",
+      "pattern": "nos\\s+dias\\s+(?:de\\s+hoje|atuais)",
+      "alt": [
+        "Situe com ano ou contexto concreto"
+      ]
+    },
+    {
+      "id": "mundo-cada-vez",
+      "label": "Em um mundo cada vez mais…",
+      "pattern": "(?:em|num|no)\\s+(?:um\\s+)?mundo\\s+(?:cada\\s+vez\\s+mais|contemporâneo|moderno|atual|globalizado)",
+      "alt": [
+        "Comece pelo problema de pesquisa"
+      ]
+    },
+    {
+      "id": "constante-evolucao",
+      "label": "Em constante evolução / transformação",
+      "pattern": "em\\s+constante\\s+(?:evolução|transformação|mudança)",
+      "alt": [
+        "Cite a mudança específica e quando ocorreu"
+      ]
+    },
+    {
+      "id": "rica-tapecaria",
+      "label": "Rica tapeçaria",
+      "pattern": "(?:rica\\s+)?tapeçaria\\s+de",
+      "alt": [
+        "Use um termo literal (ex.: “conjunto”, “variedade”)"
+      ]
+    },
+    {
+      "id": "papel-fundamental",
+      "label": "Desempenha um papel fundamental",
+      "pattern": "desempenh(?:a|am|ar|ando)\\s+um\\s+papel\\s+(?:fundamental|crucial|essencial|central|vital|importante|significativo)",
+      "alt": [
+        "Diga o que faz, concretamente (ex.: “reduz…”, “permite…”)"
+      ]
+    },
+    {
+      "id": "nao-apenas",
+      "label": "Não é apenas X, mas (sim/também) Y",
+      "pattern": "não\\s+(?:é|são|foi|foram)\\s+apenas[^.!?]{1,140}?\\bmas\\s+(?:sim|também)",
+      "alt": [
+        "Afirme Y diretamente, sem a oposição retórica"
+      ]
+    },
+    {
+      "id": "e-inegavel",
+      "label": "É inegável / incontestável que",
+      "pattern": "é\\s+(?:inegável|incontestável|indiscutível)\\s+que",
+      "alt": [
+        "Apoie a afirmação com fonte, em vez de adjetivar"
+      ]
+    },
+    {
+      "id": "suma-importancia",
+      "label": "De suma importância",
+      "pattern": "de\\s+suma\\s+importância",
+      "alt": [
+        "Justifique a relevância com evidência"
+      ]
+    },
+    {
+      "id": "pilar-fundamental",
+      "label": "Pilar fundamental",
+      "pattern": "pilar(?:es)?\\s+fundament(?:al|ais)",
+      "alt": [
+        "Nomeie a função exata"
+      ]
+    },
+    {
+      "id": "multifacetado",
+      "label": "Multifacetado",
+      "pattern": "multifacetad[oa]s?",
+      "alt": [
+        "Liste as facetas ou use “complexo”, se couber"
+      ]
+    },
+    {
+      "id": "adentrar",
+      "label": "Adentrar / mergulhar",
+      "pattern": "adentr(?:ar|ando|amos|a)|mergulh(?:ar|ando|amos)\\s+(?:em|no|na|nos|nas)",
+      "alt": [
+        "Prefira “analisar”, “examinar”, “discutir”"
+      ]
+    },
+    {
+      "id": "navegar-complexidades",
+      "label": "Navegar pelas complexidades",
+      "pattern": "navegar\\s+(?:pel[ao]s?|n[ao]s?)\\s+complexidades?",
+      "alt": [
+        "Prefira “lidar com”, “enfrentar”"
+      ]
+    },
+    {
+      "id": "em-suma",
+      "label": "Em suma",
+      "pattern": "em\\s+suma",
+      "alt": [
+        "Conectivo legítimo; atenção à repetição"
+      ]
+    },
+    {
+      "id": "crucial-destacar",
+      "label": "Crucial destacar",
+      "pattern": "(?:é\\s+)?crucial\\s+(?:destacar|ressaltar|notar)",
+      "alt": [
+        "Afirme a ideia sem o prefixo"
+      ]
+    }
+  ]
+}

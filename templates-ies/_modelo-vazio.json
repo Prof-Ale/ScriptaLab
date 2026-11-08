@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "templateId": "sigla-instituicao-curso",
+  "institution": "Instituição – Curso/Programa (tipo de trabalho)",
+  "status": "em-validacao",
+  "scopeNote": "Para quem o perfil vale e quem o publicou.",
+  "norms": { "nbr14724": "2024", "nbr10520": "2023", "nbr6023": "2025" },
+  "verifiedOn": "AAAA-MM-DD",
+  "sources": ["https://link-do-manual-oficial.pdf"],
+  "pageSetup": { "paperSize": "A4", "margins": { "topCm": 3.0, "leftCm": 3.0, "bottomCm": 2.0, "rightCm": 2.0 } },
+  "typography": { "fontFamily": "Times New Roman", "bodyFontSizePt": 12, "lineSpacing": 1.5, "paragraphFirstLineIndentCm": 1.25, "paragraphSpacingAfterPt": 0 },
+  "citations": {
+    "standard": "NBR-10520-2023",
+    "parentheticalCapitalization": "TitleCase",
+    "italicizeEtAl": true,
+    "longQuote": { "minChars": 240, "indentLeftCm": 4.0, "fontSizePt": 10, "lineSpacing": 1.0, "requiresQuotes": false }
+  }
+}
