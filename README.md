@@ -72,10 +72,14 @@ Edições vigentes consultadas em nov/2026: NBR 10520:**2023**, NBR 14724:**2024
 | Perfil | Status | Observação |
 |---|---|---|
 | `abnt-padrao-2023.json` | base | regra geral ABNT |
-| `anhanguera-uam.json` | em validação | valores ainda sem manual conferido |
+| `usp-abnt.json` | verificado (07/11/2026) | *Diretrizes ABCD/USP: Parte I (ABNT)*. A USP também possui partes específicas para APA, Vancouver e ISO |
+| `unicamp-ccpg-abnt.json` | verificado (07/11/2026) | *IN CCPG nº 06/2025* (SBU/PRPG UNICAMP); aceita Times New Roman ou Arial (11 ou 12 pt) |
+| `unesp-cgb-abnt.json` | verificado (07/11/2026) | *Manual de Normalização da Rede de Bibliotecas da UNESP (CGB)* |
+| `ifsp-abnt.json` | verificado (07/11/2026) | *Normalização de Trabalhos Acadêmicos do IFSP* (padrão ABNT; templates por campus) |
 | `ifsuldeminas-carmo-tcc-artigo.json` | verificado (07/11/2026) | **vale só para o curso de Administração, Campus Carmo de Minas**: o documento de origem restringe o uso a esse curso e campus |
+| `anhanguera-uam.json` | em validação | valores ainda sem manual conferido |
 
-IFSP, USP, UNICAMP e UNESP aguardam o manual oficial vigente (ver `templates-ies/CONTRIBUINDO.md`). A USP publica diretrizes separadas para ABNT, APA, Vancouver e ISO, então o schema deverá ganhar um campo de estilo de citação antes desse perfil.
+Para adicionar novos perfis de instituições ou programas específicos (ex.: variantes APA/Vancouver da USP), consulte `templates-ies/CONTRIBUINDO.md`.
 
 ---
 
@@ -92,8 +96,12 @@ ScriptaLab/
 │   ├── schema.json            # JSON Schema dos perfis
 │   ├── _modelo-vazio.json     # Ponto de partida para novos perfis
 │   ├── abnt-padrao-2023.json
-│   ├── anhanguera-uam.json
+│   ├── usp-abnt.json
+│   ├── unicamp-ccpg-abnt.json
+│   ├── unesp-cgb-abnt.json
+│   ├── ifsp-abnt.json
 │   ├── ifsuldeminas-carmo-tcc-artigo.json
+│   ├── anhanguera-uam.json
 │   └── CONTRIBUINDO.md
 ├── tests/
 │   ├── core.test.js           # 15 testes unitários do núcleo (Node, sem dependências)
@@ -112,7 +120,7 @@ Desenvolvimento local: `npm install && npm run check`. Para servir a página (ne
 ## 🗺️ Roteiro
 
 - [ ] Migrar para pdf.js 4.x (módulos ES) com verificação de integridade
-- [ ] Perfis IFSP, USP, UNICAMP e UNESP a partir dos manuais oficiais
+- [x] Perfis IFSP, USP, UNICAMP e UNESP a partir dos manuais oficiais (ABNT)
 - [x] Campo `citationStyle` (ABNT, APA, Vancouver, ISO) no schema
 - [ ] Numeração de páginas e fonte menor em notas/legendas no `.docx`
 - [ ] Ordenação alfabética e checagem de formato das referências (NBR 6023:2025)

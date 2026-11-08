@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "templateId": "usp-abnt",
+  "institution": "USP – Diretrizes de Dissertações e Teses: Parte I (ABNT | ABCD/USP)",
+  "status": "verificado",
+  "scopeNote": "Refere-se à Parte I (ABNT) das Diretrizes da ABCD/USP (Arial ou Times New Roman 12). Atenção: a USP publica diretrizes separadas para APA (Parte II), Vancouver (Parte III) e ISO (Parte IV); confirme qual estilo seu programa exige.",
+  "norms": { "nbr14724": "2024", "nbr10520": "2023", "nbr6023": "2025" },
+  "verifiedOn": "2026-11-07",
+  "sources": [
+    "https://www.livrosabertos.abcd.usp.br/portaldelivrosUSP/catalog/book/1353"
+  ],
+  "pageSetup": {
+    "paperSize": "A4",
+    "margins": { "topCm": 3.0, "leftCm": 3.0, "bottomCm": 2.0, "rightCm": 2.0 }
+  },
+  "typography": {
+    "fontFamily": "Arial",
+    "bodyFontSizePt": 12,
+    "lineSpacing": 1.5,
+    "paragraphFirstLineIndentCm": 1.25,
+    "paragraphSpacingAfterPt": 6
+  },
+  "citations": {
+    "citationStyle": "ABNT",
+    "standard": "NBR-10520-2023",
+    "parentheticalCapitalization": "TitleCase",
+    "italicizeEtAl": true,
+    "etAlFromAuthors": 4,
+    "longQuote": { "minChars": 240, "indentLeftCm": 4.0, "fontSizePt": 10, "lineSpacing": 1.0, "requiresQuotes": false }
+  },
+  "notes": [
+    "Margens: superior e esquerda de 3 cm; inferior e direita de 2 cm.",
+    "Fonte recomendada: Arial ou Times New Roman tamanho 12 no texto e 10 em citações longas, notas e legendas.",
+    "A ABCD/USP mantém volumes específicos para ABNT, APA, Vancouver e ISO no Portal de Livros Abertos da USP."
+  ]
+}

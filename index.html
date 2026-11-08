@@ -77,8 +77,12 @@ mark.cl{background:rgba(234,179,8,.22);color:#fde68a;border-bottom:2px solid var
     <label for="ies">Perfil Normativo (IES):</label>
     <select id="ies" onchange="loadIesProfile()">
       <option value="abnt-padrao-2023.json">ABNT Padrão (Times New Roman 12 | 4 cm)</option>
-      <option value="anhanguera-uam.json">Rede Privada / Anhanguera / UAM / Unicesumar (Arial 12)</option>
+      <option value="usp-abnt.json">USP – Diretrizes ABCD: Parte I (ABNT | Arial 12)</option>
+      <option value="unicamp-ccpg-abnt.json">UNICAMP – IN CCPG nº 06/2025 (SBU/ABNT | Times New Roman 12)</option>
+      <option value="unesp-cgb-abnt.json">UNESP – Rede de Bibliotecas CGB (ABNT | Arial 12)</option>
+      <option value="ifsp-abnt.json">IFSP – Instituto Federal de São Paulo (ABNT | Arial 12)</option>
       <option value="ifsuldeminas-carmo-tcc-artigo.json">IFSULDEMINAS – Carmo de Minas (Administração, TCC em artigo | Arial 12)</option>
+      <option value="anhanguera-uam.json">Rede Privada / Anhanguera / UAM / Unicesumar (Arial 12)</option>
     </select>
     <span id="badge" style="font-size:.75rem;color:var(--ok)">● Carregando perfil...</span>
     <span id="scope" class="hint" style="flex-basis:100%"></span>
@@ -360,6 +364,18 @@ const BASE = { pageSetup:{margins:{topCm:3,leftCm:3,bottomCm:2,rightCm:2}},
   longQuote:{minChars:240,indentLeftCm:4,fontSizePt:10,lineSpacing:1.0} };
 const FALLBACK = {
   "abnt-padrao-2023.json":{templateId:"abnt-padrao-2023",institution:"ABNT Padrão (NBR 14724 / NBR 10520:2023)"},
+  "usp-abnt.json":{templateId:"usp-abnt",institution:"USP – Diretrizes de Dissertações e Teses: Parte I (ABNT | ABCD/USP)",
+    scopeNote:"Refere-se à Parte I (ABNT) das Diretrizes da ABCD/USP (Arial ou Times New Roman 12). Atenção: a USP publica diretrizes separadas para APA (Parte II), Vancouver (Parte III) e ISO (Parte IV); confirme qual estilo seu programa exige.",
+    typography:{fontFamily:"Arial",paragraphSpacingAfterPt:6},citations:{longQuote:{minChars:240}}},
+  "unicamp-ccpg-abnt.json":{templateId:"unicamp-ccpg-abnt",institution:"UNICAMP – Dissertações e Teses (IN CCPG nº 06/2025 | SBU/ABNT)",
+    scopeNote:"Baseado nas diretrizes do SBU/PRPG da UNICAMP (IN CCPG nº 06/2025). Permite Times New Roman ou Arial (tamanho 11 ou 12 no texto; este perfil usa Times New Roman 12 e títulos até 14). Confira as regras específicas da sua unidade.",
+    typography:{fontFamily:"Times New Roman",paragraphSpacingAfterPt:6},citations:{longQuote:{minChars:240}}},
+  "unesp-cgb-abnt.json":{templateId:"unesp-cgb-abnt",institution:"UNESP – Rede de Bibliotecas CGB (TCC, Dissertação e Tese | ABNT)",
+    scopeNote:"Baseado no Manual de Normalização e Templates da Rede de Bibliotecas da UNESP (CGB). Aceita Arial ou Times New Roman 12 (este perfil exporta em Arial 12). Há template tradicional e alternativo (em artigos) por unidade.",
+    typography:{fontFamily:"Arial",paragraphSpacingAfterPt:0},citations:{longQuote:{minChars:240}}},
+  "ifsp-abnt.json":{templateId:"ifsp-abnt",institution:"IFSP – Instituto Federal de São Paulo (Trabalhos Acadêmicos / ABNT)",
+    scopeNote:"Padrão ABNT adotado pelas bibliotecas do IFSP (Arial ou Times New Roman 12; este perfil exporta em Arial 12). Confira o template do seu campus para capa e elementos pré-textuais.",
+    typography:{fontFamily:"Arial",paragraphSpacingAfterPt:0},citations:{longQuote:{minChars:240}}},
   "anhanguera-uam.json":{templateId:"anhanguera-uam-standard",institution:"Rede Privada (Anhanguera / UAM / Unicesumar)",
     typography:{fontFamily:"Arial"},citations:{longQuote:{minChars:200}}},
   "ifsuldeminas-carmo-tcc-artigo.json":{templateId:"ifsuldeminas-carmo-tcc-artigo",institution:"IFSULDEMINAS – Campus Carmo de Minas (Administração, TCC em artigo)",

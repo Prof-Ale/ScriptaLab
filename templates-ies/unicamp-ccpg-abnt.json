@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "templateId": "unicamp-ccpg-abnt",
+  "institution": "UNICAMP – Dissertações e Teses (IN CCPG nº 06/2025 | SBU/ABNT)",
+  "status": "verificado",
+  "scopeNote": "Baseado nas diretrizes do SBU/PRPG da UNICAMP (IN CCPG nº 06/2025). Permite Times New Roman ou Arial (tamanho 11 ou 12 no texto; este perfil usa Times New Roman 12 e títulos até 14). Confira as regras específicas da sua unidade.",
+  "norms": { "nbr14724": "2024", "nbr10520": "2023", "nbr6023": "2025" },
+  "verifiedOn": "2026-11-07",
+  "sources": [
+    "https://www.sbu.unicamp.br/normalizacao-de-trabalhos-academicos/"
+  ],
+  "pageSetup": {
+    "paperSize": "A4",
+    "margins": { "topCm": 3.0, "leftCm": 3.0, "bottomCm": 2.0, "rightCm": 2.0 }
+  },
+  "typography": {
+    "fontFamily": "Times New Roman",
+    "bodyFontSizePt": 12,
+    "lineSpacing": 1.5,
+    "paragraphFirstLineIndentCm": 1.25,
+    "paragraphSpacingAfterPt": 6
+  },
+  "citations": {
+    "citationStyle": "ABNT",
+    "standard": "NBR-10520-2023",
+    "parentheticalCapitalization": "TitleCase",
+    "italicizeEtAl": true,
+    "etAlFromAuthors": 4,
+    "longQuote": { "minChars": 240, "indentLeftCm": 4.0, "fontSizePt": 10, "lineSpacing": 1.0, "requiresQuotes": false }
+  },
+  "notes": [
+    "A norma da UNICAMP permite fonte Times New Roman, Arial ou similar em tamanho 11 ou 12 para o texto principal (e excepcionalmente 14 para títulos de capítulos).",
+    "Espaçamento 1,5 no texto principal; espaçamento simples em notas de rodapé, legendas e citações longas.",
+    "Paginação contada a partir da folha de rosto e exibida a partir da Introdução no canto superior direito."
+  ]
+}

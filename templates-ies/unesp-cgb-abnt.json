@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "templateId": "unesp-cgb-abnt",
+  "institution": "UNESP – Rede de Bibliotecas CGB (TCC, Dissertação e Tese | ABNT)",
+  "status": "verificado",
+  "scopeNote": "Baseado no Manual de Normalização e Templates da Rede de Bibliotecas da UNESP (CGB). Aceita Arial ou Times New Roman 12 (este perfil exporta em Arial 12). Há template tradicional e alternativo (em artigos) por unidade.",
+  "norms": { "nbr14724": "2024", "nbr10520": "2023", "nbr6023": "2025" },
+  "verifiedOn": "2026-11-07",
+  "sources": [
+    "https://www.fcav.unesp.br/biblioteca/tutoriais/manual-de-normalizacao-e-templates-da-unesp/"
+  ],
+  "pageSetup": {
+    "paperSize": "A4",
+    "margins": { "topCm": 3.0, "leftCm": 3.0, "bottomCm": 2.0, "rightCm": 2.0 }
+  },
+  "typography": {
+    "fontFamily": "Arial",
+    "bodyFontSizePt": 12,
+    "lineSpacing": 1.5,
+    "paragraphFirstLineIndentCm": 1.25,
+    "paragraphSpacingAfterPt": 0
+  },
+  "citations": {
+    "citationStyle": "ABNT",
+    "standard": "NBR-10520-2023",
+    "parentheticalCapitalization": "TitleCase",
+    "italicizeEtAl": true,
+    "etAlFromAuthors": 4,
+    "longQuote": { "minChars": 240, "indentLeftCm": 4.0, "fontSizePt": 10, "lineSpacing": 1.0, "requiresQuotes": false }
+  },
+  "notes": [
+    "Fonte Arial ou Times New Roman tamanho 12 no texto; tamanho 10 em citações longas, notas de rodapé, paginação e legendas.",
+    "Citações longas (> 3 linhas): recuo de 4 cm da margem esquerda, espaçamento simples e sem aspas.",
+    "A UNESP disponibiliza Template Tradicional e Template Alternativo (formato em artigos científicos)."
+  ]
+}

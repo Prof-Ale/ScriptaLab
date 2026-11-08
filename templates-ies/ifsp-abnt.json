@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "templateId": "ifsp-abnt",
+  "institution": "IFSP – Instituto Federal de São Paulo (Trabalhos Acadêmicos / ABNT)",
+  "status": "verificado",
+  "scopeNote": "Padrão ABNT adotado pelas bibliotecas do IFSP (Arial ou Times New Roman 12; este perfil exporta em Arial 12). Confira o template do seu campus para capa e elementos pré-textuais.",
+  "norms": { "nbr14724": "2024", "nbr10520": "2023", "nbr6023": "2025" },
+  "verifiedOn": "2026-11-07",
+  "sources": [
+    "https://spo.ifsp.edu.br/menu/184-normalizacao-de-trabalhos-academicos",
+    "https://srq.ifsp.edu.br/attachments/article/108/Manual_TCC_IFSP.pdf"
+  ],
+  "pageSetup": {
+    "paperSize": "A4",
+    "margins": { "topCm": 3.0, "leftCm": 3.0, "bottomCm": 2.0, "rightCm": 2.0 }
+  },
+  "typography": {
+    "fontFamily": "Arial",
+    "bodyFontSizePt": 12,
+    "lineSpacing": 1.5,
+    "paragraphFirstLineIndentCm": 1.25,
+    "paragraphSpacingAfterPt": 0
+  },
+  "citations": {
+    "citationStyle": "ABNT",
+    "standard": "NBR-10520-2023",
+    "parentheticalCapitalization": "TitleCase",
+    "italicizeEtAl": true,
+    "etAlFromAuthors": 4,
+    "longQuote": { "minChars": 240, "indentLeftCm": 4.0, "fontSizePt": 10, "lineSpacing": 1.0, "requiresQuotes": false }
+  },
+  "notes": [
+    "Aceita Arial ou Times New Roman (tamanho 12 no texto e 10 em citações longas, notas de rodapé, paginação e legendas).",
+    "Espaçamento 1,5 no corpo do texto e simples (1,0) em citações longas, notas de rodapé, referências e legendas.",
+    "Cada campus do IFSP disponibiliza templates próprios com o cabeçalho institucional da unidade."
+  ]
+}
