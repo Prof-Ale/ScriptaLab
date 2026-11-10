@@ -100,7 +100,7 @@ def main():
         print("Exportação .docx por perfil")
         page.select_option("#ies", "ifsuldeminas-carmo-tcc-artigo.json"); page.wait_for_timeout(300)
         check("aviso de escopo do perfil", "restringe" in page.inner_text("#scope"))
-        with page.expect_download() as dl: page.click("text=Baixar Word na Norma")
+        with page.expect_download() as dl: page.click("text=Baixar Word")
         d = dl.value; path = d.path()
         xml = zipfile.ZipFile(path).read("word/document.xml").decode()
         check("nome do arquivo usa o perfil", "ifsuldeminas-carmo-tcc-artigo" in d.suggested_filename)
@@ -133,7 +133,7 @@ def main():
                "SANTOS, Caio. Dados abertos. Zenodo, 2021. https://doi.org/10.5281/zenodo.123\n"
                "MANTOAN, Maria. Inclusão escolar. São Paulo: Moderna, 2015.\n")
         page.fill("#raw", doc); page.click("#btnDiag"); page.click("#btnAuth")
-        page.click("#btnAudit"); page.wait_for_selector("text=Verificar Existência das Obras", timeout=30000)
+        page.click("#btnAudit"); page.wait_for_selector("#btnAudit:has-text('Verificar')", timeout=30000)
         a = page.inner_text("#audit")
         check("citação sem referência (Souza, 2019)", "sem referência correspondente" in a and "Souza" in a)
         check("referência sem citação (Lima)", "sem citação localizada" in a)
