@@ -81,3 +81,14 @@ test("modelos de IES: JSON dos clichês coincide com o padrão embutido", () => 
   const j = JSON.parse(fs.readFileSync(f,"utf8"));
   assert.deepEqual(j.items.map(x=>x.id), J(K.CLICHES_DEFAULT.map(x=>x.id)));
 });
+
+test("itálico: expressões latinas da NBR 10520:2023 (e Id. só dentro de citação)", () => {
+  const t = "Veja (Assis, 1997 apud Canuto, 1999; Id., 2001) e Silva et al. (2020), Cf. Souza, ibid., p. 3, op. cit., loc. cit., passim, p. 10 et seq. O id freudiano não conta.";
+  assert.deepEqual(J(t.match(K.LATIN_ITALIC)), ["apud","Id.","et al.","Cf.","ibid.","op. cit.","loc. cit.","passim","et seq."]);
+});
+test("ponto final: sinaliza ponto antes da citação e ponto dentro dos parênteses", () => {
+  assert.equal(K.checkCitationPeriods("A tese avança no país. (Araújo, 2020).").before, 1);
+  assert.equal(K.checkCitationPeriods("“Não se mova” (Clarac; Bonnin, 1985, p. 72.)").inside, 1);
+  assert.equal(K.checkCitationPeriods("Correto (Clarac; Bonnin, 1985, p. 72). Outro (Bell et al., 2011).").total, 0);
+  assert.equal(K.checkCitationPeriods("Ok (Silva et al., 2020 apud Souza et al.)").total, 0);
+});

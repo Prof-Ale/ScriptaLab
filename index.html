@@ -304,6 +304,7 @@ mark.fix,em.fix{
 .metric[data-tone=warn]::before{background:var(--warn)}
 .metric[data-tone=bad]::before{background:var(--bad)}
 .metric[data-tone=neutral]::before{background:var(--line-2)}
+.m-label .nocase{text-transform:none}
 .m-label{font-size:var(--fs-11);font-weight:660;color:var(--ink-3);letter-spacing:.05em;text-transform:uppercase;
   display:flex;align-items:center;gap:6px;margin-bottom:7px}
 .m-value{font-size:var(--fs-26);font-weight:700;letter-spacing:-.03em;line-height:1.1;
@@ -668,7 +669,8 @@ const isLongQuote = (p,minChars) => /^["“]/.test(p) && p.length > minChars;
 // Siglas de instituições permanecem em maiúsculas na citação (NBR 10520:2023). Lista editável.
 const SIGLAS = new Set(["ABNT","BNCC","CAPES","CNE","CNPQ","FGV","FIOCRUZ","IBGE","IBICT","IFSP","INEP","INSS","IPEA","MEC","OCDE","OMS","ONU","SBPC","UFSCAR","UNESCO","UNESP","UNICAMP","UNICEF","UNIVESP","USP","UEL","UFMG","UFRJ","UFRGS","UNB","PUC","FAPESP","CEP","CONEP","MCTI","OIT","OMC","FMI","BID","CEPAL","IFRS","IFSULDEMINAS"]);
 const isSigla = n => !/\s/.test(n) && SIGLAS.has(n.toUpperCase());
-const LATIN_ITALIC = /(\bet al\.|\bapud\b)/g;
+// Itálico (NBR 10520:2023): et al., apud, ibid., op. cit., loc. cit., passim, et seq., cf. e Id. (este só dentro de citação, para não pegar o "id" da psicanálise).
+const LATIN_ITALIC = /(\bet\s+al\.|\bapud\b|\bibid\.|\bop\.\s*cit\.|\bloc\.\s*cit\.|\bpassim\b|\bet\s+seq\.|\b[Cc]f\.|(?<=[(;]\s*)Id\.)/g;
 
 // Verifica uniformidade no uso de et al. vs 4+ coautores listados por extenso na mesma citação (NBR 10520:2023).
 function checkEtAlUniformity(text){
@@ -677,6 +679,14 @@ function checkEtAlUniformity(text){
   const fourPlusRe = new RegExp(`\\((?:${NAME}\\s*[;,]\\s*){3,}${NAME},\\s*\\d{4}[a-z]?`, "g");
   const fourPlusCount = (body.match(fourPlusRe)||[]).length;
   return { etAlCount, fourPlusCount, mixed: etAlCount > 0 && fourPlusCount > 0 };
+}
+
+// Ponto final: "deve ser usado para encerrar a frase e não a citação" (NBR 10520:2023). Só sinaliza.
+function checkCitationPeriods(text){
+  const body = splitReferences(text).body, yr = String.raw`\b(?:19|20)\d{2}[a-z]?\b`;
+  const before = (body.match(new RegExp(String.raw`[\p{L}\d”"']\.\s+(?=\(${UP}[^()]*?${yr}[^()]*\))`,"gu"))||[]).length;   // "...frase. (Autor, 2020)"
+  const inside = (body.match(new RegExp(String.raw`\(${UP}[^()]*?${yr}[^()]*?(?<!\bal)\.\)`,"gu"))||[]).length;               // "(Autor, 2020, p. 72.)"
+  return { before, inside, total: before + inside };
 }
 
 // ---------- Segmentação de períodos (PT-BR) ----------
@@ -842,7 +852,7 @@ function compareRef(block, meta){
 }
 
 root.ScriptaCore = { INVIS, AI_TAGS, UTM, HYPH_BREAK, mkCit, titleCase, normStr, escapeHtml, paras, isLongQuote, SIGLAS, isSigla,
-  LATIN_ITALIC, checkEtAlUniformity,
+  LATIN_ITALIC, checkEtAlUniformity, checkCitationPeriods,
   splitSentences, countWords, sentenceStats, cvBand, CV_BANDS, CLICHES_DEFAULT, findCliches, highlightHtml, analyzeStyle,
   collectCitations, splitReferences, crossCheckRefs, extractDois, refBlockFor, compareRef };
 })(typeof window !== "undefined" ? window : globalThis);
@@ -1010,13 +1020,13 @@ function runDiagnostic(){
   const ai = n(AI_TAGS)+n(UTM), all = text.match(mkCit())||[];
   const names = all.map(c=>c.match(/^[^,]+?(?=(?:\s+et\s+al\.)?,)/)[0]);
   const upper = names.filter(x=>x===x.toUpperCase() && !isSigla(x)).length, siglas = names.filter(x=>x===x.toUpperCase() && isSigla(x)).length;
-  const lq = paras(text).filter(isLQ).length, unif = C.checkEtAlUniformity(text);
+  const lq = paras(text).filter(isLQ).length, unif = C.checkEtAlUniformity(text), per = C.checkCitationPeriods(text);
   const secMatches = ["Introdução","Metodologia","Resultados","Conclusão","Referências"].filter(lbl=>{
     const map={"Introdução":/introdu[cç][aã]o/i,"Metodologia":/metodologia|m[eé]todo/i,"Resultados":/resultados/i,
       "Conclusão":/conclus[aã]o|considera[cç][oõ]es finais/i,"Referências":/refer[eê]ncias/i};
     return map[lbl].test(text);
   });
-  lastDiag = {inv,hy,spaced,ai,cits:all.length,upper,siglas,lq,secMatches,unif};
+  lastDiag = {inv,hy,spaced,ai,cits:all.length,upper,siglas,lq,secMatches,unif,per};
   $("report").innerHTML = [
     metricHTML({label:"1 · Estrutura",tone:secMatches.length?"ok":"warn",
       value:secMatches.length? String(secMatches.length):"0", unit:secMatches.length?"seções":"seções",
@@ -1031,7 +1041,8 @@ function runDiagnostic(){
       note: ai? `<b>${ai} vestígio(s) de IA/UTM</b> a remover.` : (unif.mixed? `⚠️ Mistura de <em>et al.</em> (${unif.etAlCount}) e 4+ coautores (${unif.fourPlusCount}): a NBR 10520:2023 pede uniformidade.` : ""),
       rows:[{k:"Caixa alta a converter",v:upper,tone:upper?"warn":""},
             {k:"Siglas mantidas em maiúsculas",v:siglas},
-            {k:"Citações longas (recuo)",v:lq}]}),
+            {k:"Citações longas (recuo)",v:lq},
+            {k:"Ponto final × citação (só sinalizado)",v:per.total,tone:per.total?"warn":""}]}),
     metricHTML({label:"4 · Perfil normativo",tone:"neutral",small:true,
       value:escapeHtml(profile.institution),
       note:`${escapeHtml(profile.typo.fontFamily)} ${profile.typo.bodyFontSizePt}pt · entrelinha ${String(profile.typo.lineSpacing).replace(".",",")} · margens ${profile.margins.topCm}/${profile.margins.leftCm}/${profile.margins.bottomCm}/${profile.margins.rightCm} cm`})
@@ -1086,7 +1097,7 @@ function runStyle(){
       note:`${a.totalWords} palavras · analisando o <b>${source}</b>.`}),
     metricHTML({label:"Média por período",tone:"neutral",value:fmt(st.mean),unit:"± "+fmt(st.sd),
       rows:[{k:"Mediana",v:fmt(st.median)},{k:"Mínimo",v:st.min},{k:"Máximo",v:st.max}]}),
-    metricHTML({label:"Burstiness (CV = σ/μ × 100)",tone:"neutral",value:fmt(st.cv),unit:"%",
+    metricHTML({label:"Burstiness (CV = <span class=\"nocase\">σ/μ</span> × 100)",tone:"neutral",value:fmt(st.cv),unit:"%",
       note:`<b>${C.cvBand(st.cv)}</b>. Faixas indicativas do ScriptaLab — não são limiar científico.`}),
     metricHTML({label:"Radar de clichês PT-BR",tone:a.matches.length?"warn":"ok",value:String(a.matches.length),unit:"ocorrência(s)",
       rows:[{k:"Por 1.000 palavras",v:fmt(a.clichePer1000),tone:a.clichePer1000>6?"warn":""},
@@ -1272,7 +1283,7 @@ async function audit(){
 // ===== Exportação .docx =====
 function runs(text,size,italicEtAl){
   const {TextRun} = window.docx, f = profile.typo.fontFamily;
-  return text.split(/(\bet al\.|\bapud\b)/).filter(Boolean).map(s=>new TextRun({text:s,font:f,size,italics:italicEtAl&&(s==="et al."||s==="apud")}));
+  return text.split(C.LATIN_ITALIC).map((s,i)=>s ? new TextRun({text:s,font:f,size,italics:italicEtAl&&i%2===1}) : null).filter(Boolean);   // índices ímpares = trechos capturados
 }
 async function exportToDocx(){
   if(!cleanText.trim()){ setStatus("Execute o diagnóstico e autorize as correções antes de exportar.","err"); return; }
@@ -1336,7 +1347,7 @@ function copyReport(){
     `- Seções reconhecidas: ${d.secMatches.length? d.secMatches.join(", ") : "nenhuma"}`,
     `- Quebras por hífen: ${d.hy} | Caracteres invisíveis: ${d.inv} | "palavra - palavra": ${d.spaced}`,
     `- Citações (Autor, Ano): ${d.cits} | Caixa alta a converter: ${d.upper} | Siglas mantidas: ${d.siglas}`,
-    `- Citações longas: ${d.lq} | Vestígios de IA/UTM: ${d.ai}`,
+    `- Citações longas: ${d.lq} | Vestígios de IA/UTM: ${d.ai} | Ponto final × citação: ${d.per?d.per.total:0}`,
     d.unif && d.unif.mixed ? `- Mistura de et al. (${d.unif.etAlCount}) e 4+ coautores (${d.unif.fourPlusCount})` : "", "");
   const s = lastStyle;
   if(s) L.push("ESTILOMETRIA",

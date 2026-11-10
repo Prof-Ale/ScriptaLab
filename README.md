@@ -31,7 +31,7 @@ Os indicadores de estilo e as buscas bibliográficas são **apoio à revisão**:
 | 🧹 **Scrubber** | ✅ pronto | Remove `【4:0†source】` e `[oai_citation:…]`, parâmetros `?utm_*`, caracteres Unicode invisíveis (`U+200B–200D`, `U+2060`, `U+FEFF`, `U+202F`) e une palavras quebradas por hífen no fim da linha. |
 | 📊 **Estilometria** | ✅ novo | Burstiness (CV = σ/μ × 100 do nº de palavras por período, σ populacional) com gráfico de barras por período; radar de clichês PT-BR com sugestões ao passar o mouse; contagem de travessões longos (`—`). **Só lê o texto.** |
 | 🔍 **Auditor** | ✅ reformulado | Citações no texto × lista de referências; DOIs na CrossRef (inclui checagem de agência para DOIs de DataCite) e **comparação com a referência colada ao lado do DOI**; Autor+Ano na CrossRef, com OpenAlex como apoio opcional. |
-| 📐 **Motor ABNT** | 🟡 parcial | NBR 10520:2023: `(SILVA, 2023)` → `(Silva, 2023)` (siglas como IBGE e FGV permanecem em maiúsculas); *et al.* e *apud* em itálico; alerta de uniformidade para 4+ coautores vs *et al.*; citação longa com recuo/fonte/espaçamento do perfil. |
+| 📐 **Motor ABNT** | 🟡 parcial | NBR 10520:2023: `(SILVA, 2023)` → `(Silva, 2023)` (siglas como IBGE e FGV permanecem em maiúsculas); expressões latinas em itálico (*et al.*, *apud*, *ibid.*, *op. cit.*…); alerta de uniformidade para 4+ coautores vs *et al.*; citação longa com recuo/fonte/espaçamento do perfil. |
 | 🏛️ **Perfis de IES** | 🟡 parcial | JSON validado por schema em `templates-ies/`. Exportação `.docx` aplica margens, fonte, entrelinhas, recuo de parágrafo, espaço entre parágrafos e citação longa. |
 
 **Ainda não implementado** (aparecia na versão anterior do README): remoção de `[1]`, normalização de travessões, ordenação alfabética de referências, Semantic Scholar, numeração de páginas e demais itens da NBR 14724 no `.docx`.
@@ -59,7 +59,9 @@ Os indicadores de estilo e as buscas bibliográficas são **apoio à revisão**:
 |---|---|---|
 | Sobrenome em citação parentética só com inicial maiúscula; caixa alta permanece nas referências | NBR 10520:2023 | [IFCE – Atualizações](https://portal.ifce.edu.br/documents/3352/ANEXO_-__Atualiza%C3%A7%C3%B5es_da_ABNT_NBR_10520-2023.pdf), [UniCesumar](https://rdu.unicesumar.edu.br/bitstream/123456789/9937/1/NBR%2010520%20-%20Atualiza%c3%a7%c3%b5es) |
 | Siglas de instituições permanecem em maiúsculas | NBR 10520:2023 | material institucional (ver acima) |
-| *et al.* e *apud* em itálico | NBR 10520:2023 | idem |
+| Itálico em *et al.*, *apud*, *ibid.*, *op. cit.*, *loc. cit.*, *passim*, *et seq.* e *cf.* (e *Id.* dentro de citação) | NBR 10520:2023 | Biblioteca FE/UNESP Ilha Solteira, *Por dentro da Biblioteca* nº 130, ago/2023 (PDF informativo fornecido pelo autor do projeto; sem link público conferido) |
+| Ponto final encerra a frase, não a citação: `(Autor, 2020).` e não `(Autor, 2020.)` (só sinalizado) | NBR 10520:2023 | idem |
+| 4 ou mais autores: citar o primeiro + *et al.* é permitido, e o método deve ser uniforme no documento | NBR 10520:2023 | idem |
 | Margens 3/3/2/2 cm; entrelinhas 1,5; citação longa >3 linhas, sem aspas, fonte menor, espaço simples | NBR 14724:2024 | [UFRGS](https://www.ufrgs.br/bibbio/formatacao-de-trabalhos-academicos-no-word/) |
 | Recuo de 4 cm na citação longa é recomendação, não imposição | NBR 10520:2023 | cada perfil de IES define o seu |
 
