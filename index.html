@@ -454,6 +454,21 @@ footer a:hover{color:var(--accent);text-decoration:underline}
   #out,textarea#raw{height:auto;max-height:none;overflow:visible;border:0;padding:0}
   .bars{overflow:visible}
 }
+/* Revisão item a item (diffEngine Zero-Tampering) */
+.diff-panel{margin-top:var(--sp-4);border:1px solid var(--line);border-radius:var(--r-2);background:var(--surface-2);padding:var(--sp-4)}
+.diff-bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--sp-2);margin-bottom:var(--sp-3)}
+.diff-title{font-size:var(--fs-14);font-weight:600;color:var(--ink-1)}
+.diff-summary{font-size:var(--fs-12);color:var(--ink-2)}
+.diff-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2)}
+.diff-list{display:flex;flex-direction:column;gap:var(--sp-2);max-height:320px;overflow-y:auto;padding-right:2px}
+.diff-item{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--sp-2);padding:var(--sp-2) var(--sp-3);border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface)}
+.diff-item[data-status="accepted"]{border-color:var(--ok-line);background:var(--ok-soft)}
+.diff-item[data-status="rejected"]{opacity:.68;border-color:var(--line)}
+.diff-meta{font-size:var(--fs-11);color:var(--ink-3);margin-bottom:2px}
+.diff-preview{font-family:var(--font-mono);font-size:var(--fs-12);color:var(--ink-1);word-break:break-word}
+.diff-del{background:var(--bad-soft);color:var(--bad);text-decoration:line-through;padding:0 3px;border-radius:3px}
+.diff-ins{background:var(--ok-soft);color:var(--ok);font-weight:600;padding:0 3px;border-radius:3px}
+.diff-item-btns{display:flex;gap:var(--sp-1);flex-shrink:0}
 </style>
 </head>
 <body>
@@ -579,6 +594,20 @@ footer a:hover{color:var(--accent);text-decoration:underline}
         <div class="metric" data-tone="neutral"><div class="m-label">Estado do sistema</div><div class="m-value sm">Aguardando documento</div><div class="m-note">Carregue um arquivo ou cole o texto para iniciar a auditoria.</div></div>
         <div class="metric" data-tone="ok"><div class="m-label">Integridade textual</div><div class="m-value sm">Zero-Tampering ativo</div><div class="m-note">Nenhuma palavra do autor é trocada sem autorização explícita.</div></div>
       </div>
+      <div id="diffPanel" class="diff-panel" hidden aria-label="Revisão item a item antes e depois">
+        <div class="diff-bar">
+          <div>
+            <div class="diff-title">Revisão item a item (antes → depois)</div>
+            <div class="diff-summary" id="diffSummary">Nenhuma alteração pendente.</div>
+          </div>
+          <div class="diff-actions">
+            <button class="btn btn-success btn-sm" type="button" id="btnDiffAcceptAll" onclick="handleDiffAcceptAll()">Aceitar todas</button>
+            <button class="btn btn-quiet btn-sm" type="button" id="btnDiffUndo" onclick="handleDiffUndo()" disabled>Desfazer última</button>
+            <button class="btn btn-quiet btn-sm" type="button" id="btnDiffReset" onclick="handleDiffReset()">Resetar</button>
+          </div>
+        </div>
+        <div class="diff-list" id="diffList"></div>
+      </div>
     </div>
   </section>
 
@@ -671,319 +700,9 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 
 <noscript><p style="padding:16px 24px;color:#a41b1b">O ScriptaLab processa tudo no navegador e precisa de JavaScript habilitado.</p></noscript>
 
-<script id="core">
-(function(root){
-"use strict";
-const INVIS = /[\u200B-\u200D\u2060\uFEFF\u202F]/g;
-const AI_TAGS = /【[^】]*】|\[oai_citation:[^\]]*\]/g;
-const UTM = /[?&]utm_[a-z0-9_]+=[^\s&)\]]*/gi;
-const HYPH_BREAK = /([a-zà-ÿ])-[ \t]*\r?\n[ \t]*([a-zà-ÿ])/gi;
-const UP = "[A-ZÁÉÍÓÚÂÊÔÃÕÇ]";
-const NAME = `(?:${UP}{2,}(?:\\s+${UP}{2,})*|${UP}[A-Za-zÀ-ÿ'’]+(?:\\s+(?:[Dd][aeo]s?|[Ee])\\s+${UP}[A-Za-zÀ-ÿ'’]+)*)`;
-const mkCit = () => new RegExp(`\\b(${NAME})(\\s+et\\s+al\\.)?,\\s*(\\d{4}[a-z]?)`,"g");
-const titleCase = s => s.toLowerCase().replace(/(^|\s)([a-zà-ÿ])/g,(m,a,b)=>a+b.toUpperCase());
-const normStr = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
-const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-const paras = t => t.split(/\n\s*\n/).map(p=>p.trim()).filter(Boolean);
-const isLongQuote = (p,minChars) => /^["“]/.test(p) && p.length > minChars;
-
-// Siglas de instituições permanecem em maiúsculas na citação (NBR 10520:2023). Lista editável.
-const SIGLAS = new Set(["ABNT","BNCC","CAPES","CNE","CNPQ","FGV","FIOCRUZ","IBGE","IBICT","IFSP","INEP","INSS","IPEA","MEC","OCDE","OMS","ONU","SBPC","UFSCAR","UNESCO","UNESP","UNICAMP","UNICEF","UNIVESP","USP","UEL","UFMG","UFRJ","UFRGS","UNB","PUC","FAPESP","CEP","CONEP","MCTI","OIT","OMC","FMI","BID","CEPAL","IFRS","IFSULDEMINAS"]);
-const isSigla = n => !/\s/.test(n) && SIGLAS.has(n.toUpperCase());
-// Itálico (NBR 10520:2023): et al., apud, ibid., op. cit., loc. cit., passim, et seq., cf. e Id. (este só dentro de citação, para não pegar o "id" da psicanálise).
-const LATIN_ITALIC = /(\bet\s+al\.|\bapud\b|\bibid\.|\bop\.\s*cit\.|\bloc\.\s*cit\.|\bpassim\b|\bet\s+seq\.|\b[Cc]f\.|(?<=[(;]\s*)Id\.)/g;
-
-// Verifica uniformidade no uso de et al. vs 4+ coautores listados por extenso na mesma citação (NBR 10520:2023).
-function checkEtAlUniformity(text){
-  const body = splitReferences(text).body;
-  const etAlCount = (body.match(/\bet\s+al\./g)||[]).length;
-  const fourPlusRe = new RegExp(`\\((?:${NAME}\\s*[;,]\\s*){3,}${NAME},\\s*\\d{4}[a-z]?`, "g");
-  const fourPlusCount = (body.match(fourPlusRe)||[]).length;
-  return { etAlCount, fourPlusCount, mixed: etAlCount > 0 && fourPlusCount > 0 };
-}
-
-// Ponto final: "deve ser usado para encerrar a frase e não a citação" (NBR 10520:2023). Só sinaliza.
-function checkCitationPeriods(text){
-  const body = splitReferences(text).body, yr = String.raw`\b(?:19|20)\d{2}[a-z]?\b`;
-  const before = (body.match(new RegExp(String.raw`[\p{L}\d”"']\.\s+(?=\(${UP}[^()]*?${yr}[^()]*\))`,"gu"))||[]).length;   // "...frase. (Autor, 2020)"
-  const inside = (body.match(new RegExp(String.raw`\(${UP}[^()]*?${yr}[^()]*?(?<!\bal)\.\)`,"gu"))||[]).length;               // "(Autor, 2020, p. 72.)"
-  return { before, inside, total: before + inside };
-}
-
-// ---------- Segmentação de períodos (PT-BR) ----------
-const ABBR = new Set(["p","pp","v","vol","n","nº","no","ed","dr","dra","prof","profa","sr","sra","fig","tab","cap","art","etc","cf","ex","obs","org","orgs","trad","min","sec","séc","apud","ibid","op","cit","av","ca","ltda","al","vs","ref","aprox","depto","univ","inst","cia","ph"]);
-function splitSentences(text){
-  const out = [];
-  for(const para of paras(String(text))){
-    const s = para.replace(/\s+/g," ");
-    const re = /([.!?…]+)(["”’')\]]*)\s+(?=["“‘(\[]?[A-ZÁÉÍÓÚÂÊÔÃÕÇ0-9])/g;
-    let start = 0, m;
-    while((m = re.exec(s))){
-      const before = s.slice(start, m.index);
-      const last = (before.match(/([\p{L}\d]+)$/u)||[])[1] || "";
-      if(m[1]==="." && m[2]===""){
-        if(ABBR.has(last.toLowerCase())) continue;           // p. 34 · et al. · Dr. · Fig.
-        if(/^\p{Lu}$/u.test(last)) continue;                  // iniciais: J. K. Rowling
-      }
-      const end = m.index + m[1].length + m[2].length;
-      out.push(s.slice(start,end)); start = re.lastIndex;
-    }
-    const rest = s.slice(start).trim(); if(rest) out.push(rest);
-  }
-  return out.map(x=>x.trim()).filter(Boolean);
-}
-const wordsOf = s => s.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) || [];
-const countWords = s => wordsOf(s).length;
-function sentenceStats(sentences){
-  const w = sentences.map(countWords), n = w.length;
-  if(!n) return {n:0,mean:0,sd:0,cv:null,min:0,max:0,median:0,words:[]};
-  const sum = w.reduce((a,b)=>a+b,0), mean = sum/n;
-  const sd = Math.sqrt(w.reduce((a,b)=>a+(b-mean)**2,0)/n);          // desvio-padrão populacional
-  const sorted = [...w].sort((a,b)=>a-b);
-  const median = n%2 ? sorted[(n-1)/2] : (sorted[n/2-1]+sorted[n/2])/2;
-  return {n,mean,sd,cv: n>1 && mean>0 ? sd/mean*100 : null, min:sorted[0], max:sorted[n-1], median, words:w, total:sum};
-}
-// Faixas indicativas definidas pelo ScriptaLab (heurística editorial; não são limiares científicos)
-const CV_BANDS = [[30,"ritmo muito uniforme"],[50,"ritmo moderado"],[Infinity,"ritmo bem variado"]];
-const cvBand = cv => cv==null ? "amostra pequena demais" : CV_BANDS.find(b=>cv<b[0])[1];
-
-// ---------- Radar de clichês (nunca altera o texto) ----------
-const CLICHES_DEFAULT = [
- {id:"nesse-sentido",label:"Nesse sentido",pattern:"nesse\\s+sentido",alt:["Assim","Por isso","Com base nisso"]},
- {id:"vale-ressaltar",label:"Vale ressaltar / destacar",pattern:"vale\\s+(?:a\\s+pena\\s+)?(?:ressaltar|destacar|salientar|mencionar|lembrar)(?:\\s+que)?",alt:["Apresente o dado ou o argumento direto","Use “Note-se que” com parcimônia"]},
- {id:"cabe-ressaltar",label:"Cabe ressaltar / destacar",pattern:"cabe\\s+(?:ressaltar|destacar|salientar|mencionar)(?:\\s+que)?",alt:["Apresente o dado ou o argumento direto"]},
- {id:"e-importante",label:"É importante / crucial destacar",pattern:"é\\s+(?:importante|crucial|fundamental|essencial|imprescindível|necessário)\\s+(?:ressaltar|destacar|salientar|enfatizar|notar|lembrar|mencionar)(?:\\s+que)?",alt:["Afirme a ideia sem o prefixo","Justifique a importância com uma evidência"]},
- {id:"ressalta-se",label:"Ressalta-se / destaca-se que",pattern:"(?:ressalta|destaca|salienta)-se\\s+que",alt:["Afirme a ideia sem o prefixo"]},
- {id:"cenario-atual",label:"No cenário atual",pattern:"no\\s+cenário\\s+(?:atual|contemporâneo)",alt:["Situe com ano ou contexto concreto (ex.: “Desde 2018…”)"]},
- {id:"dias-atuais",label:"Nos dias de hoje / atuais",pattern:"nos\\s+dias\\s+(?:de\\s+hoje|atuais)",alt:["Situe com ano ou contexto concreto"]},
- {id:"mundo-cada-vez",label:"Em um mundo cada vez mais…",pattern:"(?:em|num|no)\\s+(?:um\\s+)?mundo\\s+(?:cada\\s+vez\\s+mais|contemporâneo|moderno|atual|globalizado)",alt:["Comece pelo problema de pesquisa"]},
- {id:"constante-evolucao",label:"Em constante evolução / transformação",pattern:"em\\s+constante\\s+(?:evolução|transformação|mudança)",alt:["Cite a mudança específica e quando ocorreu"]},
- {id:"rica-tapecaria",label:"Rica tapeçaria",pattern:"(?:rica\\s+)?tapeçaria\\s+de",alt:["Use um termo literal (ex.: “conjunto”, “variedade”)"]},
- {id:"papel-fundamental",label:"Desempenha um papel fundamental",pattern:"desempenh(?:a|am|ar|ando)\\s+um\\s+papel\\s+(?:fundamental|crucial|essencial|central|vital|importante|significativo)",alt:["Diga o que faz, concretamente (ex.: “reduz…”, “permite…”)"]},
- {id:"nao-apenas",label:"Não é apenas X, mas (sim/também) Y",pattern:"não\\s+(?:é|são|foi|foram)\\s+apenas[^.!?]{1,140}?\\bmas\\s+(?:sim|também)",alt:["Afirme Y diretamente, sem a oposição retórica"]},
- {id:"e-inegavel",label:"É inegável / incontestável que",pattern:"é\\s+(?:inegável|incontestável|indiscutível)\\s+que",alt:["Apoie a afirmação com fonte, em vez de adjetivar"]},
- {id:"suma-importancia",label:"De suma importância",pattern:"de\\s+suma\\s+importância",alt:["Justifique a relevância com evidência"]},
- {id:"pilar-fundamental",label:"Pilar fundamental",pattern:"pilar(?:es)?\\s+fundament(?:al|ais)",alt:["Nomeie a função exata"]},
- {id:"multifacetado",label:"Multifacetado",pattern:"multifacetad[oa]s?",alt:["Liste as facetas ou use “complexo”, se couber"]},
- {id:"adentrar",label:"Adentrar / mergulhar",pattern:"adentr(?:ar|ando|amos|a)|mergulh(?:ar|ando|amos)\\s+(?:em|no|na|nos|nas)",alt:["Prefira “analisar”, “examinar”, “discutir”"]},
- {id:"navegar-complexidades",label:"Navegar pelas complexidades",pattern:"navegar\\s+(?:pel[ao]s?|n[ao]s?)\\s+complexidades?",alt:["Prefira “lidar com”, “enfrentar”"]},
- {id:"em-suma",label:"Em suma",pattern:"em\\s+suma",alt:["Conectivo legítimo; atenção à repetição"]},
- {id:"crucial-destacar",label:"Crucial destacar",pattern:"(?:é\\s+)?crucial\\s+(?:destacar|ressaltar|notar)",alt:["Afirme a ideia sem o prefixo"]}
-];
-const compileCliche = c => new RegExp(`(?<![\\p{L}\\p{N}])(?:${c.pattern})(?![\\p{L}\\p{N}])`,"giu");
-function findCliches(text, list){
-  const found = [];
-  for(const c of (list||CLICHES_DEFAULT)){
-    const re = compileCliche(c); let m;
-    while((m = re.exec(text))){ if(!m[0]){ re.lastIndex++; continue; } found.push({start:m.index,end:m.index+m[0].length,id:c.id,label:c.label,alt:c.alt||[],text:m[0]}); }
-  }
-  found.sort((a,b)=>a.start-b.start || b.end-a.end);
-  const out = []; let cursor = 0;
-  for(const f of found){ if(f.start>=cursor){ out.push(f); cursor = f.end; } }   // sem sobreposição
-  return out;
-}
-function highlightHtml(text, matches){
-  let html = "", pos = 0;
-  for(const m of matches){
-    html += escapeHtml(text.slice(pos,m.start));
-    const tip = `${m.label}. Sugestões (revisão manual, nada é trocado automaticamente): ${m.alt.join(" · ")}`;
-    html += `<mark class="cl" title="${escapeHtml(tip)}">${escapeHtml(text.slice(m.start,m.end))}</mark>`;
-    pos = m.end;
-  }
-  return html + escapeHtml(text.slice(pos));
-}
-function analyzeStyle(text, list){
-  const sentences = splitSentences(text), stats = sentenceStats(sentences);
-  const matches = findCliches(text, list), total = countWords(text);
-  const byId = new Map();
-  for(const m of matches){ const e = byId.get(m.id) || {id:m.id,label:m.label,alt:m.alt,count:0}; e.count++; byId.set(m.id,e); }
-  return { sentences, stats, matches, groups:[...byId.values()].sort((a,b)=>b.count-a.count), totalWords:total,
-           clichePer1000: total ? matches.length/total*1000 : 0,
-           emDashPer1000: total ? (text.match(/—/g)||[]).length/total*1000 : 0, emDash:(text.match(/—/g)||[]).length };
-}
-
-// ---------- Citações × referências ----------
-const lastSurname = n => n.trim().split(/\s+/).pop();
-function collectCitations(text){
-  const seen = new Map();
-  const add = (rawName, year) => {
-    const sur = lastSurname(rawName), y = year.replace(/[a-z]$/,""), key = normStr(sur)+y;
-    if(!seen.has(key)) seen.set(key,{sur, name: rawName===rawName.toUpperCase()&&!isSigla(rawName)?titleCase(rawName):rawName, year:y, sigla:isSigla(rawName)});
-  };
-  for(const m of text.matchAll(mkCit())) add(m[1], m[3]);
-  const narr = new RegExp(`\\b(${UP}[A-Za-zÀ-ÿ'’]+(?:\\s+(?:[Dd][aeo]s?|[Ee])\\s+${UP}[A-Za-zÀ-ÿ'’]+)*)(?:\\s+et\\s+al\\.)?\\s*\\((\\d{4}[a-z]?)`,"g");
-  for(const m of text.matchAll(narr)) add(m[1], m[2]);
-  return [...seen.values()];
-}
-const REF_HEAD = /^\s*(?:\d+(?:\.\d+)*\s+)?REFER[ÊE]NCIAS(?:\s+BIBLIOGR[ÁA]FICAS)?\s*$/gim;
-const startsRef = l => /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ' -]{1,}[,.]/.test(l.trim());
-function splitReferences(text){
-  let idx = -1, len = 0, m; REF_HEAD.lastIndex = 0;
-  while((m = REF_HEAD.exec(text))){ idx = m.index; len = m[0].length; }
-  if(idx < 0) return {has:false, body:text, entries:[]};
-  const lines = text.slice(idx+len).split(/\r?\n/), entries = [];
-  for(const raw of lines){
-    const l = raw.trim(); if(!l) continue;
-    if(startsRef(l) || !entries.length) entries.push(l); else entries[entries.length-1] += " "+l;
-  }
-  return {has:true, body:text.slice(0,idx), entries};
-}
-function parseEntry(e){
-  const m = e.match(/^([A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ' -]*),\s/);
-  const years = [...e.matchAll(/\b((?:19|20)\d{2})[a-z]?\b/g)].map(x=>x[1]);
-  return { text:e, personal: !!m, sur: m ? normStr(lastSurname(m[1])) : "", years };
-}
-function crossCheckRefs(text){
-  const r = splitReferences(text);
-  if(!r.has) return {has:false, missing:[], uncited:[], skipped:0, entries:0};
-  const cites = collectCitations(r.body).filter(c=>!c.sigla);
-  const entries = r.entries.map(parseEntry);
-  const missing = cites.filter(c=>!entries.some(e=>normStr(e.text).includes(normStr(c.sur)) && e.years.includes(c.year)));
-  const uncited = entries.filter(e=>e.personal && !cites.some(c=>normStr(c.sur)===e.sur && e.years.includes(c.year)))
-                         .map(e=>e.text.length>110 ? e.text.slice(0,107)+"…" : e.text);
-  return {has:true, missing, uncited, skipped: entries.filter(e=>!e.personal).length, entries: entries.length};
-}
-
-// ---------- DOIs ----------
-function extractDois(text){
-  const map = new Map();
-  for(const d of (text.match(/10\.\d{4,9}\/[^\s"<>\]【]+/g)||[])){
-    const doi = d.replace(/[.,;:)]+$/,""); if(!map.has(doi.toLowerCase())) map.set(doi.toLowerCase(), doi);
-  }
-  return [...map.values()];
-}
-function refBlockFor(text, doi){
-  const lines = text.split(/\r?\n/), i = lines.findIndex(l=>l.toLowerCase().includes(doi.toLowerCase()));
-  if(i<0) return "";
-  let s = i; while(s>0 && lines[s-1].trim() && !startsRef(lines[s])) s--;
-  return lines.slice(s,i+1).join(" ");
-}
-const STOP = new Set(["para","como","sobre","entre","uma","dos","das","com","por","que","the","and","of","for","from","uma","nos","nas"]);
-const tokens = s => normStr(s).split(/[^a-z0-9]+/).filter(w=>w.length>3 && !STOP.has(w));
-function compareRef(block, meta){
-  if(!block || block.length<25 || !meta) return {verdict:"inconclusivo", detail:"não localizei a referência completa ao lado do DOI"};
-  const bt = new Set(tokens(block)), tt = tokens(meta.title||""), cov = tt.length ? tt.filter(w=>bt.has(w)).length/tt.length : 0;
-  const years = [...block.matchAll(/\b((?:19|20)\d{2})\b/g)].map(x=>+x[1]);
-  const yearOk = !meta.year || years.some(y=>Math.abs(y-meta.year)<=1);
-  const surOk = !meta.family || normStr(block).includes(normStr(meta.family));
-  const pct = Math.round(cov*100);
-  if(cov>=0.6 && (yearOk||surOk)) return {verdict:"coerente", detail:`título ${pct}% compatível, ano/autor conferem`};
-  if(cov<0.3 && (!yearOk||!surOk)) return {verdict:"divergente", detail:`título só ${pct}% compatível${!yearOk?`, ano ≠ ${meta.year}`:""}${!surOk?`, autor “${meta.family}” ausente`:""}`};
-  return {verdict:"parcial", detail:`título ${pct}% compatível${!yearOk?`, ano ≠ ${meta.year}`:""}${!surOk?`, autor “${meta.family}” ausente`:""}`};
-}
-
-// ---------- Ponte com o MathLab App (scriptalab.review/1) ----------
-// SHA-256 síncrono em JS puro, para o núcleo continuar testável sem navegador e sem dependências.
-const SHA_K = [], SHA_H0 = [];
-(function(){ let n = 2; const primes = []; while(primes.length < 64){ let p = true; for(const q of primes){ if(q*q > n) break; if(n % q === 0){ p = false; break; } } if(p) primes.push(n); n++; }
-  const frac = x => Math.floor((x - Math.floor(x)) * 4294967296) >>> 0;
-  primes.forEach((p,i) => { SHA_K.push(frac(Math.cbrt(p))); if(i < 8) SHA_H0.push(frac(Math.sqrt(p))); }); })();
-function utf8Bytes(str){
-  const s = String(str).replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "�"), out = [];
-  for(const ch of s){ const c = ch.codePointAt(0);
-    if(c < 0x80) out.push(c);
-    else if(c < 0x800) out.push(0xc0|(c>>6), 0x80|(c&63));
-    else if(c < 0x10000) out.push(0xe0|(c>>12), 0x80|((c>>6)&63), 0x80|(c&63));
-    else out.push(0xf0|(c>>18), 0x80|((c>>12)&63), 0x80|((c>>6)&63), 0x80|(c&63)); }
-  return out;
-}
-function sha256Hex(str){
-  const b = utf8Bytes(str), bitLen = b.length * 8; b.push(0x80); while(b.length % 64 !== 56) b.push(0);
-  const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
-  for(const v of [hi, lo]) b.push((v>>>24)&255, (v>>>16)&255, (v>>>8)&255, v&255);
-  const H = SHA_H0.slice(), w = new Array(64), rr = (x,n) => (x>>>n)|(x<<(32-n));
-  for(let o = 0; o < b.length; o += 64){
-    for(let i = 0; i < 16; i++) w[i] = ((b[o+4*i]<<24)|(b[o+4*i+1]<<16)|(b[o+4*i+2]<<8)|b[o+4*i+3]) >>> 0;
-    for(let i = 16; i < 64; i++){ const s0 = rr(w[i-15],7)^rr(w[i-15],18)^(w[i-15]>>>3), s1 = rr(w[i-2],17)^rr(w[i-2],19)^(w[i-2]>>>10); w[i] = (w[i-16]+s0+w[i-7]+s1) >>> 0; }
-    let [a,bb,c,d,e,f,g,h] = H;
-    for(let i = 0; i < 64; i++){
-      const S1 = rr(e,6)^rr(e,11)^rr(e,25), ch = (e&f)^(~e&g), t1 = (h+S1+ch+SHA_K[i]+w[i]) >>> 0;
-      const S0 = rr(a,2)^rr(a,13)^rr(a,22), mj = (a&bb)^(a&c)^(bb&c), t2 = (S0+mj) >>> 0;
-      h = g; g = f; f = e; e = (d+t1) >>> 0; d = c; c = bb; bb = a; a = (t1+t2) >>> 0;
-    }
-    [a,bb,c,d,e,f,g,h].forEach((v,i) => { H[i] = (H[i]+v) >>> 0; });
-  }
-  return H.map(v => v.toString(16).padStart(8,"0")).join("");
-}
-// Mesmo cálculo do MathLab App: SHA-256 do corpo em UTF-8, quebras de linha em LF, prefixo "sha256:".
-const blockHash = body => "sha256:" + sha256Hex(String(body ?? "").replace(/\r\n?/g, "\n"));
-
-const FORMULA_RE = /\$\$[^$]+\$\$|\$[^$\n]+\$|\\\([^)]*\\\)|\\\[[^\]]*\\\]/g;
-const CIT_PAREN = /\(([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^()\d]{1,60}),?\s*(\d{4}[a-z]?)(?:,\s*p\.\s*[\d-]+)?\)/g;
-const nkey = s => normStr(s).replace(/\s+/g," ").trim();
-const countMap = l => { const m = new Map(); for(const x of l) m.set(x,(m.get(x)||0)+1); return m; };
-const missingFrom = (a,d) => { const A = countMap(a), D = countMap(d), out = []; for(const [k,n] of A) if((D.get(k)||0) < n) out.push(k); return out; };
-const numsOf = t => String(t).replace(AI_TAGS," ").replace(UTM," ").replace(FORMULA_RE," ").replace(CIT_PAREN," ").replace(/\([^()]*\b\d{4}[a-z]?\)/g," ").match(/\d+(?:[.,]\d+)?/g) || [];
-const yearsCited = t => [...String(t).matchAll(/\(([^()]*)\)/g)].flatMap(m => m[1].match(/\b(?:1[5-9]\d{2}|20\d{2})[a-z]?\b/g) || []);
-const formulasOf = t => [...String(t).matchAll(FORMULA_RE)].map(m => m[0].replace(/\s+/g,""));
-const markersOf = t => String(t).match(/\[F\d{1,2}\]/g) || [];
-const citsOf = t => [...String(t).matchAll(CIT_PAREN)].map(m => nkey(m[1])+"|"+m[2]);
-// Trava de preservação (igual à do App): lista o que o texto revisado perdeu. Vazia = respeitada.
-function preservationLoss(antes, depois, categoria){
-  const out = [], n = missingFrom(numsOf(antes), numsOf(depois)); if(n.length) out.push("números ("+n.slice(0,4).join(", ")+")");
-  const f = missingFrom(formulasOf(antes), formulasOf(depois)); if(f.length) out.push("fórmulas ("+f.slice(0,2).join(", ")+")");
-  const m = missingFrom(markersOf(antes), markersOf(depois)); if(m.length) out.push("marcadores de fonte ("+m.join(", ")+")");
-  if(categoria !== "abnt_10520"){ const c = missingFrom(citsOf(antes), citsOf(depois)); if(c.length) out.push("citações ("+c.slice(0,2).join("; ")+")"); }
-  else { const y = missingFrom(yearsCited(antes), yearsCited(depois)); if(y.length) out.push("anos de citação ("+y.join(", ")+")"); }
-  return out;
-}
-
-// Normaliza um bloco sem tocar em fórmulas e sem NFKC (que trocaria "x²" por "x2" e mudaria a matemática).
-function normalizeBlock(body, o){
-  o = Object.assign({ scrubber:true, ai:true, utm:true, abnt:true }, o||{});
-  const orig = String(body ?? "").replace(/\r\n?/g,"\n"), keep = [];
-  let t = orig.replace(FORMULA_RE, m => { keep.push(m); return ""+(keep.length-1)+""; });
-  const c = { inv:0, hy:0, ai:0, cit:0 };
-  if(o.scrubber){ t = t.replace(INVIS, m => { c.inv++; return m === " " ? " " : ""; }); t = t.replace(HYPH_BREAK, (m,a,b) => { c.hy++; return a+b; }); }
-  if(o.ai){ t = t.replace(AI_TAGS, () => { c.ai++; return ""; }); }
-  if(o.utm){ t = t.replace(UTM, () => { c.ai++; return ""; }); }
-  const scrubberChanges = c.inv + c.hy + c.ai;
-  if(o.abnt) t = t.replace(mkCit(), (m,name,etal,year) => { if(name !== name.toUpperCase() || isSigla(name)) return m; c.cit++; return titleCase(name)+(etal?" et al.":"")+", "+year; });
-  t = t.replace(/(\d+)/g, (m,i) => keep[+i]);
-  const category = scrubberChanges > 0 ? "scrubber" : "abnt_10520";
-  return { before: orig, after: t, changed: t !== orig, counts: c, category };
-}
-
-// Lê o material exportado pelo App (mathlab.scriptalab-source/1). Lança erro claro se não for.
-const SOURCE_SCHEMA = "mathlab.scriptalab-source/1", REVIEW_SCHEMA = "scriptalab.review/1";
-function parseSource(text){
-  let d; try { d = JSON.parse(text); } catch(e){ throw new Error("O arquivo não é um JSON válido."); }
-  if(!d || d.schema !== SOURCE_SCHEMA) throw new Error('Esperado "'+SOURCE_SCHEMA+'" e veio "'+(d && d.schema || "sem schema")+'". Exporte pelo botão "Enviar ao ScriptaLab" do App.');
-  if(!d.materialId || !Array.isArray(d.blocks) || !d.blocks.length) throw new Error("O arquivo precisa de materialId e de pelo menos 1 bloco.");
-  for(const b of d.blocks) if(!b || !b.blockId || typeof b.body !== "string") throw new Error("Bloco sem blockId ou sem body.");
-  return d;
-}
-// Uma proposta por bloco. Se a revisão perderia número, fórmula, marcador ou citação, a proposta nasce bloqueada.
-function proposeForBlocks(source, o){
-  return source.blocks.map(b => {
-    const r = normalizeBlock(b.body, o), perdas = r.changed ? preservationLoss(r.before, r.after, r.category) : [];
-    return { blockId: b.blockId, title: b.title || b.blockId, category: r.category, beforeHash: blockHash(b.body), before: r.before, after: r.after,
-             changed: r.changed, counts: r.counts, perdas, blocked: perdas.length > 0, hashMatchesSource: !b.beforeHash || b.beforeHash === blockHash(b.body) };
-  });
-}
-// Monta o pacote só com o que o autor autorizou. Nunca carrega validação humana.
-function buildReview(source, proposals, authorizedIds, meta){
-  meta = meta || {};
-  const ok = new Set(authorizedIds), chosen = proposals.filter(p => p.changed && !p.blocked && ok.has(p.blockId));
-  if(!chosen.length) throw new Error("Nenhuma correção autorizada. Marque pelo menos um bloco com alteração.");
-  const all = source.blocks.map(b => b.body).join("\n\n"), st = analyzeStyle(all, meta.cliches || CLICHES_DEFAULT), refs = crossCheckRefs(all);
-  return { schema: REVIEW_SCHEMA, sourceContract: source.schema, materialId: source.materialId, profileId: meta.profileId || "abnt-padrao-2023",
-    generatedAt: (meta.now || new Date()).toISOString(),
-    stylometrySummary: { sentenceCount: st.sentences.length, cvPercent: st.stats.cv == null ? null : Math.round(st.stats.cv*10)/10, clicheHits: st.matches.length, structuralAlerts: [] },
-    abntSummary: { citationIssues: checkCitationPeriods(all).total, referenceIssues: refs.has ? refs.missing.length + refs.uncited.length : 0 },
-    authorizedPatches: chosen.map(p => ({ blockId: p.blockId, category: p.category, beforeHash: p.beforeHash, body: p.after })),
-    humanValidationCarried: false };
-}
-
-root.ScriptaCore = { INVIS, AI_TAGS, UTM, HYPH_BREAK, mkCit, titleCase, normStr, escapeHtml, paras, isLongQuote, SIGLAS, isSigla,
-  LATIN_ITALIC, checkEtAlUniformity, checkCitationPeriods,
-  splitSentences, countWords, sentenceStats, cvBand, CV_BANDS, CLICHES_DEFAULT, findCliches, highlightHtml, analyzeStyle,
-  collectCitations, splitReferences, crossCheckRefs, extractDois, refBlockFor, compareRef,
-  sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA };
-})(typeof window !== "undefined" ? window : globalThis);
-</script>
-<script id="app">
-const C = window.ScriptaCore;
+<script type="module" id="app">
+import { ScriptaCore as C } from "./src/core/index.js";
+window.ScriptaCore = C;
 const {INVIS,AI_TAGS,UTM,HYPH_BREAK,mkCit,titleCase,normStr,escapeHtml,paras,isSigla} = C;
 
 // ===== Perfis: o JSON de templates-ies/ tem prioridade; estes são o plano B (também funciona offline/file://) =====
@@ -1146,12 +865,13 @@ function runDiagnostic(){
   const names = all.map(c=>c.match(/^[^,]+?(?=(?:\s+et\s+al\.)?,)/)[0]);
   const upper = names.filter(x=>x===x.toUpperCase() && !isSigla(x)).length, siglas = names.filter(x=>x===x.toUpperCase() && isSigla(x)).length;
   const lq = paras(text).filter(isLQ).length, unif = C.checkEtAlUniformity(text), per = C.checkCitationPeriods(text);
+  const refsAudit = C.auditReferencesSection(text);
   const secMatches = ["Introdução","Metodologia","Resultados","Conclusão","Referências"].filter(lbl=>{
     const map={"Introdução":/introdu[cç][aã]o/i,"Metodologia":/metodologia|m[eé]todo/i,"Resultados":/resultados/i,
       "Conclusão":/conclus[aã]o|considera[cç][oõ]es finais/i,"Referências":/refer[eê]ncias/i};
     return map[lbl].test(text);
   });
-  lastDiag = {inv,hy,spaced,ai,cits:all.length,upper,siglas,lq,secMatches,unif,per};
+  lastDiag = {inv,hy,spaced,ai,cits:all.length,upper,siglas,lq,secMatches,unif,per,refsAudit};
   $("report").innerHTML = [
     metricHTML({label:"1 · Estrutura",tone:secMatches.length?"ok":"warn",
       value:secMatches.length? String(secMatches.length):"0", unit:secMatches.length?"seções":"seções",
@@ -1168,14 +888,105 @@ function runDiagnostic(){
             {k:"Siglas mantidas em maiúsculas",v:siglas},
             {k:"Citações longas (recuo)",v:lq},
             {k:"Ponto final × citação (só sinalizado)",v:per.total,tone:per.total?"warn":""}]}),
-    metricHTML({label:"4 · Perfil normativo",tone:"neutral",small:true,
+    metricHTML({label:"4 · Perfil normativo e NBR 6023",tone:refsAudit.has && (refsAudit.withIssuesCount || !refsAudit.alreadySorted || refsAudit.duplicates.length)?"warn":"neutral",small:true,
       value:escapeHtml(profile.institution),
-      note:`${escapeHtml(profile.typo.fontFamily)} ${profile.typo.bodyFontSizePt}pt · entrelinha ${String(profile.typo.lineSpacing).replace(".",",")} · margens ${profile.margins.topCm}/${profile.margins.leftCm}/${profile.margins.bottomCm}/${profile.margins.rightCm} cm`})
+      note:`${escapeHtml(profile.typo.fontFamily)} ${profile.typo.bodyFontSizePt}pt · entrelinha ${String(profile.typo.lineSpacing).replace(".",",")} · margens ${profile.margins.topCm}/${profile.margins.leftCm}/${profile.margins.bottomCm}/${profile.margins.rightCm} cm`,
+      rows: refsAudit.has ? [
+        {k:"Referências (NBR 6023:2025)",v:refsAudit.total},
+        {k:"Com alertas estruturais",v:refsAudit.withIssuesCount,tone:refsAudit.withIssuesCount?"warn":""},
+        {k:"Ordem alfabética",v:refsAudit.alreadySorted?"OK":`fora (${refsAudit.movedCount})`,tone:refsAudit.alreadySorted?"":"warn"},
+        {k:"Duplicadas",v:refsAudit.duplicates.length,tone:refsAudit.duplicates.length?"warn":""}
+      ] : [{k:"Seção REFERÊNCIAS",v:"não encontrada"}]})
   ].join("");
   $("btnAuth").disabled = false;
   diagDone = true; updateStepper();
+  reviewSession = C.createReviewSession(text, {
+    aiTags: $("oCit").checked,
+    utm: $("oUtm").checked,
+    abntCitationCase: $("oAbnt").checked,
+  });
+  renderDiffPanel();
   $("reportSection").scrollIntoView({block:"nearest",behavior:"smooth"});
-  setStatus('Diagnóstico concluído. Revise os quatro indicadores e clique em "Autorizar e normatizar".',"ok");
+  setStatus('Diagnóstico concluído. Revise os indicadores (ou aceite item a item abaixo) e clique em "Autorizar e normatizar".',"ok");
+}
+
+// ===== Revisão item a item (diffEngine Zero-Tampering) =====
+let reviewSession = null;
+function formatDiffToken(s){
+  if(!s) return "[remover]";
+  return s.replace(/[\u200B-\u200D\u2060\uFEFF\u202F]/g, "[invisível]").replace(/\r?\n/g, "↵");
+}
+function renderDiffPanel(){
+  const panel = $("diffPanel"), list = $("diffList"), sumEl = $("diffSummary");
+  if(!panel || !list || !sumEl) return;
+  if(!reviewSession || !reviewSession.proposals.length){
+    panel.hidden = true; list.innerHTML = ""; return;
+  }
+  const st = C.summarizeSession(reviewSession);
+  panel.hidden = false;
+  sumEl.textContent = `${st.total} proposta(s): ${st.accepted} aceita(s) · ${st.rejected} rejeitada(s) · ${st.pending} pendente(s)`;
+  const undoBtn = $("btnDiffUndo"); if(undoBtn) undoBtn.disabled = !st.canUndo;
+  list.innerHTML = reviewSession.proposals.map(p=>{
+    const pre = escapeHtml(p.contextBefore.replace(/\r?\n/g, " "));
+    const post = escapeHtml(p.contextAfter.replace(/\r?\n/g, " "));
+    const before = escapeHtml(formatDiffToken(p.before));
+    const after = escapeHtml(formatDiffToken(p.after));
+    const stLabel = p.status==="accepted"?"Aceita":(p.status==="rejected"?"Rejeitada":"Pendente");
+    return `<div class="diff-item" data-status="${p.status}" data-prop-id="${escapeHtml(p.id)}">
+      <div>
+        <div class="diff-meta">${escapeHtml(p.label)} · <b>${stLabel}</b></div>
+        <div class="diff-preview">…${pre}<span class="diff-del">${before}</span> → <span class="diff-ins">${after}</span>${post}…</div>
+      </div>
+      <div class="diff-item-btns">
+        <button class="btn btn-success btn-sm" type="button" onclick="handleDiffAccept('${escapeHtml(p.id)}')" ${p.status==="accepted"?"disabled":""}>Aceitar</button>
+        <button class="btn btn-quiet btn-sm" type="button" onclick="handleDiffReject('${escapeHtml(p.id)}')" ${p.status==="rejected"?"disabled":""}>Rejeitar</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+function applyReviewSessionToOutput(){
+  if(!reviewSession) return;
+  const st = C.summarizeSession(reviewSession);
+  const t = C.renderSessionText(reviewSession);
+  cleanText = t;
+  let h = escapeHtml(t);
+  if(profile.italicEtAl) h = h.replace(C.LATIN_ITALIC,'<em class="fix" title="NBR 10520:2023">$1</em>');
+  $("out").innerHTML = h;
+  authDone = st.accepted > 0;
+  updateCounters(); updateStepper(); updateFixes(st.accepted);
+  const chip=$("docChip");
+  if(chip && st.accepted > 0){ chip.hidden=false; chip.textContent = `${profile.typo.fontFamily} ${profile.typo.bodyFontSizePt}pt`; }
+  renderDiffPanel();
+}
+function handleDiffAccept(id){
+  if(!reviewSession) return;
+  reviewSession = C.acceptProposal(reviewSession, id);
+  applyReviewSessionToOutput();
+  setStatus("Alteração aceita e refletida no texto normatizado.","ok");
+}
+function handleDiffReject(id){
+  if(!reviewSession) return;
+  reviewSession = C.rejectProposal(reviewSession, id);
+  applyReviewSessionToOutput();
+  setStatus("Alteração rejeitada — trecho original preservado.","ok");
+}
+function handleDiffAcceptAll(){
+  if(!reviewSession) return;
+  reviewSession = C.acceptAllProposals(reviewSession);
+  applyReviewSessionToOutput();
+  setStatus("Todas as propostas pendentes foram aceitas.","ok");
+}
+function handleDiffUndo(){
+  if(!reviewSession) return;
+  reviewSession = C.undoLastAction(reviewSession);
+  applyReviewSessionToOutput();
+  setStatus("Última ação na revisão item a item desfeita.","ok");
+}
+function handleDiffReset(){
+  if(!reviewSession) return;
+  reviewSession = C.resetSession(reviewSession);
+  applyReviewSessionToOutput();
+  setStatus("Revisão item a item reiniciada — texto original restaurado.","ok");
 }
 
 // ===== Normatização =====
@@ -1197,6 +1008,7 @@ function authorizeCorrections(){
   $("out").innerHTML = h;
   const total = c.hy+c.inv+c.ai+c.cit;
   authDone = true; updateCounters(); updateStepper(); updateFixes(total);
+  if(reviewSession){ reviewSession = C.acceptAllProposals(reviewSession); renderDiffPanel(); }
   const chip=$("docChip");
   if(chip){ chip.hidden=false; chip.textContent = `${profile.typo.fontFamily} ${profile.typo.bodyFontSizePt}pt`; }
   setStatus(`Normatizado: ${c.hy} quebras de hífen unidas, ${c.inv} invisíveis removidos, ${c.ai} vestígios de IA/UTM expurgados, ${c.cit} citações ajustadas para (Autor, Ano). Vocabulário preservado.`,"ok");
@@ -1413,9 +1225,32 @@ function runs(text,size,italicEtAl){
 async function exportToDocx(){
   if(!cleanText.trim()){ setStatus("Execute o diagnóstico e autorize as correções antes de exportar.","err"); return; }
   if(!window.docx){ setStatus("A biblioteca de exportação (docx) não carregou. Verifique a conexão e recarregue a página.","err"); return; }
-  const {Document,Packer,Paragraph,AlignmentType,convertMillimetersToTwip:mm} = window.docx;
+  const {Document,Packer,Paragraph,TextRun,Header,PageNumber,AlignmentType,convertMillimetersToTwip:mm} = window.docx;
   const T = profile.typo, L = profile.lq, M = profile.margins;
+  let inRefs = false;
   const children = paras(cleanText).map(p=>{
+    if(/^(?:\d+(?:\.\d+)*\s+)?REFER[ÊE]NCIAS(?:\s+BIBLIOGR[ÁA]FICAS)?$/i.test(p.trim())){
+      inRefs = true;
+      return new Paragraph({
+        alignment:AlignmentType.LEFT,
+        spacing:{before:240,after:240,line:Math.round(240*T.lineSpacing)},
+        children:[new TextRun({text:p.trim(),bold:true,font:T.fontFamily,size:T.bodyFontSizePt*2})]
+      });
+    }
+    if(inRefs){
+      return new Paragraph({
+        alignment:AlignmentType.LEFT,
+        spacing:{after:240,line:240},
+        children:runs(p,T.bodyFontSizePt*2,profile.italicEtAl)
+      });
+    }
+    if(C.isCaptionOrNote(p)){
+      return new Paragraph({
+        alignment:AlignmentType.LEFT,
+        spacing:{before:120,after:120,line:240},
+        children:runs(p,L.fontSizePt*2,profile.italicEtAl)
+      });
+    }
     if(isLQ(p)){
       const q = p.replace(/^["“]\s*/,"").replace(/["”](\s*\([^)]*\)\.?)\s*$/,"$1").replace(/["”]\s*$/,"");
       return new Paragraph({alignment:AlignmentType.JUSTIFIED,indent:{left:mm(L.indentLeftCm*10)},
@@ -1424,10 +1259,22 @@ async function exportToDocx(){
     return new Paragraph({alignment:AlignmentType.JUSTIFIED,indent:{firstLine:mm(T.paragraphFirstLineIndentCm*10)},
       spacing:{after:Math.round(T.paragraphSpacingAfterPt*20),line:Math.round(240*T.lineSpacing)},children:runs(p,T.bodyFontSizePt*2,profile.italicEtAl)});
   });
-  const doc = new Document({sections:[{properties:{page:{margin:{top:mm(M.topCm*10),left:mm(M.leftCm*10),bottom:mm(M.bottomCm*10),right:mm(M.rightCm*10)}}},children}]});
+  const header = Header && PageNumber ? {
+    default: new Header({
+      children:[new Paragraph({
+        alignment:AlignmentType.RIGHT,
+        children:[new TextRun({children:[PageNumber.CURRENT],font:T.fontFamily,size:L.fontSizePt*2})]
+      })]
+    })
+  } : undefined;
+  const doc = new Document({sections:[{
+    properties:{page:{margin:{top:mm(M.topCm*10),left:mm(M.leftCm*10),bottom:mm(M.bottomCm*10),right:mm(M.rightCm*10)}}},
+    ...(header ? {headers:header} : {}),
+    children
+  }]});
   const url = URL.createObjectURL(await Packer.toBlob(doc));
   const a = document.createElement("a"); a.href = url; a.download = `ScriptaLab_Normatizado_${profile.templateId}.docx`; a.click();
-  URL.revokeObjectURL(url); setStatus("Documento Word gerado com o perfil aplicado (margens, fonte, entrelinhas e citação longa).","ok");
+  URL.revokeObjectURL(url); setStatus("Documento Word gerado com perfil ABNT/IES (margens, fonte, entrelinhas, paginação, legendas, citação longa e referências NBR 6023).","ok");
 }
 
 // ===== Auxiliares =====
@@ -1444,8 +1291,10 @@ Em suma, é crucial destacar que a formação docente contínua constrói uma ri
   setStatus("Exemplo carregado. Clique em “Executar diagnóstico”.","ok");
 }
 function clearEditor(){
-  $("raw").value = ""; cleanText = ""; diagDone=false; authDone=false;
+  $("raw").value = ""; cleanText = ""; diagDone=false; authDone=false; reviewSession=null;
   $("out").textContent = "";
+  if($("diffPanel")) $("diffPanel").hidden = true;
+  if($("diffList")) $("diffList").innerHTML = "";
   $("btnDiag").disabled = true; $("btnAuth").disabled = true;
   $("status").style.display = "none";
   $("docChip").hidden = true;
@@ -1580,6 +1429,12 @@ function initUI(){
   $("btnPrint").addEventListener("click",()=>window.print());
 }
 function bootstrapDemo(){ loadSample(); runDiagnostic(); runStyle(); }
+
+Object.assign(window, {
+  loadIesProfile, handleFileUpload, markDirty, runDiagnostic, authorizeCorrections,
+  loadSample, clearEditor, copyClean, exportToDocx, runStyle, audit,
+  handleDiffAccept, handleDiffReject, handleDiffAcceptAll, handleDiffUndo, handleDiffReset
+});
 
 (function boot(){
   const start = ()=>{

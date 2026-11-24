@@ -1,11 +1,11 @@
 // Testes do núcleo (sem dependências): node --test tests/
 const test = require("node:test"), assert = require("node:assert/strict");
-const fs = require("fs"), path = require("path"), vm = require("vm");
-const html = fs.readFileSync(path.join(__dirname,"..","index.html"),"utf8");
-const src = html.match(/<script id="core">([\s\S]*?)<\/script>/)[1];
-const ctx = {}; vm.createContext(ctx); vm.runInContext(src, ctx);
-const K = ctx.ScriptaCore;
-const J = x => JSON.parse(JSON.stringify(x));   // arrays do contexto vm têm outro protótipo
+const fs = require("fs"), path = require("path");
+let K;
+test.before(async () => {
+  ({ ScriptaCore: K } = await import("../src/core/index.js"));
+});
+const J = x => JSON.parse(JSON.stringify(x));
 
 test("segmentação: abreviações, iniciais e decimais não quebram o período", () => {
   const s = K.splitSentences("Segundo Mantoan (2015, p. 34), a inclusão avança. J. K. Rowling vendeu 3,5 milhões de livros. Veja a Fig. 3 e depois o texto. Fim!");
@@ -146,4 +146,103 @@ test("ponte: buildReview leva só o autorizado, com beforeHash, e humanValidatio
   assert.equal(rev.authorizedPatches[0].body, "Segundo (Silva, 2023), são 12 casos.");
   assert.equal(rev.generatedAt, "2026-11-24T20:00:00.000Z");
   assert.throws(() => K.buildReview(src, props, ["b2"]), /Nenhuma correção/);
+});
+
+// ---------- Blocos 1, 2 e 3 (modularização ESM, diffEngine, NBR 6023/14724, estilometria profunda) ----------
+test("scrubber: detecta e limpa artefatos de IA, Unicode invisível, UTM e quebra com hífen", () => {
+  const raw = "Texto\u200B com tag【4:0†source】 e link https://x.org?utm_source=gpt e pala-\nvra.";
+  assert.deepEqual(K.scanScrubIssues(raw), { invis: 1, aiTags: 1, utm: 1, hyphBreak: 1 });
+  assert.equal(K.scrubText(raw), "Texto com tag e link https://x.org e palavra.");
+});
+
+test("diffEngine (Zero-Tampering): nenhuma proposta é aplicada sem aceite explícito", () => {
+  const raw = "Segundo (SILVA, 2020) e (IBGE, 2021), o texto【1:0†src】 avança.\n\nREFERÊNCIAS\n\nSILVA, Ana. Obra. 2020.";
+  const session = K.createReviewSession(raw);
+  const summary = K.summarizeSession(session);
+  assert.equal(summary.total, 2);
+  assert.equal(summary.accepted, 0);
+  assert.equal(K.renderSessionText(session), raw);
+});
+
+test("diffEngine: aceitar, rejeitar, desfazer e filtrar opções sem deslocar offsets", () => {
+  const raw = "Segundo (SILVA, 2020), há nota【2:1†source】 e outro (SOUZA, 2019).";
+  let s = K.createReviewSession(raw);
+  const pTag = s.proposals.find((p) => p.category === "scrubber_ai_tag");
+  const pSilva = s.proposals.find((p) => p.before.startsWith("SILVA"));
+  const pSouza = s.proposals.find((p) => p.before.startsWith("SOUZA"));
+  s = K.acceptProposal(s, pTag.id);
+  s = K.rejectProposal(s, pSilva.id);
+  s = K.acceptProposal(s, pSouza.id);
+  assert.equal(K.renderSessionText(s), "Segundo (SILVA, 2020), há nota e outro (Souza, 2019).");
+  s = K.undoLastAction(s);
+  assert.equal(K.renderSessionText(s), "Segundo (SILVA, 2020), há nota e outro (SOUZA, 2019).");
+  s = K.resetSession(s);
+  assert.equal(K.renderSessionText(s), raw);
+  const onlyAbnt = K.buildProposals("Veja (SILVA, 2020) com tag【1:0†src】 e https://x.org?utm_medium=ai.", { aiTags: false, utm: false, abntCitationCase: true });
+  assert.equal(onlyAbnt.length, 1);
+  assert.equal(onlyAbnt[0].category, "abnt_citation_case");
+});
+
+test("modularização: index.html importa ./src/core/index.js via ES module e preserva ponte e handlers", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  assert.ok(html.includes('<script type="module" id="app">'));
+  assert.ok(html.includes('import { ScriptaCore as C } from "./src/core/index.js"'));
+  assert.ok(!html.includes('<script id="core">'));
+  assert.ok(html.includes('id="diffPanel"'));
+  assert.ok(html.includes('id="bridgeSection"'));
+  for (const fn of ["loadIesProfile", "handleFileUpload", "markDirty", "runDiagnostic", "authorizeCorrections", "runStyle", "audit", "exportToDocx", "handleDiffAccept", "handleDiffReject", "handleDiffUndo"]) {
+    assert.ok(html.includes(fn), `handler ${fn} ausente`);
+  }
+});
+
+test("NBR 6023:2025: classifica tipos de obra e audita campos ausentes sem inventar metadados", () => {
+  assert.equal(K.classifyReferenceType("BRASIL. Ministério da Educação. Base Nacional Comum Curricular. Brasília: MEC, 2018."), "legislacao");
+  assert.equal(K.classifyReferenceType("SOUZA, M. Capítulo. In: SILVA, A. (org.). Livro. São Paulo: X, 2021."), "capitulo");
+  assert.equal(K.classifyReferenceType("LIMA, C. Estudo. Revista Brasileira, v. 12, n. 2, p. 10-25, 2022."), "artigo");
+  assert.equal(K.classifyReferenceType("COSTA, R. Ensino. 2020. Dissertação (Mestrado) – USP, São Paulo, 2020."), "tese");
+  assert.equal(K.auditReferenceEntry("MANTOAN, M. T. E. Inclusão escolar. São Paulo: Moderna, 2015.").ok, true);
+  const badCodes = K.auditReferenceEntry("silva, ana. Artigo sem ano. Disponível em: https://exemplo.org").issues.map((i) => i.code);
+  assert.ok(badCodes.includes("ENTRY_CASE") && badCodes.includes("MISSING_YEAR") && badCodes.includes("MISSING_ACCESS_DATE"));
+});
+
+test("NBR 6023:2025: ordenação alfabética PT-BR, duplicadas e NBR 14724 legendas/notas", () => {
+  const doc = [
+    "Texto do artigo (VYGOTSKY, 1998).",
+    "",
+    "REFERÊNCIAS",
+    "",
+    "VYGOTSKY, L. S. A formação social da mente. São Paulo: Martins Fontes, 1998.",
+    "ÁVILA, G. Análise matemática. São Paulo: Blucher, 2006.",
+    "BRASIL. Lei nº 9.394, de 20 de dezembro de 1996. Brasília: MEC, 1996.",
+    "ÁVILA, G. Análise matemática. São Paulo: Blucher, 2006."
+  ].join("\n");
+  const audit = K.auditReferencesSection(doc);
+  assert.equal(audit.alreadySorted, false);
+  assert.equal(audit.duplicates.length, 1);
+  const sortedRes = K.formatReferencesSectionSorted(doc);
+  const refsPart = sortedRes.text.slice(sortedRes.text.indexOf("REFERÊNCIAS"));
+  assert.ok(refsPart.indexOf("ÁVILA") < refsPart.indexOf("BRASIL") && refsPart.indexOf("BRASIL") < refsPart.indexOf("VYGOTSKY"));
+  assert.equal(K.isCaptionOrNote("Figura 1 – Esquema do DUA."), true);
+  assert.equal(K.isCaptionOrNote("Fonte: Elaborado pelo autor (2026)."), true);
+  assert.equal(K.isCaptionOrNote("A inclusão exige planejamento."), false);
+});
+
+test("Bloco 3: estilometria profunda, VoiceProfile, trava conceitual e prompt cirúrgico", () => {
+  const robotic = [
+    "Além disso, o processo é claro, objetivo e eficaz. O método é rápido, seguro e prático. O plano é justo, sólido e atual.",
+    "",
+    "Além disso, observe:",
+    "- **Clareza:** explica.",
+    "- **Rigor:** mantém.",
+    "- **Alcance:** atende."
+  ].join("\n");
+  const codes = K.detectAiSyntaxPatterns(robotic).alerts.map((a) => a.code);
+  assert.ok(codes.includes("EXCESSIVE_TRIADS") && codes.includes("BOLD_COLON_LISTS") && codes.includes("REPEATED_OPENERS"));
+
+  const vp = K.buildVoiceProfile(["Ensinar pede escuta. Já testou isso em sala? Uma pergunta curta quebra a rigidez."], "Prof. Alê");
+  assert.equal(vp.schema, "scriptalab.voice/1");
+  const blocked = K.validateConceptualPreservation("Segundo Mantoan (2015), $a+b=c$ [F1] em 10.1000/abc.1.", "Texto genérico.");
+  assert.equal(blocked.preserved, false);
+  const prompt = K.buildLiteraryReviewPrompt("No cenário atual, vale ressaltar $x^2=4$.");
+  assert.ok(prompt.prompt.includes("NÃO declare o texto como validado ou aprovado por humano"));
 });
