@@ -33,6 +33,7 @@ Os indicadores de estilo e as buscas bibliográficas são **apoio à revisão**:
 | 🔍 **Auditor** | ✅ reformulado | Citações no texto × lista de referências; DOIs na CrossRef (inclui checagem de agência para DOIs de DataCite) e **comparação com a referência colada ao lado do DOI**; Autor+Ano na CrossRef, com OpenAlex como apoio opcional. |
 | 📐 **Motor ABNT** | 🟡 parcial | NBR 10520:2023: `(SILVA, 2023)` → `(Silva, 2023)` (siglas como IBGE e FGV permanecem em maiúsculas); expressões latinas em itálico (*et al.*, *apud*, *ibid.*, *op. cit.*…); alerta de uniformidade para 4+ coautores vs *et al.*; citação longa com recuo/fonte/espaçamento do perfil. |
 | 🏛️ **Perfis de IES** | 🟡 parcial | JSON validado por schema em `templates-ies/`. Exportação `.docx` aplica margens, fonte, entrelinhas, recuo de parágrafo, espaço entre parágrafos e citação longa. |
+| 🔗 **Ponte MathLab App** | ✅ novo | Abre o arquivo `mathlab.scriptalab-source/1` do App, propõe limpeza e ajuste `(Autor, Ano)` por bloco, bloqueia correção que perderia número, fórmula, marcador `[F#]` ou citação, e exporta o pacote `scriptalab.review/1` só com o que o autor marcou. Não toca em fórmulas e nunca leva validação humana. O `beforeHash` é o SHA-256 do corpo em UTF-8 com quebras LF, igual ao do App. |
 
 **Ainda não implementado** (aparecia na versão anterior do README): remoção de `[1]`, normalização de travessões, ordenação alfabética de referências, Semantic Scholar, numeração de páginas e demais itens da NBR 14724 no `.docx`.
 

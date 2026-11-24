@@ -92,3 +92,58 @@ test("ponto final: sinaliza ponto antes da citação e ponto dentro dos parênte
   assert.equal(K.checkCitationPeriods("Correto (Clarac; Bonnin, 1985, p. 72). Outro (Bell et al., 2011).").total, 0);
   assert.equal(K.checkCitationPeriods("Ok (Silva et al., 2020 apud Souza et al.)").total, 0);
 });
+
+// ---------- Ponte com o MathLab App ----------
+const crypto = require("node:crypto");
+test("ponte: SHA-256 próprio confere com o do Node (vazio, acentos, emoji, bloco longo)", () => {
+  for(const s of ["", "abc", "Área do triângulo: b·h/2 ≈ 3,5 ✓", "😀 emoji", "x".repeat(1000), "a".repeat(55), "a".repeat(56), "a".repeat(64)])
+    assert.equal(K.sha256Hex(s), crypto.createHash("sha256").update(s, "utf8").digest("hex"));
+});
+test("ponte: blockHash normaliza CRLF para LF e leva o prefixo sha256:", () => {
+  assert.equal(K.blockHash("a\r\nb"), K.blockHash("a\nb"));
+  assert.match(K.blockHash("x"), /^sha256:[0-9a-f]{64}$/);
+  assert.equal(K.blockHash("x"), "sha256:" + crypto.createHash("sha256").update("x").digest("hex"));
+});
+test("ponte: normalizeBlock limpa vestígios e não mexe em fórmulas nem usa NFKC", () => {
+  const r = K.normalizeBlock("A área é $x^2 + 3​$ e vale 12 m² .​ Fonte【4:0†source】.");
+  assert.ok(r.after.includes("$x^2 + 3​$"));          // dentro da fórmula, intocado
+  assert.ok(r.after.includes("m²"));                        // NFKC não foi aplicado
+  assert.ok(!r.after.includes("【"));
+  assert.equal(r.category, "scrubber");
+});
+test("ponte: só citação em caixa alta vira abnt_10520; sigla permanece", () => {
+  const r = K.normalizeBlock("Veja (SILVA, 2023) e (IBGE, 2022).");
+  assert.equal(r.after, "Veja (Silva, 2023) e (IBGE, 2022).");
+  assert.equal(r.category, "abnt_10520");
+  assert.equal(K.normalizeBlock("Texto limpo.").changed, false);
+});
+test("ponte: trava de preservação acusa número, fórmula, marcador e citação perdidos", () => {
+  assert.deepEqual(J(K.preservationLoss("tem 12 itens $a+b$ [F1] (Silva, 2023)", "tem 12 itens $a+b$ [F1] (Silva, 2023)", "scrubber")), []);
+  const p = K.preservationLoss("tem 12 itens $a+b$ [F1] (Silva, 2023)", "tem itens", "scrubber");
+  assert.equal(p.length, 4);
+  assert.deepEqual(J(K.preservationLoss("(SILVA, 2023)", "(Silva, 2023)", "abnt_10520")), []);
+  assert.equal(K.preservationLoss("(SILVA, 2023)", "(Silva)", "abnt_10520").length, 1);
+});
+const fonte = () => ({ schema:"mathlab.scriptalab-source/1", materialId:"mat_1", blocks:[
+  { blockId:"b1", title:"Intro", body:"Segundo (SILVA, 2023), são 12 casos." },
+  { blockId:"b2", title:"Limpo", body:"Nada a corrigir aqui." },
+  { blockId:"b3", title:"Resíduo", body:"Texto com resíduo【4:0†source】 e a fórmula $x^2$." } ] });
+test("ponte: parseSource recusa schema errado e bloco sem id", () => {
+  assert.throws(() => K.parseSource("{"), /JSON válido/);
+  assert.throws(() => K.parseSource(JSON.stringify({schema:"outro/1"})), /Esperado/);
+  assert.throws(() => K.parseSource(JSON.stringify({schema:"mathlab.scriptalab-source/1", materialId:"m", blocks:[{body:"x"}]})), /blockId/);
+});
+test("ponte: buildReview leva só o autorizado, com beforeHash, e humanValidationCarried false", () => {
+  const src = fonte(), props = K.proposeForBlocks(src);
+  assert.deepEqual(J(props.map(p => p.changed)), [true, false, true]);
+  const rev = K.buildReview(src, props, ["b1", "b2"], { profileId:"usp-abnt", now:new Date("2026-11-24T20:00:00Z") });
+  assert.equal(rev.schema, "scriptalab.review/1");
+  assert.equal(rev.humanValidationCarried, false);
+  assert.equal(rev.authorizedPatches.length, 1);              // b2 não mudou, b3 não foi autorizado
+  assert.equal(rev.authorizedPatches[0].blockId, "b1");
+  assert.equal(rev.authorizedPatches[0].category, "abnt_10520");
+  assert.equal(rev.authorizedPatches[0].beforeHash, K.blockHash(src.blocks[0].body));
+  assert.equal(rev.authorizedPatches[0].body, "Segundo (Silva, 2023), são 12 casos.");
+  assert.equal(rev.generatedAt, "2026-11-24T20:00:00.000Z");
+  assert.throws(() => K.buildReview(src, props, ["b2"]), /Nenhuma correção/);
+});
