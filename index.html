@@ -582,6 +582,27 @@ footer a:hover{color:var(--accent);text-decoration:underline}
     </div>
   </section>
 
+  <section class="section" id="bridgeSection">
+    <div class="sh">
+      <div class="sh-t">
+        <h2><span class="ic" aria-hidden="true">🔗</span> Ponte com o MathLab App</h2>
+        <p>Abra o arquivo "Enviar ao ScriptaLab" do App. O ScriptaLab propõe limpeza e ajuste de citação por bloco; <b>só vai para o pacote o que você marcar</b>. Fórmulas não são tocadas, e correção que perderia número, fórmula, marcador de fonte ou citação fica bloqueada. O texto não sai do navegador.</p>
+      </div>
+      <label class="btn btn-ghost" for="bridgeFile">📂 Abrir arquivo do App</label>
+      <input type="file" id="bridgeFile" accept=".json,application/json" hidden>
+    </div>
+    <div class="sb">
+      <div id="bridgeInfo" class="m-note">Nenhum arquivo aberto.</div>
+      <div id="bridgeList"></div>
+      <div class="flow-actions" id="bridgeActions" hidden>
+        <button class="btn btn-quiet btn-sm" type="button" id="bridgeAll">Marcar todos os sem bloqueio</button>
+        <button class="btn btn-quiet btn-sm" type="button" id="bridgeNone">Desmarcar todos</button>
+        <button class="btn btn-success" type="button" id="bridgeExport">Baixar pacote de revisão (.json)</button>
+      </div>
+      <p class="m-note" id="bridgeNote" hidden>O pacote nunca leva validação humana. No App, o material volta para "GERADO" e a auditoria roda de novo.</p>
+    </div>
+  </section>
+
   <section class="section" id="stylePanel">
     <div class="sh">
       <div class="sh-t">
@@ -851,10 +872,114 @@ function compareRef(block, meta){
   return {verdict:"parcial", detail:`título ${pct}% compatível${!yearOk?`, ano ≠ ${meta.year}`:""}${!surOk?`, autor “${meta.family}” ausente`:""}`};
 }
 
+// ---------- Ponte com o MathLab App (scriptalab.review/1) ----------
+// SHA-256 síncrono em JS puro, para o núcleo continuar testável sem navegador e sem dependências.
+const SHA_K = [], SHA_H0 = [];
+(function(){ let n = 2; const primes = []; while(primes.length < 64){ let p = true; for(const q of primes){ if(q*q > n) break; if(n % q === 0){ p = false; break; } } if(p) primes.push(n); n++; }
+  const frac = x => Math.floor((x - Math.floor(x)) * 4294967296) >>> 0;
+  primes.forEach((p,i) => { SHA_K.push(frac(Math.cbrt(p))); if(i < 8) SHA_H0.push(frac(Math.sqrt(p))); }); })();
+function utf8Bytes(str){
+  const s = String(str).replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "�"), out = [];
+  for(const ch of s){ const c = ch.codePointAt(0);
+    if(c < 0x80) out.push(c);
+    else if(c < 0x800) out.push(0xc0|(c>>6), 0x80|(c&63));
+    else if(c < 0x10000) out.push(0xe0|(c>>12), 0x80|((c>>6)&63), 0x80|(c&63));
+    else out.push(0xf0|(c>>18), 0x80|((c>>12)&63), 0x80|((c>>6)&63), 0x80|(c&63)); }
+  return out;
+}
+function sha256Hex(str){
+  const b = utf8Bytes(str), bitLen = b.length * 8; b.push(0x80); while(b.length % 64 !== 56) b.push(0);
+  const hi = Math.floor(bitLen / 4294967296), lo = bitLen >>> 0;
+  for(const v of [hi, lo]) b.push((v>>>24)&255, (v>>>16)&255, (v>>>8)&255, v&255);
+  const H = SHA_H0.slice(), w = new Array(64), rr = (x,n) => (x>>>n)|(x<<(32-n));
+  for(let o = 0; o < b.length; o += 64){
+    for(let i = 0; i < 16; i++) w[i] = ((b[o+4*i]<<24)|(b[o+4*i+1]<<16)|(b[o+4*i+2]<<8)|b[o+4*i+3]) >>> 0;
+    for(let i = 16; i < 64; i++){ const s0 = rr(w[i-15],7)^rr(w[i-15],18)^(w[i-15]>>>3), s1 = rr(w[i-2],17)^rr(w[i-2],19)^(w[i-2]>>>10); w[i] = (w[i-16]+s0+w[i-7]+s1) >>> 0; }
+    let [a,bb,c,d,e,f,g,h] = H;
+    for(let i = 0; i < 64; i++){
+      const S1 = rr(e,6)^rr(e,11)^rr(e,25), ch = (e&f)^(~e&g), t1 = (h+S1+ch+SHA_K[i]+w[i]) >>> 0;
+      const S0 = rr(a,2)^rr(a,13)^rr(a,22), mj = (a&bb)^(a&c)^(bb&c), t2 = (S0+mj) >>> 0;
+      h = g; g = f; f = e; e = (d+t1) >>> 0; d = c; c = bb; bb = a; a = (t1+t2) >>> 0;
+    }
+    [a,bb,c,d,e,f,g,h].forEach((v,i) => { H[i] = (H[i]+v) >>> 0; });
+  }
+  return H.map(v => v.toString(16).padStart(8,"0")).join("");
+}
+// Mesmo cálculo do MathLab App: SHA-256 do corpo em UTF-8, quebras de linha em LF, prefixo "sha256:".
+const blockHash = body => "sha256:" + sha256Hex(String(body ?? "").replace(/\r\n?/g, "\n"));
+
+const FORMULA_RE = /\$\$[^$]+\$\$|\$[^$\n]+\$|\\\([^)]*\\\)|\\\[[^\]]*\\\]/g;
+const CIT_PAREN = /\(([A-ZÁÉÍÓÚÂÊÔÃÕÇ][^()\d]{1,60}),?\s*(\d{4}[a-z]?)(?:,\s*p\.\s*[\d-]+)?\)/g;
+const nkey = s => normStr(s).replace(/\s+/g," ").trim();
+const countMap = l => { const m = new Map(); for(const x of l) m.set(x,(m.get(x)||0)+1); return m; };
+const missingFrom = (a,d) => { const A = countMap(a), D = countMap(d), out = []; for(const [k,n] of A) if((D.get(k)||0) < n) out.push(k); return out; };
+const numsOf = t => String(t).replace(AI_TAGS," ").replace(UTM," ").replace(FORMULA_RE," ").replace(CIT_PAREN," ").replace(/\([^()]*\b\d{4}[a-z]?\)/g," ").match(/\d+(?:[.,]\d+)?/g) || [];
+const yearsCited = t => [...String(t).matchAll(/\(([^()]*)\)/g)].flatMap(m => m[1].match(/\b(?:1[5-9]\d{2}|20\d{2})[a-z]?\b/g) || []);
+const formulasOf = t => [...String(t).matchAll(FORMULA_RE)].map(m => m[0].replace(/\s+/g,""));
+const markersOf = t => String(t).match(/\[F\d{1,2}\]/g) || [];
+const citsOf = t => [...String(t).matchAll(CIT_PAREN)].map(m => nkey(m[1])+"|"+m[2]);
+// Trava de preservação (igual à do App): lista o que o texto revisado perdeu. Vazia = respeitada.
+function preservationLoss(antes, depois, categoria){
+  const out = [], n = missingFrom(numsOf(antes), numsOf(depois)); if(n.length) out.push("números ("+n.slice(0,4).join(", ")+")");
+  const f = missingFrom(formulasOf(antes), formulasOf(depois)); if(f.length) out.push("fórmulas ("+f.slice(0,2).join(", ")+")");
+  const m = missingFrom(markersOf(antes), markersOf(depois)); if(m.length) out.push("marcadores de fonte ("+m.join(", ")+")");
+  if(categoria !== "abnt_10520"){ const c = missingFrom(citsOf(antes), citsOf(depois)); if(c.length) out.push("citações ("+c.slice(0,2).join("; ")+")"); }
+  else { const y = missingFrom(yearsCited(antes), yearsCited(depois)); if(y.length) out.push("anos de citação ("+y.join(", ")+")"); }
+  return out;
+}
+
+// Normaliza um bloco sem tocar em fórmulas e sem NFKC (que trocaria "x²" por "x2" e mudaria a matemática).
+function normalizeBlock(body, o){
+  o = Object.assign({ scrubber:true, ai:true, utm:true, abnt:true }, o||{});
+  const orig = String(body ?? "").replace(/\r\n?/g,"\n"), keep = [];
+  let t = orig.replace(FORMULA_RE, m => { keep.push(m); return ""+(keep.length-1)+""; });
+  const c = { inv:0, hy:0, ai:0, cit:0 };
+  if(o.scrubber){ t = t.replace(INVIS, m => { c.inv++; return m === " " ? " " : ""; }); t = t.replace(HYPH_BREAK, (m,a,b) => { c.hy++; return a+b; }); }
+  if(o.ai){ t = t.replace(AI_TAGS, () => { c.ai++; return ""; }); }
+  if(o.utm){ t = t.replace(UTM, () => { c.ai++; return ""; }); }
+  const scrubberChanges = c.inv + c.hy + c.ai;
+  if(o.abnt) t = t.replace(mkCit(), (m,name,etal,year) => { if(name !== name.toUpperCase() || isSigla(name)) return m; c.cit++; return titleCase(name)+(etal?" et al.":"")+", "+year; });
+  t = t.replace(/(\d+)/g, (m,i) => keep[+i]);
+  const category = scrubberChanges > 0 ? "scrubber" : "abnt_10520";
+  return { before: orig, after: t, changed: t !== orig, counts: c, category };
+}
+
+// Lê o material exportado pelo App (mathlab.scriptalab-source/1). Lança erro claro se não for.
+const SOURCE_SCHEMA = "mathlab.scriptalab-source/1", REVIEW_SCHEMA = "scriptalab.review/1";
+function parseSource(text){
+  let d; try { d = JSON.parse(text); } catch(e){ throw new Error("O arquivo não é um JSON válido."); }
+  if(!d || d.schema !== SOURCE_SCHEMA) throw new Error('Esperado "'+SOURCE_SCHEMA+'" e veio "'+(d && d.schema || "sem schema")+'". Exporte pelo botão "Enviar ao ScriptaLab" do App.');
+  if(!d.materialId || !Array.isArray(d.blocks) || !d.blocks.length) throw new Error("O arquivo precisa de materialId e de pelo menos 1 bloco.");
+  for(const b of d.blocks) if(!b || !b.blockId || typeof b.body !== "string") throw new Error("Bloco sem blockId ou sem body.");
+  return d;
+}
+// Uma proposta por bloco. Se a revisão perderia número, fórmula, marcador ou citação, a proposta nasce bloqueada.
+function proposeForBlocks(source, o){
+  return source.blocks.map(b => {
+    const r = normalizeBlock(b.body, o), perdas = r.changed ? preservationLoss(r.before, r.after, r.category) : [];
+    return { blockId: b.blockId, title: b.title || b.blockId, category: r.category, beforeHash: blockHash(b.body), before: r.before, after: r.after,
+             changed: r.changed, counts: r.counts, perdas, blocked: perdas.length > 0, hashMatchesSource: !b.beforeHash || b.beforeHash === blockHash(b.body) };
+  });
+}
+// Monta o pacote só com o que o autor autorizou. Nunca carrega validação humana.
+function buildReview(source, proposals, authorizedIds, meta){
+  meta = meta || {};
+  const ok = new Set(authorizedIds), chosen = proposals.filter(p => p.changed && !p.blocked && ok.has(p.blockId));
+  if(!chosen.length) throw new Error("Nenhuma correção autorizada. Marque pelo menos um bloco com alteração.");
+  const all = source.blocks.map(b => b.body).join("\n\n"), st = analyzeStyle(all, meta.cliches || CLICHES_DEFAULT), refs = crossCheckRefs(all);
+  return { schema: REVIEW_SCHEMA, sourceContract: source.schema, materialId: source.materialId, profileId: meta.profileId || "abnt-padrao-2023",
+    generatedAt: (meta.now || new Date()).toISOString(),
+    stylometrySummary: { sentenceCount: st.sentences.length, cvPercent: st.stats.cv == null ? null : Math.round(st.stats.cv*10)/10, clicheHits: st.matches.length, structuralAlerts: [] },
+    abntSummary: { citationIssues: checkCitationPeriods(all).total, referenceIssues: refs.has ? refs.missing.length + refs.uncited.length : 0 },
+    authorizedPatches: chosen.map(p => ({ blockId: p.blockId, category: p.category, beforeHash: p.beforeHash, body: p.after })),
+    humanValidationCarried: false };
+}
+
 root.ScriptaCore = { INVIS, AI_TAGS, UTM, HYPH_BREAK, mkCit, titleCase, normStr, escapeHtml, paras, isLongQuote, SIGLAS, isSigla,
   LATIN_ITALIC, checkEtAlUniformity, checkCitationPeriods,
   splitSentences, countWords, sentenceStats, cvBand, CV_BANDS, CLICHES_DEFAULT, findCliches, highlightHtml, analyzeStyle,
-  collectCitations, splitReferences, crossCheckRefs, extractDois, refBlockFor, compareRef };
+  collectCitations, splitReferences, crossCheckRefs, extractDois, refBlockFor, compareRef,
+  sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA };
 })(typeof window !== "undefined" ? window : globalThis);
 </script>
 <script id="app">
@@ -1366,6 +1491,51 @@ function copyReport(){
 }
 
 // ===== Camada de interface =====
+// ===== Ponte com o MathLab App (Bloco 4) =====
+let bridge = null;
+function bridgeOpts(){ return { ai:$("oCit").checked, utm:$("oUtm").checked, abnt:$("oAbnt").checked }; }
+function bridgeRender(){
+  if(!bridge) return;
+  const P = bridge.props, n = P.filter(p=>p.changed&&!p.blocked).length, bl = P.filter(p=>p.blocked).length;
+  $("bridgeInfo").textContent = `Material ${bridge.source.materialId}: ${P.length} blocos, ${n} com correção possível, ${bl} bloqueados pela trava, ${P.filter(p=>!p.changed).length} sem alteração.`;
+  $("bridgeList").innerHTML = P.map((p,i)=>{
+    const c = p.counts, parts = [c.inv&&`${c.inv} invisíveis`, c.hy&&`${c.hy} quebras de hífen`, c.ai&&`${c.ai} vestígios de IA/UTM`, c.cit&&`${c.cit} citações para (Autor, Ano)`].filter(Boolean).join(", ");
+    const tone = p.blocked ? "x" : p.changed ? "w" : "v";
+    const head = `<b>${escapeHtml(p.title)}</b> <span class="m-note">(${escapeHtml(p.blockId)})</span>`;
+    const stale = p.hashMatchesSource ? "" : ` <span class="m-note">O hash do arquivo difere do corpo: o App vai recusar se o bloco mudou.</span>`;
+    if(!p.changed) return card(tone, `${head}<div class="m-note">Nada a corrigir.</div>`);
+    const chk = p.blocked ? "" : `<label><input type="checkbox" data-bridge="${i}"> Autorizar esta correção (${p.category === "scrubber" ? "limpeza" : "ABNT 10520"})</label>`;
+    const blk = p.blocked ? `<div>Bloqueado: a correção perderia ${escapeHtml(p.perdas.join("; "))}.</div>` : "";
+    return card(tone, `${head}<div class="m-note">${escapeHtml(parts)}</div>${blk}${stale}${chk}
+      <details><summary>Ver antes e depois</summary><pre style="white-space:pre-wrap">${escapeHtml(p.before)}</pre><pre style="white-space:pre-wrap">${escapeHtml(p.after)}</pre></details>`);
+  }).join("");
+  $("bridgeActions").hidden = false; $("bridgeNote").hidden = false;
+}
+async function bridgeOpen(file){
+  try{
+    const source = C.parseSource(await file.text());
+    bridge = { source, props: C.proposeForBlocks(source, bridgeOpts()) };
+    bridgeRender(); setStatus(`Arquivo do App aberto: ${source.blocks.length} blocos. Marque o que deseja autorizar.`,"ok");
+  }catch(e){ bridge = null; $("bridgeList").innerHTML = ""; $("bridgeActions").hidden = true; $("bridgeNote").hidden = true; $("bridgeInfo").textContent = e.message; setStatus(e.message,"err"); }
+}
+function bridgeIds(){ return [...document.querySelectorAll("[data-bridge]:checked")].map(x=>bridge.props[+x.dataset.bridge].blockId); }
+function bridgeExport(){
+  if(!bridge) return;
+  try{
+    const rev = C.buildReview(bridge.source, bridge.props, bridgeIds(), { profileId: profile.templateId });
+    const url = URL.createObjectURL(new Blob([JSON.stringify(rev,null,2)],{type:"application/json"}));
+    const a = document.createElement("a"); a.href = url; a.download = `scriptalab_revisao_${bridge.source.materialId}.json`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    setStatus(`Pacote gerado com ${rev.authorizedPatches.length} correção(ões) autorizada(s). Importe no App, na revisão do material.`,"ok");
+  }catch(e){ setStatus(e.message,"err"); }
+}
+function initBridge(){
+  $("bridgeFile").addEventListener("change",e=>{ const f=e.target.files[0]; if(f) bridgeOpen(f); e.target.value=""; });
+  $("bridgeAll").addEventListener("click",()=>document.querySelectorAll("[data-bridge]").forEach(x=>x.checked=true));
+  $("bridgeNone").addEventListener("click",()=>document.querySelectorAll("[data-bridge]").forEach(x=>x.checked=false));
+  $("bridgeExport").addEventListener("click",bridgeExport);
+  for(const id of ["oCit","oUtm","oAbnt"]) $(id).addEventListener("change",()=>{ if(bridge){ bridge.props = C.proposeForBlocks(bridge.source, bridgeOpts()); bridgeRender(); } });
+}
 function initUI(){
   // Tema
   initTheme(); $("themeToggle").addEventListener("click",toggleTheme);
@@ -1404,6 +1574,7 @@ function initUI(){
   $("raw").addEventListener("input",updateCounters);
   $("reportSection").setAttribute("data-collapsed","false");
   updateCounters(); updateStepper(); updateFixes(0);
+  initBridge();
   // Extra
   $("btnCopyReport").addEventListener("click",copyReport);
   $("btnPrint").addEventListener("click",()=>window.print());
