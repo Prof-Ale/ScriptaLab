@@ -18,7 +18,7 @@
 
 ## 🎯 Sobre o projeto
 
-O ScriptaLab roda inteiramente no navegador (*client-side first*, um único `index.html`, sem build). Ele **mede e sinaliza** problemas no texto e só altera algo quando a pessoa clica em *Autorizar Correções*. O princípio é o **Zero-Tampering**: vocabulário, argumentos e conclusões do autor não são reescritos.
+O ScriptaLab roda inteiramente no navegador (*client-side first*, zero-build, com núcleo em módulos ES puros em `src/core/`). Ele **mede e sinaliza** problemas no texto e só altera algo quando a pessoa aceita cada item no painel de diff ou clica em *Autorizar e normatizar*. O princípio é o **Zero-Tampering**: vocabulário, argumentos e conclusões do autor não são reescritos.
 
 Os indicadores de estilo e as buscas bibliográficas são **apoio à revisão**: não provam autoria nem uso de IA, e uma obra "não encontrada" não é prova de invenção.
 
@@ -28,14 +28,15 @@ Os indicadores de estilo e as buscas bibliográficas são **apoio à revisão**:
 
 | Módulo | Estado | O que faz |
 |---|---|---|
-| 🧹 **Scrubber** | ✅ pronto | Remove `【4:0†source】` e `[oai_citation:…]`, parâmetros `?utm_*`, caracteres Unicode invisíveis (`U+200B–200D`, `U+2060`, `U+FEFF`, `U+202F`) e une palavras quebradas por hífen no fim da linha. |
-| 📊 **Estilometria** | ✅ novo | Burstiness (CV = σ/μ × 100 do nº de palavras por período, σ populacional) com gráfico de barras por período; radar de clichês PT-BR com sugestões ao passar o mouse; contagem de travessões longos (`—`). **Só lê o texto.** |
-| 🔍 **Auditor** | ✅ reformulado | Citações no texto × lista de referências; DOIs na CrossRef (inclui checagem de agência para DOIs de DataCite) e **comparação com a referência colada ao lado do DOI**; Autor+Ano na CrossRef, com OpenAlex como apoio opcional. |
-| 📐 **Motor ABNT** | 🟡 parcial | NBR 10520:2023: `(SILVA, 2023)` → `(Silva, 2023)` (siglas como IBGE e FGV permanecem em maiúsculas); expressões latinas em itálico (*et al.*, *apud*, *ibid.*, *op. cit.*…); alerta de uniformidade para 4+ coautores vs *et al.*; citação longa com recuo/fonte/espaçamento do perfil. |
-| 🏛️ **Perfis de IES** | 🟡 parcial | JSON validado por schema em `templates-ies/`. Exportação `.docx` aplica margens, fonte, entrelinhas, recuo de parágrafo, espaço entre parágrafos e citação longa. |
-| 🔗 **Ponte MathLab App** | ✅ novo | Abre o arquivo `mathlab.scriptalab-source/1` do App, propõe limpeza e ajuste `(Autor, Ano)` por bloco, bloqueia correção que perderia número, fórmula, marcador `[F#]` ou citação, e exporta o pacote `scriptalab.review/1` só com o que o autor marcou. Não toca em fórmulas e nunca leva validação humana. O `beforeHash` é o SHA-256 do corpo em UTF-8 com quebras LF, igual ao do App. |
+| 🧹 **Scrubber (`src/core/scrubber.js`)** | ✅ pronto | Remove `【4:0†source】` e `[oai_citation:…]`, parâmetros `?utm_*`, caracteres Unicode invisíveis (`U+200B–200D`, `U+2060`, `U+FEFF`, `U+202F`) e une palavras quebradas por hífen no fim da linha. |
+| 🔀 **Diff & Desfazer (`src/core/diffEngine.js`)** | ✅ pronto | Revisão item a item (antes → depois) com aceitar/rejeitar individual, aceitar todas, pilha de desfazer e reset (Zero-Tampering). |
+| 📊 **Estilometria + VoiceProfile (`src/core/stylometry.js`, `literaryReview.js`)** | ✅ pronto | Burstiness (CV = σ/μ × 100), radar de clichês PT-BR, estilometria profunda (tríades, listas `**Rótulo:**`, parágrafos gêmeos, aberturas repetidas, TTR/Guiraud), calibração de **Perfil de Voz Autoral (`VoiceProfile`)** na sessão e revisão literária cirúrgica com **trava de preservação conceitual** (citações, DOIs, fórmulas LaTeX e `[F#]`). |
+| 🔍 **Auditor (`src/core/citationAuditor.js`)** | ✅ pronto | Citações no texto × lista de referências; DOIs na CrossRef (inclui checagem de agência para DataCite) e **comparação com a referência colada ao lado do DOI**; Autor+Ano na CrossRef, com OpenAlex opcional. |
+| 📐 **Motor ABNT (`src/core/abnt10520.js`, `abnt6023.js`)** | ✅ pronto | **NBR 10520:2023:** `(SILVA, 2023)` → `(Silva, 2023)` preservando siglas, expressões latinas em itálico, uniformidade de *et al.* e alerta de ponto final. **NBR 6023:2025:** classificação de obras, auditoria de campos ausentes (sem inventar dados), duplicadas e ordenação alfabética A–Z opt-in com desfazer. |
+| 🏛️ **Perfis de IES + DOCX NBR 14724** | ✅ pronto | JSON validado por schema em `templates-ies/`. Exportação `.docx` aplica margens, fonte, entrelinhas, recuo, citação longa, **numeração de páginas no cabeçalho**, legendas/notas em fonte menor (10pt) e referências alinhadas à esquerda em espaço simples. |
+| 🔗 **Ponte MathLab App (`src/core/mathlabBridge.js`)** | ✅ pronto | Abre o arquivo `mathlab.scriptalab-source/1` do App, propõe limpeza e ajuste `(Autor, Ano)` por bloco, bloqueia correção que perderia número, fórmula, marcador `[F#]` ou citação, e exporta o pacote `scriptalab.review/1` só com o que o autor marcou. Não toca em fórmulas e nunca leva validação humana. O `beforeHash` é o SHA-256 do corpo em UTF-8 com quebras LF, igual ao do App. |
 
-**Ainda não implementado** (aparecia na versão anterior do README): remoção de `[1]`, normalização de travessões, ordenação alfabética de referências, Semantic Scholar, numeração de páginas e demais itens da NBR 14724 no `.docx`.
+**Ainda fora de escopo / futuro:** remoção automática de `[1]`, normalização de travessões e integração Semantic Scholar.
 
 ### Como o Auditor funciona
 - **Sem chave:** usa a CrossRef pública. O e-mail (opcional) entra como `mailto` e coloca a consulta no *polite pool*. Fila sequencial (150 ms por registro e 400 ms por busca com e-mail; 250 ms e 1,1 s sem e-mail), `Retry-After` respeitado e cache na sessão. Os limites vigentes da CrossRef são divulgados por ela e mudam; confira antes de aumentar a taxa.
@@ -48,9 +49,9 @@ Os indicadores de estilo e as buscas bibliográficas são **apoio à revisão**:
 
 1. **O texto nunca é enviado.** Só saem do navegador DOIs e pares sobrenome+ano, para `api.crossref.org` (e `api.openalex.org`, se houver chave ou cota).
 2. **CSP restritiva** (`<meta http-equiv="Content-Security-Policy">`): `connect-src` só aceita CrossRef, OpenAlex e o CDN do worker do PDF; sem imagens remotas, sem formulários.
-3. **Bibliotecas com versão fixa e SRI (SHA-384):** `docx@8.5.0`, `mammoth@1.6.0`, `pdf.js@3.11.174`. O *worker* do pdf.js é baixado com `fetch(..., {integrity})` e executado a partir de um `Blob`, porque `workerSrc` não aceita SRI.
-4. **pdf.js:** versões < 4.2.67 têm a falha CVE-2024-4367 (execução de JS por fonte maliciosa em PDF). Mitigação aplicada: `isEvalSupported: false`. Migração para a série 4.x (módulos ES) está no roteiro.
-5. `sessionStorage` guarda apenas e-mail opcional, chave opcional e cache das respostas; some ao fechar a aba. Nada vai para `localStorage`.
+3. **Bibliotecas com versão fixa e SRI (SHA-384):** `docx@8.5.0`, `mammoth@1.6.0`, `pdf.js@4.10.38` (módulos ES). O *worker* do pdf.js é baixado com `fetch(..., {integrity})` e executado a partir de um `Blob`, porque `workerSrc` não aceita SRI.
+4. **pdf.js 4.10.38:** migração para a série 4.x concluída (corrige CVE-2024-4367), mantendo `isEvalSupported: false` como defesa em profundidade.
+5. `sessionStorage` guarda apenas e-mail opcional, chave opcional, `VoiceProfile` calibrado e cache das respostas; some ao fechar a aba. Nada vai para `localStorage`.
 
 ---
 
@@ -90,7 +91,20 @@ Para adicionar novos perfis de instituições ou programas específicos (ex.: va
 
 ```text
 ScriptaLab/
-├── index.html                 # App completo: interface, núcleo (<script id="core">) e controlador
+├── index.html                 # Interface e controlador (<script type="module">, zero-build)
+├── src/core/                  # Núcleo ESM puro (zero dependência; roda no navegador e em Node)
+│   ├── index.js               # Barrel + ScriptaCore
+│   ├── textUtils.js           # Utilitários de normalização, HTML escaping e parágrafos
+│   ├── scrubber.js            # Higienização de artefatos de IA, Unicode invisível, UTM e hifens
+│   ├── diffEngine.js          # Revisão item a item (antes/depois, aceitar/rejeitar e desfazer)
+│   ├── stylometry.js          # Segmentação PT-BR, CV (σ/μ) e radar de clichês
+│   ├── literaryReview.js      # Estilometria profunda, VoiceProfile e trava conceitual
+│   ├── abnt10520.js           # Regras NBR 10520:2023 (citações, siglas, itálico, ponto final)
+│   ├── abnt6023.js            # Auditoria e ordenação A–Z NBR 6023:2025 + legendas NBR 14724
+│   ├── citationAuditor.js     # Cruzamento citação × referência, DOIs e comparação CrossRef
+│   └── mathlabBridge.js       # Ponte mathlab.scriptalab-source/1 ↔ scriptalab.review/1 (sha256)
+├── docs/
+│   └── ARQUITETURA_INTEGRADA_MATHLAB_SCRIPTALAB.md
 ├── manifest.webmanifest       # Manifesto PWA
 ├── favicon.svg / favicon-*.png / icon-*.png / icon-app.svg / logo-horizontal.svg / avatar.*
 ├── data/
@@ -107,7 +121,7 @@ ScriptaLab/
 │   ├── anhanguera-uam.json
 │   └── CONTRIBUINDO.md
 ├── tests/
-│   ├── core.test.js           # 15 testes unitários do núcleo (Node, sem dependências)
+│   ├── core.test.js           # 32 testes unitários do núcleo ESM (Node, sem dependências)
 │   └── e2e/e2e_test.py        # 33 verificações no navegador (Playwright; APIs simuladas)
 ├── tools/
 │   ├── validate-templates.js  # valida perfis contra o schema
@@ -116,15 +130,17 @@ ScriptaLab/
 └── package.json
 ```
 
-Desenvolvimento local: `npm install && npm run check`. Para servir a página (necessário para carregar os JSON): `python3 -m http.server`.
+Desenvolvimento local: `npm install && npm run check`. Para servir a página (necessário para módulos ES e JSON): `python3 -m http.server`.
 
 ---
 
 ## 🗺️ Roteiro
 
-- [ ] Migrar para pdf.js 4.x (módulos ES) com verificação de integridade
+- [x] Migrar para pdf.js 4.x (`4.10.38`, módulos ES) com verificação de integridade SHA-384
 - [x] Perfis IFSP, USP, UNICAMP e UNESP a partir dos manuais oficiais (ABNT)
 - [x] Campo `citationStyle` (ABNT, APA, Vancouver, ISO) no schema
-- [ ] Numeração de páginas e fonte menor em notas/legendas no `.docx`
-- [ ] Ordenação alfabética e checagem de formato das referências (NBR 6023:2025)
-- [ ] Diferença antes/depois e desfazer por item
+- [x] Numeração de páginas, fonte menor em notas/legendas e referências alinhadas à esquerda no `.docx`
+- [x] Ordenação alfabética opt-in e checagem estrutural das referências (NBR 6023:2025)
+- [x] Diferença antes/depois e desfazer por item (`diffEngine.js` + `#diffPanel`)
+- [x] Estilometria profunda, `VoiceProfile` autoral e trava de preservação conceitual
+- [x] Ponte bidirecional com o MathLab App (`mathlab.scriptalab-source/1` ↔ `scriptalab.review/1`)
