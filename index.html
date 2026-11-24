@@ -608,6 +608,19 @@ footer a:hover{color:var(--accent);text-decoration:underline}
         </div>
         <div class="diff-list" id="diffList"></div>
       </div>
+      <div id="refsAbntPanel" class="diff-panel" hidden aria-label="Auditoria de referências NBR 6023:2025">
+        <div class="diff-bar">
+          <div>
+            <div class="diff-title">Referências bibliográficas (ABNT NBR 6023:2025)</div>
+            <div class="diff-summary" id="refsAbntSummary">Nenhuma seção REFERÊNCIAS analisada.</div>
+          </div>
+          <div class="diff-actions">
+            <button class="btn btn-success btn-sm" type="button" id="btnSortRefs" onclick="handleSortReferences()" disabled>Ordenar referências (A–Z)</button>
+            <button class="btn btn-quiet btn-sm" type="button" id="btnUndoSortRefs" onclick="handleUndoSortReferences()" disabled>Desfazer ordenação</button>
+          </div>
+        </div>
+        <div class="diff-list" id="refsAbntList"></div>
+      </div>
     </div>
   </section>
 
@@ -659,6 +672,44 @@ footer a:hover{color:var(--accent);text-decoration:underline}
       </div>
       <div id="styleCliches" class="al"></div>
       <div id="styleOut" class="styleout" style="display:none" aria-label="Texto com expressões destacadas (somente leitura)"></div>
+      <div id="styleSyntaxBox" class="diff-panel" hidden aria-label="Estilometria profunda e padrões sintáticos"></div>
+      <div id="voiceLiteraryPanel" class="diff-panel" style="margin-top:16px" aria-label="Perfil de voz autoral e revisão literária">
+        <div class="diff-bar">
+          <div>
+            <div class="diff-title">Perfil de Voz Autoral (<code>VoiceProfile</code>) e Revisão Literária</div>
+            <div class="diff-summary" id="voiceStatus">Nenhum perfil calibrado nesta sessão (Zero-Retention: fica só na aba).</div>
+          </div>
+          <div class="diff-actions">
+            <button class="btn btn-primary btn-sm" type="button" id="btnCalibrateVoice" onclick="calibrateVoiceProfile()">Calibrar minha voz</button>
+            <button class="btn btn-quiet btn-sm" type="button" id="btnClearVoice" onclick="clearVoiceProfile()">Limpar perfil</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <input type="text" id="voiceLabel" value="Prof. Alê" placeholder="Nome do perfil autoral" aria-label="Nome do perfil de voz" style="padding:6px 10px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface);color:var(--ink-1);font-size:var(--fs-13);min-width:180px">
+        </div>
+        <textarea id="voiceSample" rows="3" placeholder="Cole 1 ou mais parágrafos escritos por você (textos autênticos) para calibrar seu perfil de voz…" aria-label="Amostras de texto autoral" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface);color:var(--ink-1);font-family:var(--font-doc);font-size:var(--fs-13)"></textarea>
+        <div id="voiceComparisonBox" class="m-note" style="margin-top:8px"></div>
+        <hr style="border:0;border-top:1px solid var(--line);margin:14px 0">
+        <div class="diff-bar">
+          <div>
+            <div class="diff-title">Revisão literária cirúrgica + Trava de preservação conceitual</div>
+            <div class="diff-summary">Gera pedido focado apenas nos pontos estilométricos e bloqueia retornos que percam citações, DOIs, fórmulas ou marcadores <code>[F#]</code>.</div>
+          </div>
+          <div class="diff-actions">
+            <button class="btn btn-primary btn-sm" type="button" id="btnGenLiterary" onclick="generateLiteraryPrompt()">Gerar pedido cirúrgico</button>
+            <button class="btn btn-quiet btn-sm" type="button" id="btnCopyLiterary" onclick="copyLiteraryPrompt()">Copiar pedido</button>
+          </div>
+        </div>
+        <textarea id="literaryPromptOut" rows="4" readonly placeholder="O pedido cirúrgico de revisão literária aparecerá aqui…" aria-label="Pedido cirúrgico de revisão literária" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface);color:var(--ink-1);font-family:var(--font-mono);font-size:var(--fs-12)"></textarea>
+        <div style="margin-top:10px">
+          <textarea id="literaryReturnIn" rows="3" placeholder="Cole aqui a versão revisada para conferir a trava de preservação conceitual antes de aplicar…" aria-label="Retorno da revisão literária" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface);color:var(--ink-1);font-family:var(--font-doc);font-size:var(--fs-13)"></textarea>
+          <div class="diff-actions" style="margin-top:8px">
+            <button class="btn btn-primary btn-sm" type="button" id="btnCheckLiterary" onclick="validateLiteraryReturn()">Conferir trava conceitual</button>
+            <button class="btn btn-success btn-sm" type="button" id="btnApplyLiterary" onclick="applyValidatedLiteraryReturn()" disabled>Aplicar versão validada no texto normatizado</button>
+          </div>
+          <div id="literaryCheckOut" class="m-note" style="margin-top:8px" aria-live="polite"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -906,8 +957,63 @@ function runDiagnostic(){
     abntCitationCase: $("oAbnt").checked,
   });
   renderDiffPanel();
+  renderRefsAbntPanel(refsAudit);
   $("reportSection").scrollIntoView({block:"nearest",behavior:"smooth"});
   setStatus('Diagnóstico concluído. Revise os indicadores (ou aceite item a item abaixo) e clique em "Autorizar e normatizar".',"ok");
+}
+
+// ===== Referências NBR 6023:2025 (auditoria + ordenação A–Z opt-in) =====
+let prevCleanBeforeSort = null;
+function renderRefsAbntPanel(refsAudit){
+  const panel = $("refsAbntPanel"), list = $("refsAbntList"), sumEl = $("refsAbntSummary");
+  const btnSort = $("btnSortRefs"), btnUndo = $("btnUndoSortRefs");
+  if(!panel || !list || !sumEl) return;
+  if(!refsAudit || !refsAudit.has){
+    panel.hidden = true; list.innerHTML = "";
+    if(btnSort) btnSort.disabled = true;
+    return;
+  }
+  panel.hidden = false;
+  sumEl.textContent = `${refsAudit.total} referência(s): ${refsAudit.validCount} sem alertas · ${refsAudit.withIssuesCount} com alertas · ordem alfabética ${refsAudit.alreadySorted ? "OK" : `fora (${refsAudit.movedCount} deslocada(s))`}${refsAudit.duplicates.length ? ` · ${refsAudit.duplicates.length} duplicada(s)` : ""}`;
+  if(btnSort) btnSort.disabled = refsAudit.alreadySorted;
+  if(btnUndo) btnUndo.disabled = prevCleanBeforeSort == null;
+  list.innerHTML = refsAudit.entries.map((e, i)=>{
+    const issuesHtml = e.issues.length
+      ? e.issues.map(iss=>`<div class="m-note">⚠️ ${escapeHtml(iss.message)}</div>`).join("")
+      : `<div class="m-note" style="color:var(--ok)">✓ Estrutura essencial NBR 6023 conferida.</div>`;
+    return `<div class="diff-item" data-status="${e.ok ? "accepted" : "pending"}">
+      <div style="width:100%">
+        <div class="diff-meta">#${i+1} · tipo: <b>${escapeHtml(e.type)}</b></div>
+        <div class="diff-preview">${escapeHtml(e.entry)}</div>
+        ${issuesHtml}
+      </div>
+    </div>`;
+  }).join("");
+}
+function handleSortReferences(){
+  const baseText = cleanText.trim() ? cleanText : $("raw").value;
+  if(!baseText.trim()) return;
+  const res = C.formatReferencesSectionSorted(baseText);
+  if(!res.changed){ setStatus("As referências já estão em ordem alfabética (A–Z).","ok"); return; }
+  prevCleanBeforeSort = cleanText;
+  cleanText = res.text;
+  let h = escapeHtml(cleanText);
+  if(profile.italicEtAl) h = h.replace(C.LATIN_ITALIC,'<em class="fix" title="NBR 10520:2023">$1</em>');
+  $("out").innerHTML = h;
+  authDone = true; updateCounters(); updateStepper();
+  renderRefsAbntPanel(C.auditReferencesSection(cleanText));
+  setStatus(`Referências ordenadas alfabeticamente (NBR 6023:2025): ${res.movedCount} entrada(s) reposicionada(s). Corpo do texto preservado.`,"ok");
+}
+function handleUndoSortReferences(){
+  if(prevCleanBeforeSort == null) return;
+  cleanText = prevCleanBeforeSort;
+  prevCleanBeforeSort = null;
+  let h = escapeHtml(cleanText);
+  if(profile.italicEtAl) h = h.replace(C.LATIN_ITALIC,'<em class="fix" title="NBR 10520:2023">$1</em>');
+  $("out").innerHTML = h;
+  updateCounters();
+  renderRefsAbntPanel(C.auditReferencesSection(cleanText.trim() ? cleanText : $("raw").value));
+  setStatus("Ordenação das referências desfeita.","ok");
 }
 
 // ===== Revisão item a item (diffEngine Zero-Tampering) =====
@@ -1072,7 +1178,100 @@ function runStyle(){
     : '<div class="ai v"><strong>Nenhuma expressão da lista foi encontrada.</strong> A lista é um apoio e não esgota o estilo de IA.</div>';
   const out = $("styleOut"); out.style.display = a.matches.length ? "block" : "none";
   out.innerHTML = C.highlightHtml(text, a.matches);
+  renderDeepSyntax(text);
+  updateVoiceComparison(text);
   if(st.n) setStatus(`Estilo analisado: ${st.n} períodos, burstiness ${fmt(st.cv)}% (${C.cvBand(st.cv)}), ${a.matches.length} clichê(s). O texto não foi alterado.`,"ok");
+}
+
+// ===== Estilometria profunda, VoiceProfile e Revisão Literária (Bloco 3 UI) =====
+let voiceProfile = null;
+let validatedLiteraryCandidate = null;
+function renderDeepSyntax(text){
+  const box = $("styleSyntaxBox"); if(!box) return;
+  const syn = C.detectAiSyntaxPatterns(text);
+  box.hidden = false;
+  const alertsHtml = syn.alerts.length
+    ? syn.alerts.map(a=>`<div class="m-note">⚠️ <b>${escapeHtml(a.code)}:</b> ${escapeHtml(a.message)}</div>`).join("")
+    : `<div class="m-note" style="color:var(--ok)">✓ Nenhum padrão sintático repetitivo de IA (tríades excessivas, listas **Rótulo:**, parágrafos gêmeos ou aberturas repetidas) detectado.</div>`;
+  box.innerHTML = `<div class="diff-title" style="margin-bottom:6px">Estilometria profunda e diversidade lexical</div>
+    <div class="diff-summary" style="margin-bottom:8px">Tríades: ${syn.triadsCount} · Listas **Rótulo:**: ${syn.boldColonListCount} · Sequências de parágrafos gêmeos: ${syn.twinParagraphRuns} · Aberturas repetidas: ${syn.repeatedOpeners.length} · TTR: ${syn.lexicalDiversity.ttr} · Guiraud: ${syn.lexicalDiversity.guiraud}</div>
+    ${alertsHtml}`;
+}
+function updateVoiceComparison(text){
+  const box = $("voiceComparisonBox"); if(!box) return;
+  if(!voiceProfile || !String(text||"").trim()){ box.innerHTML = ""; return; }
+  const cmp = C.compareToVoiceProfile(text, voiceProfile);
+  const obsHtml = cmp.observations.length
+    ? cmp.observations.map(o=>`<div>• ${escapeHtml(o)}</div>`).join("")
+    : `<div style="color:var(--ok)">✓ Rascunho próximo da cadência habitual do perfil "${escapeHtml(voiceProfile.label)}".</div>`;
+  box.innerHTML = `<b>Comparação com ${escapeHtml(voiceProfile.label)}:</b> Δ média de período ${cmp.deltas.sentenceMeanDelta >= 0 ? "+" : ""}${cmp.deltas.sentenceMeanDelta} palavras${cmp.deltas.cvDelta != null ? ` · Δ CV ${cmp.deltas.cvDelta >= 0 ? "+" : ""}${cmp.deltas.cvDelta}%` : ""}${obsHtml}`;
+}
+function calibrateVoiceProfile(){
+  const sample = ($("voiceSample")?.value || "").trim();
+  if(!sample){ setStatus("Cole pelo menos um trecho autêntico seu para calibrar o VoiceProfile.","err"); return; }
+  const label = ($("voiceLabel")?.value || "Prof. Alê").trim() || "Prof. Alê";
+  const samples = sample.split(/\n\s*---\s*\n/).map(s=>s.trim()).filter(Boolean);
+  voiceProfile = C.buildVoiceProfile(samples, label);
+  try{ sessionStorage.setItem("sl:voice", JSON.stringify(voiceProfile)); }catch(e){}
+  $("voiceStatus").textContent = `Perfil "${voiceProfile.label}" calibrado (${voiceProfile.totalWords} palavras, média ${voiceProfile.sentenceMean} palavras/período, CV ${voiceProfile.cvPercent == null ? "—" : voiceProfile.cvPercent + "%"}). Fica só nesta aba.`;
+  const cur = cleanText.trim() ? cleanText : $("raw").value;
+  if(cur.trim()) updateVoiceComparison(cur);
+  setStatus(`Perfil de voz "${voiceProfile.label}" calibrado na sessão.`,"ok");
+}
+function clearVoiceProfile(){
+  voiceProfile = null;
+  try{ sessionStorage.removeItem("sl:voice"); }catch(e){}
+  if($("voiceStatus")) $("voiceStatus").textContent = "Nenhum perfil calibrado nesta sessão (Zero-Retention: fica só na aba).";
+  if($("voiceComparisonBox")) $("voiceComparisonBox").innerHTML = "";
+  setStatus("Perfil de voz limpo da sessão.","ok");
+}
+function generateLiteraryPrompt(){
+  const text = cleanText.trim() ? cleanText : $("raw").value;
+  if(!text.trim()){ setStatus("Cole ou carregue um texto antes de gerar o pedido de revisão literária.","err"); return; }
+  const res = C.buildLiteraryReviewPrompt(text, { cliches: CLICHES || undefined, voiceProfile: voiceProfile || undefined });
+  if($("literaryPromptOut")) $("literaryPromptOut").value = res.prompt;
+  setStatus("Pedido cirúrgico de revisão literária gerado com trava de preservação conceitual.","ok");
+}
+async function copyLiteraryPrompt(){
+  const val = $("literaryPromptOut")?.value || "";
+  if(!val.trim()){ setStatus("Gere o pedido cirúrgico antes de copiar.","err"); return; }
+  try{ await navigator.clipboard.writeText(val); setStatus("Pedido cirúrgico copiado para a área de transferência.","ok"); }
+  catch{ setStatus("Não foi possível copiar automaticamente; selecione e copie do campo.","err"); }
+}
+function validateLiteraryReturn(){
+  const before = cleanText.trim() ? cleanText : $("raw").value;
+  const after = ($("literaryReturnIn")?.value || "").trim();
+  const out = $("literaryCheckOut"), btnApply = $("btnApplyLiterary");
+  if(!before.trim() || !after){ setStatus("É preciso ter um texto original e colar o retorno revisado para conferir a trava.","err"); return; }
+  const check = C.validateConceptualPreservation(before, after);
+  if(check.preserved){
+    validatedLiteraryCandidate = after;
+    if(btnApply) btnApply.disabled = false;
+    if(out) out.innerHTML = `<span style="color:var(--ok)"><b>✓ Trava conceitual aprovada:</b> nenhuma citação, DOI, fórmula LaTeX ou marcador [F#] foi perdido. Revise o sentido e clique em "Aplicar versão validada" se concordar.</span>`;
+    setStatus("Trava conceitual aprovada. Aplicação segue opcional e sob sua decisão.","ok");
+  } else {
+    validatedLiteraryCandidate = null;
+    if(btnApply) btnApply.disabled = true;
+    const lost = [
+      check.missingCitations.length && `citações (${check.missingCitations.join(", ")})`,
+      check.missingDois.length && `DOIs (${check.missingDois.join(", ")})`,
+      check.missingFormulas.length && `fórmulas (${check.missingFormulas.join(", ")})`,
+      check.missingMarkers.length && `marcadores (${check.missingMarkers.join(", ")})`
+    ].filter(Boolean).join(" · ");
+    if(out) out.innerHTML = `<span style="color:var(--bad)"><b>✕ Bloqueado pela trava conceitual:</b> a versão revisada perdeu ${escapeHtml(lost)}. Aplicação impedida.</span>`;
+    setStatus("Retorno bloqueado pela trava de preservação conceitual.","err");
+  }
+}
+function applyValidatedLiteraryReturn(){
+  if(!validatedLiteraryCandidate) return;
+  cleanText = validatedLiteraryCandidate;
+  validatedLiteraryCandidate = null;
+  if($("btnApplyLiterary")) $("btnApplyLiterary").disabled = true;
+  let h = escapeHtml(cleanText);
+  if(profile.italicEtAl) h = h.replace(C.LATIN_ITALIC,'<em class="fix" title="NBR 10520:2023">$1</em>');
+  $("out").innerHTML = h;
+  authDone = true; updateCounters(); updateStepper();
+  setStatus("Versão literária validada aplicada ao texto normatizado (sob autorização explícita).","ok");
 }
 
 // ===== Auditor: CrossRef (sem chave) + OpenAlex (opcional, com chave do usuário) =====
@@ -1295,6 +1494,11 @@ function clearEditor(){
   $("out").textContent = "";
   if($("diffPanel")) $("diffPanel").hidden = true;
   if($("diffList")) $("diffList").innerHTML = "";
+  if($("refsAbntPanel")) $("refsAbntPanel").hidden = true;
+  if($("refsAbntList")) $("refsAbntList").innerHTML = "";
+  if($("styleSyntaxBox")){ $("styleSyntaxBox").hidden = true; $("styleSyntaxBox").innerHTML = ""; }
+  prevCleanBeforeSort = null; validatedLiteraryCandidate = null;
+  if($("btnApplyLiterary")) $("btnApplyLiterary").disabled = true;
   $("btnDiag").disabled = true; $("btnAuth").disabled = true;
   $("status").style.display = "none";
   $("docChip").hidden = true;
@@ -1433,7 +1637,10 @@ function bootstrapDemo(){ loadSample(); runDiagnostic(); runStyle(); }
 Object.assign(window, {
   loadIesProfile, handleFileUpload, markDirty, runDiagnostic, authorizeCorrections,
   loadSample, clearEditor, copyClean, exportToDocx, runStyle, audit,
-  handleDiffAccept, handleDiffReject, handleDiffAcceptAll, handleDiffUndo, handleDiffReset
+  handleDiffAccept, handleDiffReject, handleDiffAcceptAll, handleDiffUndo, handleDiffReset,
+  handleSortReferences, handleUndoSortReferences,
+  calibrateVoiceProfile, clearVoiceProfile, generateLiteraryPrompt, copyLiteraryPrompt,
+  validateLiteraryReturn, applyValidatedLiteraryReturn
 });
 
 (function boot(){

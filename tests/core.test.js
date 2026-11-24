@@ -246,3 +246,22 @@ test("Bloco 3: estilometria profunda, VoiceProfile, trava conceitual e prompt ci
   const prompt = K.buildLiteraryReviewPrompt("No cenário atual, vale ressaltar $x^2=4$.");
   assert.ok(prompt.prompt.includes("NÃO declare o texto como validado ou aprovado por humano"));
 });
+
+test("UI Bloco 2+3: painéis NBR 6023 (ordenação A-Z), VoiceProfile e Revisão Literária conectados em index.html", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  for (const id of [
+    "refsAbntPanel", "btnSortRefs", "btnUndoSortRefs", "refsAbntList",
+    "styleSyntaxBox", "voiceLiteraryPanel", "voiceSample", "voiceLabel", "voiceStatus",
+    "literaryPromptOut", "literaryReturnIn", "btnCheckLiterary", "btnApplyLiterary", "literaryCheckOut"
+  ]) {
+    assert.ok(html.includes(`id="${id}"`), `elemento id="${id}" ausente em index.html`);
+  }
+  for (const fn of [
+    "handleSortReferences", "handleUndoSortReferences",
+    "calibrateVoiceProfile", "clearVoiceProfile",
+    "generateLiteraryPrompt", "copyLiteraryPrompt",
+    "validateLiteraryReturn", "applyValidatedLiteraryReturn"
+  ]) {
+    assert.ok(html.includes(fn), `handler ${fn} ausente em index.html`);
+  }
+});
