@@ -24,6 +24,9 @@ import {
 import {
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
 } from "./aiBridge.js";
+import {
+  locateCrossCheck, locateMissingCitations, locateUncitedReferences,
+} from "./citationLocations.js";
 
 export {
   UP, NAME, titleCase, normStr, escapeHtml, paras, isLongQuote, lastSurname,
@@ -36,6 +39,7 @@ export {
   detectAiSyntaxPatterns, buildVoiceProfile, compareToVoiceProfile, extractProtectedTokens, validateConceptualPreservation, buildLiteraryReviewPrompt,
   sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA,
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
+  locateCrossCheck, locateMissingCitations, locateUncitedReferences,
 };
 
 export const ScriptaCore = {
@@ -50,6 +54,7 @@ export const ScriptaCore = {
   detectAiSyntaxPatterns, buildVoiceProfile, compareToVoiceProfile, extractProtectedTokens, validateConceptualPreservation, buildLiteraryReviewPrompt,
   sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA,
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
+  locateCrossCheck, locateMissingCitations, locateUncitedReferences,
 };
 
 export default ScriptaCore;
