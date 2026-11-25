@@ -521,6 +521,12 @@ footer a:hover{color:var(--accent);text-decoration:underline}
   .btn,.btn-sm,.ws-tab,.icon-btn,.chip-profile{min-height:44px}
   .chip-profile{max-width:160px}
 }
+.cc-item { margin-top: 10px; padding: 10px 12px; border: 1px solid var(--line, #d8dee9); border-radius: 10px; background: var(--card, #fff); }
+.cc-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: baseline; justify-content: space-between; }
+.cc-meta { font-size: 12.5px; color: var(--muted, #55607a); font-weight: 700; }
+.cc-occ { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line, #d8dee9); }
+.cc-loc { font-size: 12.5px; font-weight: 800; color: var(--tt, #14264f); }
+.cc-excerpt { margin: 4px 0 8px; font-size: 14px; line-height: 1.45; }
 </style>
 </head>
 <body>
@@ -1569,12 +1575,28 @@ async function audit(){
   AUDIT.running = true; AUDIT.cancel = false; btn.textContent = "⏹ Parar auditoria";
   const total = dois.length + cits.length; setProgress(0,total); $("auditSummary").hidden=true;
   try{
-    const x = C.crossCheckRefs(text);
+    const x = C.locateCrossCheck(text);
     if(x.has){
       pushC(x.missing.length?"w":"v", x.missing.length
-        ? `<strong>⚠️ ${x.missing.length} citação(ões) sem referência correspondente</strong><br>${x.missing.map(c=>`<span class="doi">${escapeHtml(`${c.name}, ${c.year}`)}</span>`).join(" ")}`
+        ? `<strong>⚠️ ${x.missing.length} citação(ões) sem referência correspondente</strong>` + x.missing.map(m=>`
+          <div class="cc-item">
+            <div class="cc-head"><span class="doi">${escapeHtml(`${m.name}, ${m.year}`)}</span>
+            <span class="cc-meta">${m.occurrences.length} ocorrência(s)</span></div>
+            ${m.occurrences.map(o=>`
+              <div class="cc-occ">
+                <div class="cc-loc">📄 pág. est. ${o.pageEstimated} · § ${o.paragraph} · linha ${o.line}</div>
+                <div class="cc-excerpt">“${escapeHtml(o.excerpt)}”</div>
+                <button class="btn btn-sm" type="button" onclick="gotoText(${o.index}, ${o.length})">Ir para o trecho ↗</button>
+              </div>`).join("")}
+          </div>`).join("")
         : `<strong>✅ Todas as citações (Autor, Ano) têm referência correspondente</strong> na lista (${x.entries} entradas).`);
-      if(x.uncited.length) pushC("w",`<strong>ℹ️ ${x.uncited.length} referência(s) sem citação localizada no texto</strong><br>${x.uncited.map(escapeHtml).join("<br>")}`);
+      if(x.uncited.length) pushC("w",`<strong>ℹ️ ${x.uncited.length} referência(s) sem citação localizada no texto</strong>` + x.uncited.map(u=>`
+        <div class="cc-item">
+          <div class="cc-head"><span class="doi">Entrada ${u.entryIndex ?? "?"} da lista</span>
+          <span class="cc-meta">📄 pág. est. ${u.location.pageEstimated} · § ${u.location.paragraph} · linha ${u.location.line}</span></div>
+          <div class="cc-excerpt">“${escapeHtml(u.location.excerpt)}”</div>
+          <button class="btn btn-sm" type="button" onclick="gotoText(${u.location.index}, ${Math.min(u.entry.length, 120)})">Ir para a entrada ↗</button>
+        </div>`).join("") + `<p class="hint">Página estimada (A4, ~2.800 caracteres/página). O trecho, o parágrafo e a linha são exatos.</p>`);
       if(x.skipped) pushC("",`${x.skipped} referência(s) institucionais ou sem autor pessoal não foram comparadas.`);
     } else pushC("","Não encontrei o título “REFERÊNCIAS” em linha própria: pulei a conferência citações × lista.");
     render();
@@ -1829,6 +1851,14 @@ function initUI(){
   $("btnCopyReport").addEventListener("click",copyReport);
   $("btnPrint").addEventListener("click",()=>window.print());
 }
+function gotoText(index, length){
+  const ta = document.getElementById("raw");
+  if(!ta) return;
+  switchTab("editor");
+  ta.focus();
+  ta.setSelectionRange(index, index + length);
+  ta.scrollIntoView({ behavior:"smooth", block:"center" });
+}
 function bootstrapDemo(){ loadSample(); runDiagnostic(); runStyle(); }
 
 Object.assign(window, {
@@ -1838,7 +1868,7 @@ Object.assign(window, {
   handleSortReferences, handleUndoSortReferences,
   calibrateVoiceProfile, clearVoiceProfile, generateLiteraryPrompt, copyLiteraryPrompt,
   validateLiteraryReturn, applyValidatedLiteraryReturn,
-  switchTab, focusProfileSelect, loadSampleAndFocus, scrollToDiffProof
+  switchTab, focusProfileSelect, loadSampleAndFocus, scrollToDiffProof, gotoText
 });
 
 (function boot(){
