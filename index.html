@@ -527,6 +527,10 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 .cc-occ { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line, #d8dee9); }
 .cc-loc { font-size: 12.5px; font-weight: 800; color: var(--tt, #14264f); }
 .cc-excerpt { margin: 4px 0 8px; font-size: 14px; line-height: 1.45; }
+.netlog-row { padding: 6px 0; border-top: 1px dashed var(--line, #d8dee9); font-size: 13.5px; line-height: 1.45; }
+.netlog-time { color: var(--muted, #55607a); font-weight: 700; }
+.netlog-status { color: var(--muted, #55607a); font-weight: 700; }
+.offline-toggle input { accent-color: var(--ac, #b8860b); }
 </style>
 </head>
 <body>
@@ -833,6 +837,16 @@ footer a:hover{color:var(--accent);text-decoration:underline}
           <input type="password" id="oaKey" placeholder="api_key" autocomplete="off"></label>
       </div>
       <p class="hint" style="margin-top:12px">Privacidade: o texto não é enviado. Saem do navegador apenas DOIs e pares sobrenome+ano, para api.crossref.org (e api.openalex.org, se você informar uma chave). O e-mail, a chave e o cache das respostas ficam só na sessão desta aba (sessionStorage) e somem ao fechá-la. Sem chave, o OpenAlex é tentado só como apoio e desligado em silêncio se recusar.</p>
+      <label class="offline-toggle" style="display:flex;gap:8px;align-items:center;margin-top:12px;font-weight:700">
+        <input type="checkbox" id="offlineMode" style="width:auto">
+        Modo sem rede — desliga CrossRef e OpenAlex nesta aba
+      </label>
+      <p class="hint">Com o modo sem rede, a verificação de existência das obras é pulada. Citações × referências, limpeza, ABNT e a ponte MathLab continuam funcionando, porque são locais.</p>
+      <details id="netLogPanel" class="netlog" style="margin-top:12px">
+        <summary>O que saiu desta aba (<span id="netLogCount">0</span>)</summary>
+        <div id="netLogList"><p class="hint">Nenhuma requisição registrada nesta sessão.</p></div>
+        <button class="btn btn-ghost btn-sm" type="button" id="btnClearNetLog">Limpar registro</button>
+      </details>
       <div class="progress" id="auditProgress" hidden><i></i></div>
       <div class="audit-summary" id="auditSummary" hidden></div>
       <div id="audit" class="al" aria-live="off"><div class="ai">Carregue o documento e execute o diagnóstico para auditar.</div></div>
@@ -1476,6 +1490,18 @@ function applyValidatedLiteraryReturn(){
 
 // ===== Auditor: CrossRef (sem chave) + OpenAlex (opcional, com chave do usuário) =====
 const NET = { last:{single:0,list:0,oa:0}, cache:new Map(), oaOff:false };
+// Registro de rede da sessão (só metadados: destino + o que saiu; nunca o texto, o e-mail ou a chave).
+const NETLOG = C.createNetworkLog();
+try { NETLOG.setOffline(sessionStorage.getItem("sl:offline") === "1"); } catch (e) {}
+function renderNetLog() {
+  const list = $("netLogList"), count = $("netLogCount");
+  if (!list) return;
+  count.textContent = NETLOG.entries.length;
+  list.innerHTML = NETLOG.entries.length
+    ? NETLOG.entries.slice().reverse().map(e =>
+        `<div class="netlog-row"><span class="netlog-time">${escapeHtml(e.at.slice(11, 19))}</span> <b>${escapeHtml(e.host)}</b> — ${escapeHtml(e.detail)} <span class="netlog-status">${e.fromCache ? "cache (não saiu)" : escapeHtml(e.status)}</span></div>`).join("")
+    : `<p class="hint">Nenhuma requisição registrada nesta sessão.</p>`;
+}
 const cacheKey = u => "sl:c:" + u.replace(/([?&])(?:mailto|api_key)=[^&]*&?/g,"$1").replace(/[?&]$/,"");
 function cacheGet(u){
   if(NET.cache.has(u)) return NET.cache.get(u);
@@ -1501,16 +1527,17 @@ async function paced(type,cfg){
   NET.last[type] = Date.now();
 }
 async function getJSON(url,type,cfg,tries=3){
-  const hit = cacheGet(url); if(hit) return hit;
+  const hit = cacheGet(url); if(hit){ NETLOG.recordFetch(url,{status:"cache",fromCache:true}); renderNetLog(); return hit; }
+  if(NETLOG.isOffline()){ NETLOG.recordFetch(url,{status:"bloqueada (modo sem rede)"}); renderNetLog(); throw C.offlineError(); }
   for(let attempt=0; attempt<tries; attempt++){
     await paced(type,cfg);
     let r;
     try{ r = await fetch(url,{credentials:"omit",referrerPolicy:"no-referrer"}); }
-    catch(e){ if(attempt===tries-1) throw e; await sleep(800*(attempt+1)); continue; }
+    catch(e){ if(e.offline) throw e; if(attempt===tries-1) throw e; await sleep(800*(attempt+1)); continue; }
     if(r.status===429||r.status===503){ const ra=parseInt(r.headers.get("Retry-After")||"",10); await sleep(Math.min(8000,ra>0?ra*1000:1500*(attempt+1))); continue; }
-    if(r.status===404){ const res={status:404}; cacheSet(url,res); return res; }
+    if(r.status===404){ const res={status:404}; cacheSet(url,res); NETLOG.recordFetch(url,{status:r.status}); renderNetLog(); return res; }
     if(!r.ok){ const e=new Error("HTTP "+r.status); e.status=r.status; throw e; }
-    const res={status:200,data:await r.json()}; cacheSet(url,res); return res;
+    const res={status:200,data:await r.json()}; cacheSet(url,res); NETLOG.recordFetch(url,{status:r.status}); renderNetLog(); return res;
   }
   const e=new Error("limite de requisições (HTTP 429/503)"); e.status=429; throw e;
 }
@@ -1599,6 +1626,13 @@ async function audit(){
         </div>`).join("") + `<p class="hint">Página estimada (A4, ~2.800 caracteres/página). O trecho, o parágrafo e a linha são exatos.</p>`);
       if(x.skipped) pushC("",`${x.skipped} referência(s) institucionais ou sem autor pessoal não foram comparadas.`);
     } else pushC("","Não encontrei o título “REFERÊNCIAS” em linha própria: pulei a conferência citações × lista.");
+    if (NETLOG.isOffline()) {
+      pushC("", "<strong>🌐 Modo sem rede ativo.</strong> Verificação de existência das obras pulada — nenhum DOI e nenhum sobrenome+ano saiu desta aba. O resto da auditoria (citações × referências) já foi feito acima.");
+      render(); renderSummary(counts, 0); lastAudit = { counts, total: 0, items: parts.slice() };
+      setStatus("Auditoria local concluída (modo sem rede).", "ok");
+      AUDIT.running = false; btn.textContent = "Verificar existência das obras"; setProgress(0, 0);
+      return;
+    }
     render();
     let step = 0;
     for(const d of dois){
@@ -1876,6 +1910,18 @@ Object.assign(window, {
     profile = normProfile(FALLBACK["abnt-padrao-2023.json"]);
     loadIesProfile(); loadCliches(); restoreCfg();
     for(const id of ["apiMail","oaKey"]) $(id).addEventListener("input",saveCfg);
+    const off = $("offlineMode");
+    if (off) {
+      off.checked = NETLOG.isOffline();
+      off.addEventListener("change", () => {
+        NETLOG.setOffline(off.checked);
+        try { sessionStorage.setItem("sl:offline", off.checked ? "1" : "0"); } catch (e) {}
+        setStatus(off.checked ? "Modo sem rede ativo: CrossRef e OpenAlex desligados nesta aba." : "Modo sem rede desligado.", "ok");
+      });
+    }
+    const btnClear = $("btnClearNetLog");
+    if (btnClear) btnClear.addEventListener("click", () => { NETLOG.clear(); renderNetLog(); });
+    renderNetLog();
     initUI();
     const demo = new URLSearchParams(location.search).has("demo") || location.hash.indexOf("demo")>=0;
     if(demo) setTimeout(bootstrapDemo,80);
