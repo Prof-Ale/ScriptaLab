@@ -4,9 +4,10 @@
   "private": true,
   "description": "ScriptaLab | LabTech: engenharia textual e conformidade acadêmica (client-side)",
   "scripts": {
-    "test": "node --test tests/core.test.js",
+    "test": "node --test tests/core.test.js tests/contract.test.js",
     "validate": "node tools/validate-templates.js",
-    "check": "npm run test && npm run validate"
+    "check-contract": "node tools/conferir-contrato.mjs",
+    "check": "npm run test && npm run validate && npm run check-contract"
   },
   "devDependencies": { "ajv": "^8.17.1", "ajv-formats": "^3.0.1" }
 }

@@ -1,0 +1,36 @@
+{
+  "schema": "mathlab.scriptalab-source/1",
+  "materialId": "mat_contrato_001",
+  "blocks": [
+    {
+      "blockId": "blk_01",
+      "title": "Citação em caixa alta",
+      "body": "(SILVA, 2023) afirma que a soma de 2 e 3 é 5.",
+      "beforeHash": "sha256:316b70f8dfd121137f29fe98f567b51e5f4c29f7b8b5f5c9788abdd11c69da21"
+    },
+    {
+      "blockId": "blk_02",
+      "title": "Marca de IA a remover",
+      "body": "O resultado foi 42【4:0†source】, sem erro.",
+      "beforeHash": "sha256:8101fed48cb3f79f65b62220e3557cc765e2b3aee29c6c71dffabfbe12ed670a"
+    },
+    {
+      "blockId": "blk_03",
+      "title": "Já limpo",
+      "body": "Texto já limpo, sem nada a corrigir.",
+      "beforeHash": "sha256:29080c0706bc21c7bd7a460e9bf787b3e45e6007277b42b262fe400b47ab9d9c"
+    },
+    {
+      "blockId": "blk_04",
+      "title": "Fórmula preservada",
+      "body": "A fórmula $x^2 + 1$ vale 2 quando x é 1.",
+      "beforeHash": "sha256:7a9d643e2ab5c552f9abaf1283f7ad7003fcb871827ac27c599235c5a2fb3024"
+    },
+    {
+      "blockId": "blk_05",
+      "title": "Quebra CRLF",
+      "body": "Primeira linha.\r\n(SOUZA, 2020) cita o valor 10.",
+      "beforeHash": "sha256:4efe3c7dab42bed677c8c694da9a9e32eaab42218cec594d18e049b8fe20a97b"
+    }
+  ]
+}
