@@ -21,6 +21,9 @@ import {
 import {
   sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA,
 } from "./mathlabBridge.js";
+import {
+  AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
+} from "./aiBridge.js";
 
 export {
   UP, NAME, titleCase, normStr, escapeHtml, paras, isLongQuote, lastSurname,
@@ -32,6 +35,7 @@ export {
   classifyReferenceType, referenceSortKey, auditReferenceEntry, sortReferencesAlphabetically, auditReferencesSection, formatReferencesSectionSorted, isCaptionOrNote,
   detectAiSyntaxPatterns, buildVoiceProfile, compareToVoiceProfile, extractProtectedTokens, validateConceptualPreservation, buildLiteraryReviewPrompt,
   sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA,
+  AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
 };
 
 export const ScriptaCore = {
@@ -45,6 +49,7 @@ export const ScriptaCore = {
   classifyReferenceType, referenceSortKey, auditReferenceEntry, sortReferencesAlphabetically, auditReferencesSection, formatReferencesSectionSorted, isCaptionOrNote,
   detectAiSyntaxPatterns, buildVoiceProfile, compareToVoiceProfile, extractProtectedTokens, validateConceptualPreservation, buildLiteraryReviewPrompt,
   sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA,
+  AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
 };
 
 export default ScriptaCore;

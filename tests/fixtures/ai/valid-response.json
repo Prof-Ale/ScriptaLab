@@ -1,0 +1,20 @@
+{
+  "schema": "scriptalab.ai-suggestion/1",
+  "blockId": "blk_01",
+  "suggestions": [
+    {
+      "id": "s1",
+      "category": "cliche",
+      "original": "No cenário atual, é importante destacar que",
+      "suggested": "Hoje, vale notar que",
+      "reason": "Clichê de abertura; versão direta."
+    },
+    {
+      "id": "s2",
+      "category": "variation",
+      "original": "Vale ressaltar que o método funciona em sala de aula.",
+      "suggested": "O método funciona em sala de aula.",
+      "reason": "Corta o clichê e encurta o período."
+    }
+  ]
+}
