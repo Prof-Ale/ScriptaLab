@@ -474,21 +474,13 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 .btn:disabled{opacity:1!important;background:var(--surface-2)!important;color:var(--ink-2)!important;border:1px dashed var(--line-2)!important;cursor:not-allowed!important;box-shadow:none!important}
 .chip-profile{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-1);font-weight:600;font-size:var(--fs-13);padding:6px 12px;border-radius:999px;cursor:pointer;min-height:40px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .chip-profile:hover{border-color:var(--accent);color:var(--accent)}
-.hero{padding:24px 0 10px}
-.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:22px;align-items:start}
-.hero-eyebrow{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
-.hero h1{font-family:var(--font-doc);font-size:clamp(24px,3.4vw,36px);line-height:1.16;letter-spacing:-.015em;margin:0 0 10px;font-weight:700;color:var(--ink-1);max-width:24ch}
+.hero{padding:14px 0 4px}
+.hero h1{font-family:var(--font-doc);font-size:clamp(19px,2.4vw,24px);line-height:1.2;letter-spacing:-.01em;margin:0 0 4px;font-weight:700;color:var(--ink-1)}
 .hero h1 em{font-style:normal;color:var(--accent)}
-.hero-sub{font-size:15.5px;color:var(--ink-2);margin:0 0 16px;max-width:60ch;line-height:1.55}
-.hero-ctas{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.hero-note{font-size:var(--fs-13);color:var(--ink-3);margin:8px 0 0}
-.trust-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-3);box-shadow:var(--shadow-1);padding:16px}
-.trust-card h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px}
-.trust-card ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.trust-card li{display:flex;gap:10px;align-items:flex-start}
-.trust-ic{width:30px;height:30px;flex:none;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:14px;font-weight:700}
-.trust-card b{display:block;font-size:var(--fs-13);color:var(--ink-1);line-height:1.25}
-.trust-card p{margin:2px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.hero-sub{font-size:var(--fs-13);color:var(--ink-3);margin:0 0 6px}
+.trust-lite{font-size:var(--fs-13);color:var(--ink-2)}
+.trust-lite summary{cursor:pointer;color:var(--accent);font-weight:600;width:max-content}
+.trust-lite ul{margin:6px 0 0;padding-left:18px;display:grid;gap:3px}
 .flow-hint-bar{width:100%;font-size:var(--fs-13);color:var(--ink-2);border-top:1px solid var(--line);padding-top:10px;margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .flow-hint-bar b{color:var(--ink-1)}
 .profile-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-2);padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow-1)}
@@ -522,11 +514,8 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 .diff-proof-arrow{display:grid;place-items:center;background:var(--surface-2);color:var(--ink-2);font-weight:700;border-left:1px solid var(--line);border-right:1px solid var(--line)}
 .diff-proof-foot{padding:10px 16px;font-size:var(--fs-12);color:var(--ink-2);background:var(--surface-2);border-top:1px solid var(--line)}
 @media (max-width:1020px){
-  .hero-grid{grid-template-columns:1fr}
-  .trust-card ul{grid-template-columns:repeat(3,1fr)}
 }
 @media (max-width:820px){
-  .trust-card ul{grid-template-columns:1fr}
   .diff-proof-row{grid-template-columns:1fr}
   .diff-proof-arrow{padding:4px;border:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
   .btn,.btn-sm,.ws-tab,.icon-btn,.chip-profile{min-height:44px}
@@ -577,26 +566,16 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 <div class="container">
 
   <section class="hero" aria-labelledby="pageTitle">
-    <div class="hero-grid">
-      <div>
-        <p class="hero-eyebrow">ABNT NBR 10520:2023 · 14724:2024 · 6023:2025</p>
-        <h1 id="pageTitle">Diagnostique e normalize seu texto acadêmico <em>sem reescrever suas ideias</em></h1>
-        <p class="hero-sub">Mede, sinaliza e ajusta formatação, citações e referências do seu TCC, artigo ou apostila. Vocabulário, argumentos e conclusões continuam exatamente seus.</p>
-        <div class="hero-ctas">
-          <label class="btn btn-primary" for="fileInput" role="button" tabindex="0">📁 Carregar arquivo</label>
-          <button class="btn btn-ghost" id="btnExampleHero" type="button" onclick="loadSampleAndFocus()">Ver com texto de exemplo</button>
-        </div>
-        <p class="hero-note">PDF, DOCX ou TXT — ou cole o texto direto no editor abaixo. Nada sai do seu navegador.</p>
-      </div>
-      <aside class="trust-card" aria-label="Garantias do ScriptaLab">
-        <h2>Por que confiar</h2>
-        <ul>
-          <li><span class="trust-ic" aria-hidden="true">🛡️</span><span><b>Zero-Tampering</b><p>Nenhuma palavra do autor é trocada sem autorização explícita.</p></span></li>
-          <li><span class="trust-ic" aria-hidden="true">🔒</span><span><b>Zero-Retention</b><p>100% local nesta aba. Sem upload, sem conta, sem rastreio.</p></span></li>
-          <li><span class="trust-ic" aria-hidden="true">👁️</span><span><b>Só mede, não altera</b><p>O diagnóstico apenas lê. A normatização só roda com seu clique.</p></span></li>
-        </ul>
-      </aside>
-    </div>
+    <h1 id="pageTitle">Normalize seu texto acadêmico <em>sem reescrever suas ideias</em></h1>
+    <p class="hero-sub">ABNT NBR 10520, 14724 e 6023. Tudo local nesta aba, sem upload e sem conta.</p>
+    <details class="trust-lite">
+      <summary>Garantias do ScriptaLab</summary>
+      <ul>
+        <li><b>Zero-Tampering:</b> nenhuma palavra sua é trocada sem autorização explícita.</li>
+        <li><b>Zero-Retention:</b> o texto não sai do navegador.</li>
+        <li><b>Só mede, não altera:</b> a normatização só roda com o seu clique.</li>
+      </ul>
+    </details>
   </section>
 
   <section class="flow" aria-label="Fluxo de trabalho em três etapas">
@@ -608,12 +587,13 @@ footer a:hover{color:var(--accent);text-decoration:underline}
     <div class="flow-actions">
       <label class="btn btn-ghost" for="fileInput">📁 Carregar arquivo</label>
       <input type="file" id="fileInput" accept=".pdf,.docx,.txt" hidden onchange="handleFileUpload(event)">
+      <button class="btn btn-ghost" id="btnExampleHero" type="button" onclick="loadSampleAndFocus()">Texto de exemplo</button>
       <button class="btn btn-primary" id="btnDiag" onclick="runDiagnostic()" disabled>Executar diagnóstico <kbd class="kbd-hint">⌘↵</kbd></button>
       <button class="btn btn-success" id="btnAuth" onclick="authorizeCorrections()" disabled>Autorizar e normatizar</button>
     </div>
     <div class="flow-hint-bar" id="flowHintBar" role="status" aria-live="polite">
       <b id="flowStepLabel">Passo 1 de 3.</b>
-      <span id="flowHintText">Carregue um texto ou clique em “Ver com texto de exemplo” para ativar o diagnóstico.</span>
+      <span id="flowHintText">Carregue um texto ou clique em “Texto de exemplo” para ativar o diagnóstico.</span>
     </div>
   </section>
 
@@ -1041,7 +1021,7 @@ function updateStepper(){
     if(stage===3){ stepLbl.textContent = "Concluído."; hintTxt.textContent = "Texto normatizado pronto para copiar ou baixar em Word — o original continua intacto."; }
     else if(stage===2){ stepLbl.textContent = "Passo 3 de 3."; hintTxt.textContent = "Diagnóstico pronto na aba Diagnóstico. Revise os itens e clique em “Autorizar e normatizar”."; }
     else if(stage===1){ stepLbl.textContent = "Passo 2 de 3."; hintTxt.textContent = "Texto carregado. Clique em “Executar diagnóstico” — ele só mede, não altera nada."; }
-    else { stepLbl.textContent = "Passo 1 de 3."; hintTxt.textContent = "Carregue um texto ou clique em “Ver com texto de exemplo” para ativar o diagnóstico."; }
+    else { stepLbl.textContent = "Passo 1 de 3."; hintTxt.textContent = "Carregue um texto ou clique em “Texto de exemplo” para ativar o diagnóstico."; }
   }
 }
 function updateFixes(n){
