@@ -265,3 +265,14 @@ test("UI Bloco 2+3: painéis NBR 6023 (ordenação A-Z), VoiceProfile e Revisão
     assert.ok(html.includes(fn), `handler ${fn} ausente em index.html`);
   }
 });
+
+// ---------- Conformidade do contrato (mesma cópia dos vetores vive no App) ----------
+test("contrato: vetores compartilhados com o App (hash e pacote esperado)", async () => {
+  const V = JSON.parse(fs.readFileSync(path.join(__dirname,"..","docs","contrato","vetores_scriptalab_review.json"),"utf8"));
+  const M = await import("../src/core/mathlabBridge.js");
+  for(const h of V.hashes) assert.equal(M.blockHash(h.body), h.beforeHash);
+  for(const b of V.fonte.blocks) assert.equal(M.blockHash(b.body), b.beforeHash);
+  const props = M.proposeForBlocks(V.fonte);
+  const pac = M.buildReview(V.fonte, props, props.filter(p=>p.changed&&!p.blocked).map(p=>p.blockId), { profileId:"abnt-padrao-2023", now:new Date("2026-11-24T00:00:00Z") });
+  assert.deepEqual(J(pac), V.pacoteEsperado);
+});

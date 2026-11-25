@@ -1,0 +1,91 @@
+{
+  "descricao": "Vetores de conformidade do contrato scriptalab.review/1. A MESMA cópia vive no App (privado) e no ScriptaLab; cada lado testa a sua metade. Se um teste falhar, o contrato divergiu.",
+  "versao": 1,
+  "hashes": [
+    {
+      "body": "",
+      "beforeHash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "body": "abc",
+      "beforeHash": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    },
+    {
+      "body": "Área do triângulo: b·h/2 ≈ 3,5 ✓",
+      "beforeHash": "sha256:3b5ea816d1dafb841774b3e44d5fa41ede74fffb0a53a074c561fd3a83b270f8"
+    },
+    {
+      "body": "linha 1\r\nlinha 2",
+      "beforeHash": "sha256:e3fc03e6c61b6136057b4e48ec011c5ece21608124f727b9c86b54caeeae53e1"
+    },
+    {
+      "body": "linha 1\nlinha 2",
+      "beforeHash": "sha256:e3fc03e6c61b6136057b4e48ec011c5ece21608124f727b9c86b54caeeae53e1"
+    },
+    {
+      "body": "😀 emoji",
+      "beforeHash": "sha256:c5db20e64d86b693d8e312b379cfdd211311f63f3743831e6f4139344b39d762"
+    },
+    {
+      "body": "Segundo (SILVA, 2023), são 12 casos.",
+      "beforeHash": "sha256:9908f977979a605062cf84d641bea48ae5aa14d479f280f7edf939d4c7edf299"
+    }
+  ],
+  "fonte": {
+    "schema": "mathlab.scriptalab-source/1",
+    "materialId": "mat_exemplo",
+    "title": "Exemplo",
+    "blocks": [
+      {
+        "blockId": "b1",
+        "title": "Citação em caixa alta",
+        "body": "Segundo (SILVA, 2023), são 12 casos.",
+        "beforeHash": "sha256:9908f977979a605062cf84d641bea48ae5aa14d479f280f7edf939d4c7edf299"
+      },
+      {
+        "blockId": "b2",
+        "title": "Resíduo de IA e fórmula",
+        "body": "Texto com resíduo【4:0†source】 e a fórmula $x^2$.",
+        "beforeHash": "sha256:f45d9c40bd13296b75525c15c233e846770b8a10d3686000b9d5f69acf17d50f"
+      },
+      {
+        "blockId": "b3",
+        "title": "Sem alteração",
+        "body": "Nada a corrigir aqui.",
+        "beforeHash": "sha256:8f36078b6ccbb55f13bb98be2c226059ba18bd9fd566780a0b5d1259f6f5f2bf"
+      }
+    ]
+  },
+  "pacoteEsperado": {
+    "schema": "scriptalab.review/1",
+    "sourceContract": "mathlab.scriptalab-source/1",
+    "materialId": "mat_exemplo",
+    "profileId": "abnt-padrao-2023",
+    "generatedAt": "2026-11-24T00:00:00.000Z",
+    "stylometrySummary": {
+      "sentenceCount": 3,
+      "cvPercent": 42.1,
+      "clicheHits": 0,
+      "structuralAlerts": []
+    },
+    "abntSummary": {
+      "citationIssues": 0,
+      "referenceIssues": 0
+    },
+    "authorizedPatches": [
+      {
+        "blockId": "b1",
+        "category": "abnt_10520",
+        "beforeHash": "sha256:9908f977979a605062cf84d641bea48ae5aa14d479f280f7edf939d4c7edf299",
+        "body": "Segundo (Silva, 2023), são 12 casos."
+      },
+      {
+        "blockId": "b2",
+        "category": "scrubber",
+        "beforeHash": "sha256:f45d9c40bd13296b75525c15c233e846770b8a10d3686000b9d5f69acf17d50f",
+        "body": "Texto com resíduo e a fórmula $x^2$."
+      }
+    ],
+    "humanValidationCarried": false
+  }
+}
