@@ -276,3 +276,18 @@ test("contrato: vetores compartilhados com o App (hash e pacote esperado)", asyn
   const pac = M.buildReview(V.fonte, props, props.filter(p=>p.changed&&!p.blocked).map(p=>p.blockId), { profileId:"abnt-padrao-2023", now:new Date("2026-11-24T00:00:00Z") });
   assert.deepEqual(J(pac), V.pacoteEsperado);
 });
+
+test("UI/UX v4 + pdf.js 4.10.38: H1, meta description, zero Google Fonts, 5 abas, botões disabled no vazio e SRI", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  assert.ok(html.includes('<meta name="description"'));
+  assert.ok(html.includes('<h1 id="pageTitle">'));
+  assert.ok(!html.includes("fonts.googleapis.com"), "Zero-Retention: não carregar Google Fonts");
+  assert.ok(html.includes('id="btnCopy" onclick="copyClean()" disabled'));
+  assert.ok(html.includes('id="btnDocx" onclick="exportToDocx()" disabled'));
+  assert.ok(html.includes('role="tablist"'));
+  for (const id of ["tab-editor", "tab-diag", "tab-estilo", "tab-citacoes", "tab-ponte", "outEmpty", "diffProofSection", "chipProfile", "profileSpecs", "flowHintBar"]) {
+    assert.ok(html.includes(`id="${id}"`), `elemento v4 id="${id}" ausente`);
+  }
+  assert.ok(html.includes("pdf.js/4.10.38/pdf.min.mjs"));
+  assert.ok(html.includes("pdf.js/4.10.38/pdf.worker.min.mjs"));
+});

@@ -33,8 +33,8 @@ def local_lib(url):
     if not LIBS: return None
     m = {"docx@8.5.0/build/index.umd.js": "docx/build/index.umd.js",
          "mammoth/1.6.0/mammoth.browser.min.js": "mammoth/mammoth.browser.min.js",
-         "pdf.js/3.11.174/pdf.min.js": "pdfjs/build/pdf.min.js",
-         "pdf.js/3.11.174/pdf.worker.min.js": "pdfjs/build/pdf.worker.min.js"}
+         "pdf.js/4.10.38/pdf.min.mjs": "pdfjs/build/pdf.min.mjs",
+         "pdf.js/4.10.38/pdf.worker.min.mjs": "pdfjs/build/pdf.worker.min.mjs"}
     for k, v in m.items():
         if url.endswith(k): return open(os.path.join(LIBS, v), "rb").read()
     return None

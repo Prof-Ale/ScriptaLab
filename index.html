@@ -6,6 +6,7 @@
 <!-- CSP: o texto do usuário nunca sai da página. connect-src lista só os domínios de consulta (CrossRef/OpenAlex) e do CDN do worker do PDF. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://api.crossref.org https://api.openalex.org https://cdnjs.cloudflare.com; worker-src blob:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
+<meta name="description" content="Diagnostique e normalize seu texto acadêmico em ABNT sem reescrever suas ideias. 100% local no navegador, Zero-Tampering e Zero-Retention.">
 <title>ScriptaLab | LabTech — Diagnóstico e Conformidade Acadêmica</title>
 <link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png">
@@ -15,7 +16,7 @@
 <!-- Bibliotecas com versão fixa + SRI (SHA-384). Ao atualizar uma versão, recalcule com tools/sri.sh -->
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" integrity="sha384-4xaIisuLEy2lo2HkB2C4rEf7v8jbTb2kuogX6TkuEt9feTWKBSFSOzsqNNbV+sKh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" integrity="sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="modulepreload" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" integrity="sha384-+0ti2moQlmLN7WZHE2RHIf5lV8hHxhxEalN0il3YZceG26fUPyOkR0hp9daxk1i7" crossorigin="anonymous" referrerpolicy="no-referrer">
 <style>
 /* ============================================================
    ScriptaLab — Design System v3 (tokens → componentes)
@@ -26,7 +27,7 @@
 :root{
   color-scheme:light;
   --paper:#faf9f6; --surface:#ffffff; --surface-2:#f4f3ef; --surface-3:#eceae4;
-  --ink-1:#0e1a26; --ink-2:#40505f; --ink-3:#6d7c8b;
+  --ink-1:#0e1a26; --ink-2:#364654; --ink-3:#516272;
   --line:#e3e1da; --line-2:#d1cec5;
   --accent:#0a6884; --accent-hover:#085469; --accent-ink:#ffffff;
   --accent-soft:rgba(10,104,132,.08); --accent-line:rgba(10,104,132,.26);
@@ -49,7 +50,7 @@
 [data-theme="dark"]{
   color-scheme:dark;
   --paper:#0a1120; --surface:#0f1a2c; --surface-2:#14213a; --surface-3:#1b2b47;
-  --ink-1:#e9f0f8; --ink-2:#b3c1d4; --ink-3:#8294ac;
+  --ink-1:#e9f0f8; --ink-2:#c1cfdf; --ink-3:#9cb0c6;
   --line:#1f2f4a; --line-2:#2b3d5c;
   --accent:#38bdf8; --accent-hover:#7dd3fc; --accent-ink:#04202e;
   --accent-soft:rgba(56,189,248,.11); --accent-line:rgba(56,189,248,.38);
@@ -469,6 +470,68 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 .diff-del{background:var(--bad-soft);color:var(--bad);text-decoration:line-through;padding:0 3px;border-radius:3px}
 .diff-ins{background:var(--ok-soft);color:var(--ok);font-weight:600;padding:0 3px;border-radius:3px}
 .diff-item-btns{display:flex;gap:var(--sp-1);flex-shrink:0}
+/* ===== UI/UX v4: Hero, Contraste, Perfil no Editor, Abas, Empty State, Prova Antes/Depois e Mobile 390px ===== */
+.btn:disabled{opacity:1!important;background:var(--surface-2)!important;color:var(--ink-2)!important;border:1px dashed var(--line-2)!important;cursor:not-allowed!important;box-shadow:none!important}
+.chip-profile{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-1);font-weight:600;font-size:var(--fs-13);padding:6px 12px;border-radius:999px;cursor:pointer;min-height:40px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-profile:hover{border-color:var(--accent);color:var(--accent)}
+.hero{padding:24px 0 10px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) 310px;gap:22px;align-items:start}
+.hero-eyebrow{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin:0 0 8px}
+.hero h1{font-family:var(--font-doc);font-size:clamp(24px,3.4vw,36px);line-height:1.16;letter-spacing:-.015em;margin:0 0 10px;font-weight:700;color:var(--ink-1);max-width:24ch}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:15.5px;color:var(--ink-2);margin:0 0 16px;max-width:60ch;line-height:1.55}
+.hero-ctas{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hero-note{font-size:var(--fs-13);color:var(--ink-3);margin:8px 0 0}
+.trust-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-3);box-shadow:var(--shadow-1);padding:16px}
+.trust-card h2{font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px}
+.trust-card ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.trust-card li{display:flex;gap:10px;align-items:flex-start}
+.trust-ic{width:30px;height:30px;flex:none;border-radius:8px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-size:14px;font-weight:700}
+.trust-card b{display:block;font-size:var(--fs-13);color:var(--ink-1);line-height:1.25}
+.trust-card p{margin:2px 0 0;font-size:12.5px;color:var(--ink-2);line-height:1.4}
+.flow-hint-bar{width:100%;font-size:var(--fs-13);color:var(--ink-2);border-top:1px solid var(--line);padding-top:10px;margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.flow-hint-bar b{color:var(--ink-1)}
+.profile-row{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-2);padding:12px 14px;margin-bottom:12px;box-shadow:var(--shadow-1)}
+.profile-row .field{flex:1 1 280px;min-width:min(280px,100%);margin:0}
+.profile-row select{width:100%;max-width:100%;min-height:44px}
+.profile-specs{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.spec-chip{font-family:var(--font-mono);font-size:12px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--accent-line);border-radius:999px;padding:4px 10px;font-weight:500}
+.ws-tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin:4px 0 16px;overflow-x:auto;scrollbar-width:none}
+.ws-tabs::-webkit-scrollbar{display:none}
+.ws-tab{font:inherit;font-weight:600;font-size:var(--fs-14);background:none;border:none;border-bottom:3px solid transparent;margin-bottom:-2px;color:var(--ink-2);padding:10px 14px;cursor:pointer;white-space:nowrap;min-height:46px;border-radius:8px 8px 0 0;transition:color var(--t-fast),border-color var(--t-fast)}
+.ws-tab:hover{color:var(--ink-1);background:var(--surface-2)}
+.ws-tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-badge{font-size:11px;background:var(--ok);color:#fff;border-radius:999px;padding:1px 7px;margin-left:6px;font-weight:700}
+.is-tab-hidden{display:none!important}
+.out-empty{padding:28px 20px;text-align:center;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:260px}
+.out-empty b{color:var(--ink-1);font-size:var(--fs-15)}
+.out-empty p{margin:0;font-size:var(--fs-13);max-width:38ch;line-height:1.5}
+.out-empty-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.diff-proof{margin:24px 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-3);box-shadow:var(--shadow-1);overflow:hidden}
+.diff-proof-head{padding:16px 18px;border-bottom:1px solid var(--line)}
+.diff-proof-head h2{margin:0 0 4px;font-size:var(--fs-17);color:var(--ink-1)}
+.diff-proof-head p{margin:0;font-size:var(--fs-13);color:var(--ink-2)}
+.diff-proof-row{display:grid;grid-template-columns:1fr 38px 1fr;border-bottom:1px solid var(--line)}
+.diff-proof-row:last-of-type{border-bottom:none}
+.diff-proof-cell{padding:13px 16px;font-family:var(--font-doc);font-size:var(--fs-14);line-height:1.55}
+.diff-proof-cell.before{background:var(--bad-soft)}
+.diff-proof-cell.after{background:var(--ok-soft)}
+.diff-proof-tag{display:block;font-family:var(--font-ui);font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+.diff-proof-cell.before .diff-proof-tag{color:var(--bad)}
+.diff-proof-cell.after .diff-proof-tag{color:var(--ok)}
+.diff-proof-arrow{display:grid;place-items:center;background:var(--surface-2);color:var(--ink-2);font-weight:700;border-left:1px solid var(--line);border-right:1px solid var(--line)}
+.diff-proof-foot{padding:10px 16px;font-size:var(--fs-12);color:var(--ink-2);background:var(--surface-2);border-top:1px solid var(--line)}
+@media (max-width:1020px){
+  .hero-grid{grid-template-columns:1fr}
+  .trust-card ul{grid-template-columns:repeat(3,1fr)}
+}
+@media (max-width:820px){
+  .trust-card ul{grid-template-columns:1fr}
+  .diff-proof-row{grid-template-columns:1fr}
+  .diff-proof-arrow{padding:4px;border:none;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .btn,.btn-sm,.ws-tab,.icon-btn,.chip-profile{min-height:44px}
+  .chip-profile{max-width:160px}
+}
 </style>
 </head>
 <body>
@@ -486,18 +549,9 @@ footer a:hover{color:var(--accent);text-decoration:underline}
     <button class="chip" id="privacyBtn" type="button" aria-expanded="false" aria-controls="privacyPanel">
       <span class="dot" aria-hidden="true"></span> 100% local
     </button>
-    <div class="field">
-      <label for="ies">Perfil normativo (IES)</label>
-      <select id="ies" onchange="loadIesProfile()">
-        <option value="abnt-padrao-2023.json">ABNT Padrão (Times New Roman 12 | 4 cm)</option>
-        <option value="usp-abnt.json">USP – Diretrizes ABCD: Parte I (ABNT | Arial 12)</option>
-        <option value="unicamp-ccpg-abnt.json">UNICAMP – IN CCPG nº 06/2025 (SBU/ABNT | Times New Roman 12)</option>
-        <option value="unesp-cgb-abnt.json">UNESP – Rede de Bibliotecas CGB (ABNT | Arial 12)</option>
-        <option value="ifsp-abnt.json">IFSP – Instituto Federal de São Paulo (ABNT | Arial 12)</option>
-        <option value="ifsuldeminas-carmo-tcc-artigo.json">IFSULDEMINAS – Carmo de Minas (Administração, TCC em artigo | Arial 12)</option>
-        <option value="anhanguera-uam.json">Rede Privada / Anhanguera / UAM / Unicesumar (Arial 12)</option>
-      </select>
-    </div>
+    <button class="chip-profile" id="chipProfile" type="button" onclick="focusProfileSelect()" title="Alterar perfil normativo da instituição">
+      📐 <span id="chipProfileTxt">ABNT Padrão</span>
+    </button>
     <button class="icon-btn" id="themeToggle" type="button" aria-pressed="false" aria-label="Alternar tema claro e escuro" title="Alternar tema">◐</button>
   </div>
 </header>
@@ -508,8 +562,8 @@ footer a:hover{color:var(--accent);text-decoration:underline}
     <ul>
       <li>O seu texto <b>nunca</b> sai do navegador — não há upload, nem servidor, nem conta.</li>
       <li>Saem apenas DOIs e pares sobrenome+ano, para <code>api.crossref.org</code> e <code>api.openalex.org</code>.</li>
-      <li>E-mail, chave e cache ficam só em <code>sessionStorage</code> desta aba e somem ao fechá-la.</li>
-      <li>Nenhuma fonte, script de terceiro ou pixel de rastreamento além das 3 bibliotecas com SRI.</li>
+      <li>E-mail, chave, <code>VoiceProfile</code> e cache ficam só em <code>sessionStorage</code> desta aba e somem ao fechá-la.</li>
+      <li>Nenhuma fonte externa, script de terceiro ou pixel de rastreamento além das 3 bibliotecas com SRI.</li>
     </ul>
     <div class="pp-csp" id="cspText" aria-label="Content-Security-Policy em vigor"></div>
   </div>
@@ -521,6 +575,29 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 </div>
 
 <div class="container">
+
+  <section class="hero" aria-labelledby="pageTitle">
+    <div class="hero-grid">
+      <div>
+        <p class="hero-eyebrow">ABNT NBR 10520:2023 · 14724:2024 · 6023:2025</p>
+        <h1 id="pageTitle">Diagnostique e normalize seu texto acadêmico <em>sem reescrever suas ideias</em></h1>
+        <p class="hero-sub">Mede, sinaliza e ajusta formatação, citações e referências do seu TCC, artigo ou apostila. Vocabulário, argumentos e conclusões continuam exatamente seus.</p>
+        <div class="hero-ctas">
+          <label class="btn btn-primary" for="fileInput" role="button" tabindex="0">📁 Carregar arquivo</label>
+          <button class="btn btn-ghost" id="btnExampleHero" type="button" onclick="loadSampleAndFocus()">Ver com texto de exemplo</button>
+        </div>
+        <p class="hero-note">PDF, DOCX ou TXT — ou cole o texto direto no editor abaixo. Nada sai do seu navegador.</p>
+      </div>
+      <aside class="trust-card" aria-label="Garantias do ScriptaLab">
+        <h2>Por que confiar</h2>
+        <ul>
+          <li><span class="trust-ic" aria-hidden="true">🛡️</span><span><b>Zero-Tampering</b><p>Nenhuma palavra do autor é trocada sem autorização explícita.</p></span></li>
+          <li><span class="trust-ic" aria-hidden="true">🔒</span><span><b>Zero-Retention</b><p>100% local nesta aba. Sem upload, sem conta, sem rastreio.</p></span></li>
+          <li><span class="trust-ic" aria-hidden="true">👁️</span><span><b>Só mede, não altera</b><p>O diagnóstico apenas lê. A normatização só roda com seu clique.</p></span></li>
+        </ul>
+      </aside>
+    </div>
+  </section>
 
   <section class="flow" aria-label="Fluxo de trabalho em três etapas">
     <ol class="steps">
@@ -534,29 +611,62 @@ footer a:hover{color:var(--accent);text-decoration:underline}
       <button class="btn btn-primary" id="btnDiag" onclick="runDiagnostic()" disabled>Executar diagnóstico <kbd class="kbd-hint">⌘↵</kbd></button>
       <button class="btn btn-success" id="btnAuth" onclick="authorizeCorrections()" disabled>Autorizar e normatizar</button>
     </div>
+    <div class="flow-hint-bar" id="flowHintBar" role="status" aria-live="polite">
+      <b id="flowStepLabel">Passo 1 de 3.</b>
+      <span id="flowHintText">Carregue um texto ou clique em “Ver com texto de exemplo” para ativar o diagnóstico.</span>
+    </div>
   </section>
 
   <p id="status" role="status" aria-live="polite"></p>
 
+  <div class="profile-row" id="profileRow">
+    <div class="field">
+      <label for="ies">Perfil normativo da instituição (IES)</label>
+      <select id="ies" onchange="loadIesProfile()">
+        <option value="abnt-padrao-2023.json">ABNT Padrão (Times New Roman 12 | 4 cm)</option>
+        <option value="usp-abnt.json">USP – Diretrizes ABCD: Parte I (ABNT | Arial 12)</option>
+        <option value="unicamp-ccpg-abnt.json">UNICAMP – IN CCPG nº 06/2025 (SBU/ABNT | Times New Roman 12)</option>
+        <option value="unesp-cgb-abnt.json">UNESP – Rede de Bibliotecas CGB (ABNT | Arial 12)</option>
+        <option value="ifsp-abnt.json">IFSP – Instituto Federal de São Paulo (ABNT | Arial 12)</option>
+        <option value="ifsuldeminas-carmo-tcc-artigo.json">IFSULDEMINAS – Carmo de Minas (Administração, TCC em artigo | Arial 12)</option>
+        <option value="anhanguera-uam.json">Rede Privada / Anhanguera / UAM / Unicesumar (Arial 12)</option>
+      </select>
+    </div>
+    <div class="profile-specs" id="profileSpecs" aria-label="Resumo do perfil ativo">
+      <span class="spec-chip">Times New Roman 12pt</span>
+      <span class="spec-chip">Margens 3/3/2/2 cm</span>
+      <span class="spec-chip">Entrelinha 1,5</span>
+      <span class="spec-chip">Citação longa 4 cm</span>
+    </div>
+  </div>
+
+  <nav class="ws-tabs" role="tablist" aria-label="Ferramentas do ScriptaLab">
+    <button class="ws-tab" type="button" role="tab" id="tab-editor" aria-selected="true" onclick="switchTab('editor')">Editor</button>
+    <button class="ws-tab" type="button" role="tab" id="tab-diag" aria-selected="false" onclick="switchTab('diag')">Diagnóstico <span class="tab-badge" id="diagBadge" hidden>0</span></button>
+    <button class="ws-tab" type="button" role="tab" id="tab-estilo" aria-selected="false" onclick="switchTab('estilo')">Estilo e voz</button>
+    <button class="ws-tab" type="button" role="tab" id="tab-citacoes" aria-selected="false" onclick="switchTab('citacoes')">Citações e DOIs</button>
+    <button class="ws-tab" type="button" role="tab" id="tab-ponte" aria-selected="false" onclick="switchTab('ponte')">Ponte MathLab</button>
+  </nav>
+
   <main class="ws" id="workspace">
     <div class="panel pane-raw" id="paneRaw">
       <div class="ph">
-        <span class="ph-t"><span class="dotmark" aria-hidden="true"></span> Texto bruto extraído</span>
+        <span class="ph-t"><span class="dotmark" aria-hidden="true"></span> Seu texto original</span>
         <div class="ph-actions">
           <button class="btn btn-quiet btn-sm" onclick="loadSample()">Exemplo</button>
           <button class="btn btn-quiet btn-sm" onclick="clearEditor()">Limpar</button>
         </div>
       </div>
-      <textarea id="raw" placeholder="Cole o texto, arraste um arquivo para cá ou use “Carregar arquivo”…" oninput="markDirty()" spellcheck="true" aria-label="Texto bruto extraído do documento"></textarea>
+      <textarea id="raw" placeholder="Cole o texto, arraste um arquivo para cá ou use “Carregar arquivo”…" oninput="markDirty()" spellcheck="true" aria-label="Seu texto original"></textarea>
       <div class="pane-foot">
         <div class="counters" aria-live="off">
           <span><b id="wcRaw">0</b> palavras</span>
           <span><b id="ccRaw">0</b> caracteres</span>
         </div>
         <div class="filters">
-          <label><input type="checkbox" id="oCit" checked> Tags 【†source】</label>
-          <label><input type="checkbox" id="oUtm" checked> ?utm_source</label>
-          <label><input type="checkbox" id="oAbnt" checked> (Autor, Ano)</label>
+          <label title="Remove marcações residuais como 【4:0†source】 deixadas por ferramentas de IA"><input type="checkbox" id="oCit" checked> Remover marcas de IA</label>
+          <label title="Remove parâmetros de rastreio (?utm_source=…) de links colados"><input type="checkbox" id="oUtm" checked> Limpar links rastreados</label>
+          <label title="Converte (SOBRENOME, 2023) para (Sobrenome, 2023) preservando siglas (NBR 10520:2023)"><input type="checkbox" id="oAbnt" checked> Padronizar citações</label>
         </div>
       </div>
     </div>
@@ -566,17 +676,25 @@ footer a:hover{color:var(--accent);text-decoration:underline}
         <span class="ph-t"><span class="dotmark ok" aria-hidden="true"></span> Texto normatizado</span>
         <div class="ph-actions">
           <span class="docchip" id="docChip" hidden></span>
-          <button class="btn btn-quiet btn-sm" onclick="copyClean()">Copiar</button>
-          <button class="btn btn-success btn-sm" onclick="exportToDocx()">⬇ Baixar Word</button>
+          <button class="btn btn-quiet btn-sm" id="btnCopy" onclick="copyClean()" disabled>Copiar</button>
+          <button class="btn btn-success btn-sm" id="btnDocx" onclick="exportToDocx()" disabled>⬇ Baixar Word</button>
         </div>
       </div>
-      <div id="out" aria-live="polite" aria-label="Texto normatizado (pré-visualização)"></div>
+      <div id="outEmpty" class="out-empty">
+        <b>Nada foi alterado ainda — de propósito</b>
+        <p>Execute o diagnóstico, confira cada ajuste sugerido e autorize. Só então o texto normatizado aparece aqui para copiar ou baixar em Word.</p>
+        <div class="out-empty-actions">
+          <button class="btn btn-primary btn-sm" type="button" onclick="loadSampleAndFocus()">Ver com texto de exemplo</button>
+          <button class="btn btn-ghost btn-sm" type="button" onclick="scrollToDiffProof()">Ver antes/depois</button>
+        </div>
+      </div>
+      <div id="out" aria-live="polite" aria-label="Texto normatizado (pré-visualização)" hidden></div>
       <div class="pane-foot">
         <div class="counters">
           <span><b id="wcOut">0</b> palavras</span>
           <span><b id="ccOut">0</b> caracteres</span>
         </div>
-        <span class="hint" id="fixCount">Nenhuma correção aplicada ainda</span>
+        <span class="hint" id="fixCount">Autorize as correções para liberar cópia e Word</span>
       </div>
     </div>
   </main>
@@ -739,6 +857,24 @@ footer a:hover{color:var(--accent);text-decoration:underline}
     </div>
   </section>
 
+  <section class="diff-proof" id="diffProofSection" aria-labelledby="diffProofTitle">
+    <div class="diff-proof-head">
+      <h2 id="diffProofTitle">O que muda — e o que nunca muda (Zero-Tampering)</h2>
+      <p>Exemplo real de normatização: à esquerda, o trecho como chegou; à direita, depois da sua autorização. <b>Só formatação e limpeza técnica</b> — nenhuma palavra do autor é trocada.</p>
+    </div>
+    <div class="diff-proof-row">
+      <div class="diff-proof-cell before"><span class="diff-proof-tag">Antes</span>…a mediação pedagógica exige intencionalidade docente <span class="diff-del">(VYGOTSKY, 1998)</span><span class="diff-del">【12:2†source】</span>.</div>
+      <div class="diff-proof-arrow" aria-hidden="true">→</div>
+      <div class="diff-proof-cell after"><span class="diff-proof-tag">Depois</span>…a mediação pedagógica exige intencionalidade docente <span class="diff-ins">(Vygotsky, 1998)</span>.</div>
+    </div>
+    <div class="diff-proof-row">
+      <div class="diff-proof-cell before"><span class="diff-proof-tag">Antes</span>…consulte https://exemplo.edu.br/artigo<span class="diff-del">?utm_source=chatgpt</span> e <span class="diff-del">(MANTOAN, 2015, p. 34)</span>.</div>
+      <div class="diff-proof-arrow" aria-hidden="true">→</div>
+      <div class="diff-proof-cell after"><span class="diff-proof-tag">Depois</span>…consulte https://exemplo.edu.br/artigo e <span class="diff-ins">(Mantoan, 2015, p. 34)</span>.</div>
+    </div>
+    <div class="diff-proof-foot">🛡️ Trava de preservação ativa: citações, DOIs, fórmulas LaTeX e marcadores [F#] são verificados antes de aplicar qualquer versão revisada.</div>
+  </section>
+
 </div>
 
 <footer>
@@ -799,6 +935,7 @@ async function loadIesProfile(){
   document.getElementById("scope").textContent = profile.scopeNote;
   const chip = document.getElementById("docChip");
   if(chip && authDone) chip.hidden = false;
+  syncProfileSummaryUi();
 }
 
 // ===== Utilitários =====
@@ -827,11 +964,68 @@ function initTheme(){
 }
 const toggleTheme = () => applyTheme(document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark");
 
+// ===== Abas acessíveis + Perfil no editor (UI/UX v4) =====
+const TAB_MAP = {
+  editor: "workspace",
+  diag: "reportSection",
+  estilo: "stylePanel",
+  citacoes: "auditSection",
+  ponte: "bridgeSection"
+};
+function switchTab(name){
+  const active = TAB_MAP[name] ? name : "editor";
+  Object.entries(TAB_MAP).forEach(([tabName, elId])=>{
+    const tabBtn = $("tab-" + tabName);
+    const section = $(elId);
+    const isSel = tabName === active;
+    if(tabBtn) tabBtn.setAttribute("aria-selected", String(isSel));
+    if(section) section.classList.toggle("is-tab-hidden", !isSel);
+  });
+}
+function focusProfileSelect(){
+  const row = $("profileRow"), sel = $("ies");
+  if(row) row.scrollIntoView({behavior:"smooth", block:"center"});
+  if(sel) setTimeout(()=>sel.focus(), 320);
+}
+function loadSampleAndFocus(){
+  loadSample();
+  switchTab("editor");
+  const ws = $("workspace");
+  if(ws) ws.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+function scrollToDiffProof(){
+  const sec = $("diffProofSection");
+  if(sec) sec.scrollIntoView({behavior:"smooth", block:"start"});
+}
+function syncProfileSummaryUi(){
+  if(!profile) return;
+  const chip = $("chipProfileTxt"), specs = $("profileSpecs");
+  if(chip) chip.textContent = profile.institution.split("–")[0].split("(")[0].trim();
+  if(specs){
+    const T = profile.typo, M = profile.margins, L = profile.lq;
+    specs.innerHTML = [
+      `${T.fontFamily} ${T.bodyFontSizePt}pt`,
+      `Margens ${M.topCm}/${M.leftCm}/${M.bottomCm}/${M.rightCm} cm`,
+      `Entrelinha ${String(T.lineSpacing).replace(".",",")}`,
+      `Citação longa ${L.indentLeftCm} cm`
+    ].map(s=>`<span class="spec-chip">${escapeHtml(s)}</span>`).join("");
+  }
+}
+
 // ===== Contadores e etapa do fluxo =====
+function syncOutputUi(){
+  const hasOut = !!cleanText.trim();
+  const out = $("out"), empty = $("outEmpty"), btnCopy = $("btnCopy"), btnDocx = $("btnDocx");
+  if(out) out.hidden = !hasOut;
+  if(empty) empty.hidden = hasOut;
+  if(btnCopy) btnCopy.disabled = !hasOut;
+  if(btnDocx) btnDocx.disabled = !hasOut;
+}
 function updateCounters(){
   const raw=$("raw"), out=$("out");
   if(raw){ const v=raw.value; $("wcRaw").textContent=C.countWords(v); $("ccRaw").textContent=v.length; }
   if(out){ const v=cleanText||""; $("wcOut").textContent=C.countWords(v); $("ccOut").textContent=v.length; }
+  syncOutputUi();
 }
 function updateStepper(){
   const hasText = !!($("raw")&&$("raw").value.trim());
@@ -842,17 +1036,31 @@ function updateStepper(){
     el.classList.toggle("is-active",n===Math.min(3,Math.max(1,stage+ (stage<3?1:0))));
     if(el.classList.contains("is-active")) el.setAttribute("aria-current","step"); else el.removeAttribute("aria-current");
   });
-  if(hasText && stage===0){ /* texto colado conta como etapa 1 concluída */ }
+  const stepLbl = $("flowStepLabel"), hintTxt = $("flowHintText");
+  if(stepLbl && hintTxt){
+    if(stage===3){ stepLbl.textContent = "Concluído."; hintTxt.textContent = "Texto normatizado pronto para copiar ou baixar em Word — o original continua intacto."; }
+    else if(stage===2){ stepLbl.textContent = "Passo 3 de 3."; hintTxt.textContent = "Diagnóstico pronto na aba Diagnóstico. Revise os itens e clique em “Autorizar e normatizar”."; }
+    else if(stage===1){ stepLbl.textContent = "Passo 2 de 3."; hintTxt.textContent = "Texto carregado. Clique em “Executar diagnóstico” — ele só mede, não altera nada."; }
+    else { stepLbl.textContent = "Passo 1 de 3."; hintTxt.textContent = "Carregue um texto ou clique em “Ver com texto de exemplo” para ativar o diagnóstico."; }
+  }
 }
 function updateFixes(n){
   const el=$("fixCount"); if(!el) return;
-  el.textContent = n?`${n} correção(ões) aplicada(s)`:"Nenhuma correção aplicada ainda";
+  el.textContent = n?`${n} correção(ões) aplicada(s)`:"Autorize as correções para liberar cópia e Word";
 }
 
-// ===== PDF: worker verificado por SRI (fetch com integrity) e isEvalSupported:false (mitiga CVE-2024-4367) =====
-const PDF_WORKER = { url:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
-  integrity:"sha384-SnzOobpRMLXZ52iJvZm/C0fYw0OQemTXzTjIsdsfMcrCtCEe9qgzxTd3RSklO5x2" };
-let pdfWorkerBlobUrl = null;
+// ===== PDF: pdf.js 4.10.38 (módulos ES, corrige CVE-2024-4367) + worker verificado por SRI + isEvalSupported:false =====
+const PDF_LIB = { url:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs",
+  integrity:"sha384-+0ti2moQlmLN7WZHE2RHIf5lV8hHxhxEalN0il3YZceG26fUPyOkR0hp9daxk1i7" };
+const PDF_WORKER = { url:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs",
+  integrity:"sha384-ToeVvShCxKc6CEvhHeMt0Q8A06pSPDbAlngO9nokrDmh914gk/pYd0N7D0a4Lz2o" };
+let pdfjsMod = null, pdfWorkerBlobUrl = null;
+async function loadPdfJs(){
+  if(pdfjsMod) return pdfjsMod;
+  if(window.pdfjsLib) return window.pdfjsLib;
+  pdfjsMod = await import(PDF_LIB.url);
+  return pdfjsMod;
+}
 async function pdfWorkerUrl(){
   if(pdfWorkerBlobUrl) return pdfWorkerBlobUrl;
   const r = await fetch(PDF_WORKER.url,{integrity:PDF_WORKER.integrity,mode:"cors",credentials:"omit",referrerPolicy:"no-referrer"});
@@ -875,13 +1083,13 @@ async function processFile(file){
     else if(ext==="docx"){ if(!window.mammoth) throw new Error("biblioteca DOCX não carregou (verifique a conexão)");
       t = (await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value; }
     else {
-      if(!window.pdfjsLib) throw new Error("biblioteca PDF não carregou (verifique a conexão)");
+      const pdfjsLib = await loadPdfJs().catch(()=>{ throw new Error("biblioteca PDF não carregou (verifique a conexão)"); });
       pdfjsLib.GlobalWorkerOptions.workerSrc = await pdfWorkerUrl();
       const pdf = await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()), isEvalSupported:false}).promise;
       for(let i=1;i<=pdf.numPages;i++){ const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x=>x.str).join(" ") + "\n\n"; }
     }
     box.value = t; $("btnDiag").disabled = false; diagDone=false;
-    updateCounters(); updateStepper();
+    updateCounters(); updateStepper(); switchTab("editor");
     setStatus(`"${file.name}" carregado — ${C.countWords(t)} palavras, ${t.length} caracteres. Clique em "Executar diagnóstico".`,"ok");
   }catch(err){ box.value = previous; updateCounters(); setStatus("Erro na extração: "+err.message,"err"); }
 }
@@ -958,6 +1166,9 @@ function runDiagnostic(){
   });
   renderDiffPanel();
   renderRefsAbntPanel(refsAudit);
+  const dBadge = $("diagBadge");
+  if(dBadge){ const totalIssues = inv + hy + ai + upper + per.total + (refsAudit.withIssuesCount || 0); dBadge.textContent = String(totalIssues); dBadge.hidden = false; }
+  switchTab("diag");
   $("reportSection").scrollIntoView({block:"nearest",behavior:"smooth"});
   setStatus('Diagnóstico concluído. Revise os indicadores (ou aceite item a item abaixo) e clique em "Autorizar e normatizar".',"ok");
 }
@@ -1115,6 +1326,7 @@ function authorizeCorrections(){
   const total = c.hy+c.inv+c.ai+c.cit;
   authDone = true; updateCounters(); updateStepper(); updateFixes(total);
   if(reviewSession){ reviewSession = C.acceptAllProposals(reviewSession); renderDiffPanel(); }
+  switchTab("editor");
   const chip=$("docChip");
   if(chip){ chip.hidden=false; chip.textContent = `${profile.typo.fontFamily} ${profile.typo.bodyFontSizePt}pt`; }
   setStatus(`Normatizado: ${c.hy} quebras de hífen unidas, ${c.inv} invisíveis removidos, ${c.ai} vestígios de IA/UTM expurgados, ${c.cit} citações ajustadas para (Autor, Ano). Vocabulário preservado.`,"ok");
@@ -1267,6 +1479,8 @@ function applyValidatedLiteraryReturn(){
   cleanText = validatedLiteraryCandidate;
   validatedLiteraryCandidate = null;
   if($("btnApplyLiterary")) $("btnApplyLiterary").disabled = true;
+  if($("diagBadge")) $("diagBadge").hidden = true;
+  syncOutputUi();
   let h = escapeHtml(cleanText);
   if(profile.italicEtAl) h = h.replace(C.LATIN_ITALIC,'<em class="fix" title="NBR 10520:2023">$1</em>');
   $("out").innerHTML = h;
@@ -1499,6 +1713,8 @@ function clearEditor(){
   if($("styleSyntaxBox")){ $("styleSyntaxBox").hidden = true; $("styleSyntaxBox").innerHTML = ""; }
   prevCleanBeforeSort = null; validatedLiteraryCandidate = null;
   if($("btnApplyLiterary")) $("btnApplyLiterary").disabled = true;
+  if($("diagBadge")) $("diagBadge").hidden = true;
+  syncOutputUi();
   $("btnDiag").disabled = true; $("btnAuth").disabled = true;
   $("status").style.display = "none";
   $("docChip").hidden = true;
@@ -1627,6 +1843,7 @@ function initUI(){
   $("raw").addEventListener("input",updateCounters);
   $("reportSection").setAttribute("data-collapsed","false");
   updateCounters(); updateStepper(); updateFixes(0);
+  syncProfileSummaryUi(); switchTab("editor");
   initBridge();
   // Extra
   $("btnCopyReport").addEventListener("click",copyReport);
@@ -1640,7 +1857,8 @@ Object.assign(window, {
   handleDiffAccept, handleDiffReject, handleDiffAcceptAll, handleDiffUndo, handleDiffReset,
   handleSortReferences, handleUndoSortReferences,
   calibrateVoiceProfile, clearVoiceProfile, generateLiteraryPrompt, copyLiteraryPrompt,
-  validateLiteraryReturn, applyValidatedLiteraryReturn
+  validateLiteraryReturn, applyValidatedLiteraryReturn,
+  switchTab, focusProfileSelect, loadSampleAndFocus, scrollToDiffProof
 });
 
 (function boot(){
