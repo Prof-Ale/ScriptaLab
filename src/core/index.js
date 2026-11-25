@@ -27,6 +27,9 @@ import {
 import {
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
 } from "./citationLocations.js";
+import {
+  NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
+} from "./networkLog.js";
 
 export {
   UP, NAME, titleCase, normStr, escapeHtml, paras, isLongQuote, lastSurname,
@@ -40,6 +43,7 @@ export {
   sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA,
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
+  NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
 };
 
 export const ScriptaCore = {
@@ -55,6 +59,7 @@ export const ScriptaCore = {
   sha256Hex, blockHash, preservationLoss, normalizeBlock, parseSource, proposeForBlocks, buildReview, SOURCE_SCHEMA, REVIEW_SCHEMA,
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
+  NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
 };
 
 export default ScriptaCore;
