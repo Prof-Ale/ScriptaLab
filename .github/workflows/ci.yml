@@ -11,3 +11,5 @@ jobs:
       - run: npm run check          # testes do núcleo + validação dos perfis de IES
       - name: Conferir hashes SRI dos CDNs
         run: bash tools/sri.sh
+      - name: Conferir contrato MathLab <-> ScriptaLab
+        run: node tools/conferir-contrato.mjs
