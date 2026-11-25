@@ -15,7 +15,7 @@
 <!-- Bibliotecas com versão fixa + SRI (SHA-384). Ao atualizar uma versão, recalcule com tools/sri.sh -->
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" integrity="sha384-4xaIisuLEy2lo2HkB2C4rEf7v8jbTb2kuogX6TkuEt9feTWKBSFSOzsqNNbV+sKh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" integrity="sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="modulepreload" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" integrity="sha384-+0ti2moQlmLN7WZHE2RHIf5lV8hHxhxEalN0il3YZceG26fUPyOkR0hp9daxk1i7" crossorigin="anonymous" referrerpolicy="no-referrer">
 <style>
 /* ============================================================
    ScriptaLab — Design System v3 (tokens → componentes)
@@ -849,10 +849,18 @@ function updateFixes(n){
   el.textContent = n?`${n} correção(ões) aplicada(s)`:"Nenhuma correção aplicada ainda";
 }
 
-// ===== PDF: worker verificado por SRI (fetch com integrity) e isEvalSupported:false (mitiga CVE-2024-4367) =====
-const PDF_WORKER = { url:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js",
-  integrity:"sha384-SnzOobpRMLXZ52iJvZm/C0fYw0OQemTXzTjIsdsfMcrCtCEe9qgzxTd3RSklO5x2" };
-let pdfWorkerBlobUrl = null;
+// ===== PDF: pdf.js 4.10.38 (módulos ES, corrige CVE-2024-4367) + worker verificado por SRI + isEvalSupported:false =====
+const PDF_LIB = { url:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs",
+  integrity:"sha384-+0ti2moQlmLN7WZHE2RHIf5lV8hHxhxEalN0il3YZceG26fUPyOkR0hp9daxk1i7" };
+const PDF_WORKER = { url:"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs",
+  integrity:"sha384-ToeVvShCxKc6CEvhHeMt0Q8A06pSPDbAlngO9nokrDmh914gk/pYd0N7D0a4Lz2o" };
+let pdfjsMod = null, pdfWorkerBlobUrl = null;
+async function loadPdfJs(){
+  if(pdfjsMod) return pdfjsMod;
+  if(window.pdfjsLib) return window.pdfjsLib;
+  pdfjsMod = await import(PDF_LIB.url);
+  return pdfjsMod;
+}
 async function pdfWorkerUrl(){
   if(pdfWorkerBlobUrl) return pdfWorkerBlobUrl;
   const r = await fetch(PDF_WORKER.url,{integrity:PDF_WORKER.integrity,mode:"cors",credentials:"omit",referrerPolicy:"no-referrer"});
@@ -875,7 +883,7 @@ async function processFile(file){
     else if(ext==="docx"){ if(!window.mammoth) throw new Error("biblioteca DOCX não carregou (verifique a conexão)");
       t = (await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value; }
     else {
-      if(!window.pdfjsLib) throw new Error("biblioteca PDF não carregou (verifique a conexão)");
+      const pdfjsLib = await loadPdfJs().catch(()=>{ throw new Error("biblioteca PDF não carregou (verifique a conexão)"); });
       pdfjsLib.GlobalWorkerOptions.workerSrc = await pdfWorkerUrl();
       const pdf = await pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer()), isEvalSupported:false}).promise;
       for(let i=1;i<=pdf.numPages;i++){ const c = await (await pdf.getPage(i)).getTextContent(); t += c.items.map(x=>x.str).join(" ") + "\n\n"; }
