@@ -531,9 +531,16 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 .netlog-time { color: var(--muted, #55607a); font-weight: 700; }
 .netlog-status { color: var(--muted, #55607a); font-weight: 700; }
 .offline-toggle input { accent-color: var(--ac, #b8860b); }
+.sw-update { position: sticky; top: 0; z-index: 60; display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; padding: 10px 14px; background: var(--gold-soft, #fff3cd); color: var(--ink, #1d2733); border-bottom: 1px solid var(--line, #d8dee9); font-weight: 700; font-size: 14px; }
+.sw-update[hidden] { display: none; }
 </style>
 </head>
 <body>
+<div id="swUpdate" class="sw-update" hidden role="status">
+  <span>🆕 Nova versão do ScriptaLab disponível.</span>
+  <button class="btn btn-gold btn-sm" type="button" id="btnSwUpdate">Atualizar agora</button>
+  <button class="btn btn-ghost btn-sm" type="button" id="btnSwLater">Depois</button>
+</div>
 <a class="skip" href="#workspace">Ir direto para o editor</a>
 
 <header class="topbar">
@@ -1928,6 +1935,37 @@ Object.assign(window, {
   };
   if(document.readyState==="loading") window.addEventListener("DOMContentLoaded",start); else start();
 })();
+
+// PWA: registro do service worker + aviso de atualização.
+// O SW é network-first para o index.html e versionado por cache;
+// a ativação só acontece com SKIP_WAITING, mandado pelo botão.
+if ("serviceWorker" in navigator) {
+  let swReg = null, swWaiting = null;
+  const showUpdate = () => { const b = $("swUpdate"); if (b) b.hidden = false; };
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").then((reg) => {
+      swReg = reg;
+      if (reg.waiting) { swWaiting = reg.waiting; showUpdate(); }
+      reg.addEventListener("updatefound", () => {
+        const nw = reg.installing;
+        if (!nw) return;
+        nw.addEventListener("statechange", () => {
+          if (nw.state === "installed" && navigator.serviceWorker.controller) {
+            swWaiting = nw; showUpdate();
+          }
+        });
+      });
+    }).catch(() => { /* sem SW (file://, navegador antigo): o site funciona normal, sem offline */ });
+  });
+  let swReloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!swReloading) { swReloading = true; location.reload(); }
+  });
+  const btnUp = $("btnSwUpdate"), btnLater = $("btnSwLater");
+  if (btnUp) btnUp.addEventListener("click", () => { if (swWaiting) swWaiting.postMessage({ type: "SKIP_WAITING" }); });
+  if (btnLater) btnLater.addEventListener("click", () => { const b = $("swUpdate"); if (b) b.hidden = true; });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && swReg) swReg.update().catch(() => {}); });
+}
 </script>
 </body>
 </html>
