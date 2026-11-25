@@ -1,0 +1,19 @@
+{
+  "schema": "scriptalab.ai-suggestion/1",
+  "blockId": "blk_01",
+  "suggestions": [
+    {
+      "id": "s1",
+      "category": "cliche",
+      "original": "No cenário atual, é importante destacar que",
+      "suggested": "Hoje, vale notar que"
+    },
+    {
+      "id": "s2",
+      "category": "variation",
+      "original": "a soma de 2 e 3 é 5, segundo (SILVA, 2023)",
+      "suggested": "a soma é 5",
+      "reason": "Encurta."
+    }
+  ]
+}
