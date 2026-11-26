@@ -1,0 +1,384 @@
+{
+  "arquivo": "trecho-pt.txt",
+  "registros": {
+    "academico": {
+      "resumo": {
+        "total": 14,
+        "porSeveridade": {
+          "erro": 7,
+          "aviso": 5,
+          "estilo": 2
+        },
+        "porCategoria": {
+          "pontuacao": 3,
+          "concordancia": 2,
+          "crase": 1,
+          "grafia": 1,
+          "regencia": 1,
+          "estilo": 3,
+          "pleonasmo": 1,
+          "registro": 1,
+          "vicio": 1
+        },
+        "porRegra": {
+          "espaco-antes-pontuacao": 1,
+          "falta-espaco-apos-virgula": 1,
+          "espaco-duplo": 1,
+          "eles-tem": 1,
+          "as-vezes": 1,
+          "a-fim-de": 1,
+          "haviam-existencia": 1,
+          "entre-eu": 1,
+          "repeticao-proxima": 2,
+          "pleonasmo-subir": 1,
+          "gerundio-encadeado": 1,
+          "coloquial": 1,
+          "a-nivel-de": 1
+        },
+        "comCorrecaoSegura": 9
+      },
+      "metricas": {
+        "palavras": 84,
+        "periodos": 7,
+        "gerundios": 3,
+        "gerundiosPor1000": 35.71
+      },
+      "achados": [
+        {
+          "regra": "espaco-antes-pontuacao",
+          "severidade": "erro",
+          "trecho": " ",
+          "fix": ""
+        },
+        {
+          "regra": "falta-espaco-apos-virgula",
+          "severidade": "erro",
+          "trecho": ",",
+          "fix": ", "
+        },
+        {
+          "regra": "espaco-duplo",
+          "severidade": "aviso",
+          "trecho": "  ",
+          "fix": " "
+        },
+        {
+          "regra": "eles-tem",
+          "severidade": "erro",
+          "trecho": "Eles tem",
+          "fix": "Eles têm"
+        },
+        {
+          "regra": "as-vezes",
+          "severidade": "erro",
+          "trecho": "as vezes",
+          "fix": "às vezes"
+        },
+        {
+          "regra": "a-fim-de",
+          "severidade": "erro",
+          "trecho": "Afim de",
+          "fix": "A fim de"
+        },
+        {
+          "regra": "haviam-existencia",
+          "severidade": "erro",
+          "trecho": "haviam",
+          "fix": "havia"
+        },
+        {
+          "regra": "entre-eu",
+          "severidade": "erro",
+          "trecho": "entre eu",
+          "fix": "entre mim"
+        },
+        {
+          "regra": "repeticao-proxima",
+          "severidade": "estilo",
+          "trecho": "modelo",
+          "fix": null
+        },
+        {
+          "regra": "repeticao-proxima",
+          "severidade": "estilo",
+          "trecho": "preditivo",
+          "fix": null
+        },
+        {
+          "regra": "pleonasmo-subir",
+          "severidade": "aviso",
+          "trecho": "subir para cima",
+          "fix": "subir"
+        },
+        {
+          "regra": "gerundio-encadeado",
+          "severidade": "aviso",
+          "trecho": "Realizando a coleta, analisando os dados",
+          "fix": null
+        },
+        {
+          "regra": "coloquial",
+          "severidade": "aviso",
+          "trecho": "a gente",
+          "fix": null
+        },
+        {
+          "regra": "a-nivel-de",
+          "severidade": "aviso",
+          "trecho": "a nível de",
+          "fix": null
+        }
+      ]
+    },
+    "didatico": {
+      "resumo": {
+        "total": 14,
+        "porSeveridade": {
+          "erro": 7,
+          "aviso": 4,
+          "estilo": 3
+        },
+        "porCategoria": {
+          "pontuacao": 3,
+          "concordancia": 2,
+          "crase": 1,
+          "grafia": 1,
+          "regencia": 1,
+          "estilo": 3,
+          "pleonasmo": 1,
+          "registro": 1,
+          "vicio": 1
+        },
+        "porRegra": {
+          "espaco-antes-pontuacao": 1,
+          "falta-espaco-apos-virgula": 1,
+          "espaco-duplo": 1,
+          "eles-tem": 1,
+          "as-vezes": 1,
+          "a-fim-de": 1,
+          "haviam-existencia": 1,
+          "entre-eu": 1,
+          "repeticao-proxima": 2,
+          "pleonasmo-subir": 1,
+          "gerundio-encadeado": 1,
+          "coloquial": 1,
+          "a-nivel-de": 1
+        },
+        "comCorrecaoSegura": 9
+      },
+      "metricas": {
+        "palavras": 84,
+        "periodos": 7,
+        "gerundios": 3,
+        "gerundiosPor1000": 35.71
+      },
+      "achados": [
+        {
+          "regra": "espaco-antes-pontuacao",
+          "severidade": "erro",
+          "trecho": " ",
+          "fix": ""
+        },
+        {
+          "regra": "falta-espaco-apos-virgula",
+          "severidade": "erro",
+          "trecho": ",",
+          "fix": ", "
+        },
+        {
+          "regra": "espaco-duplo",
+          "severidade": "aviso",
+          "trecho": "  ",
+          "fix": " "
+        },
+        {
+          "regra": "eles-tem",
+          "severidade": "erro",
+          "trecho": "Eles tem",
+          "fix": "Eles têm"
+        },
+        {
+          "regra": "as-vezes",
+          "severidade": "erro",
+          "trecho": "as vezes",
+          "fix": "às vezes"
+        },
+        {
+          "regra": "a-fim-de",
+          "severidade": "erro",
+          "trecho": "Afim de",
+          "fix": "A fim de"
+        },
+        {
+          "regra": "haviam-existencia",
+          "severidade": "erro",
+          "trecho": "haviam",
+          "fix": "havia"
+        },
+        {
+          "regra": "entre-eu",
+          "severidade": "erro",
+          "trecho": "entre eu",
+          "fix": "entre mim"
+        },
+        {
+          "regra": "repeticao-proxima",
+          "severidade": "estilo",
+          "trecho": "modelo",
+          "fix": null
+        },
+        {
+          "regra": "repeticao-proxima",
+          "severidade": "estilo",
+          "trecho": "preditivo",
+          "fix": null
+        },
+        {
+          "regra": "pleonasmo-subir",
+          "severidade": "aviso",
+          "trecho": "subir para cima",
+          "fix": "subir"
+        },
+        {
+          "regra": "gerundio-encadeado",
+          "severidade": "aviso",
+          "trecho": "Realizando a coleta, analisando os dados",
+          "fix": null
+        },
+        {
+          "regra": "coloquial",
+          "severidade": "estilo",
+          "trecho": "a gente",
+          "fix": null
+        },
+        {
+          "regra": "a-nivel-de",
+          "severidade": "aviso",
+          "trecho": "a nível de",
+          "fix": null
+        }
+      ]
+    },
+    "divulgacao": {
+      "resumo": {
+        "total": 13,
+        "porSeveridade": {
+          "erro": 7,
+          "aviso": 3,
+          "estilo": 3
+        },
+        "porCategoria": {
+          "pontuacao": 3,
+          "concordancia": 2,
+          "crase": 1,
+          "grafia": 1,
+          "regencia": 1,
+          "estilo": 3,
+          "pleonasmo": 1,
+          "vicio": 1
+        },
+        "porRegra": {
+          "espaco-antes-pontuacao": 1,
+          "falta-espaco-apos-virgula": 1,
+          "espaco-duplo": 1,
+          "eles-tem": 1,
+          "as-vezes": 1,
+          "a-fim-de": 1,
+          "haviam-existencia": 1,
+          "entre-eu": 1,
+          "repeticao-proxima": 2,
+          "pleonasmo-subir": 1,
+          "gerundio-encadeado": 1,
+          "a-nivel-de": 1
+        },
+        "comCorrecaoSegura": 9
+      },
+      "metricas": {
+        "palavras": 84,
+        "periodos": 7,
+        "gerundios": 3,
+        "gerundiosPor1000": 35.71
+      },
+      "achados": [
+        {
+          "regra": "espaco-antes-pontuacao",
+          "severidade": "erro",
+          "trecho": " ",
+          "fix": ""
+        },
+        {
+          "regra": "falta-espaco-apos-virgula",
+          "severidade": "erro",
+          "trecho": ",",
+          "fix": ", "
+        },
+        {
+          "regra": "espaco-duplo",
+          "severidade": "aviso",
+          "trecho": "  ",
+          "fix": " "
+        },
+        {
+          "regra": "eles-tem",
+          "severidade": "erro",
+          "trecho": "Eles tem",
+          "fix": "Eles têm"
+        },
+        {
+          "regra": "as-vezes",
+          "severidade": "erro",
+          "trecho": "as vezes",
+          "fix": "às vezes"
+        },
+        {
+          "regra": "a-fim-de",
+          "severidade": "erro",
+          "trecho": "Afim de",
+          "fix": "A fim de"
+        },
+        {
+          "regra": "haviam-existencia",
+          "severidade": "erro",
+          "trecho": "haviam",
+          "fix": "havia"
+        },
+        {
+          "regra": "entre-eu",
+          "severidade": "erro",
+          "trecho": "entre eu",
+          "fix": "entre mim"
+        },
+        {
+          "regra": "repeticao-proxima",
+          "severidade": "estilo",
+          "trecho": "modelo",
+          "fix": null
+        },
+        {
+          "regra": "repeticao-proxima",
+          "severidade": "estilo",
+          "trecho": "preditivo",
+          "fix": null
+        },
+        {
+          "regra": "pleonasmo-subir",
+          "severidade": "aviso",
+          "trecho": "subir para cima",
+          "fix": "subir"
+        },
+        {
+          "regra": "gerundio-encadeado",
+          "severidade": "aviso",
+          "trecho": "Realizando a coleta, analisando os dados",
+          "fix": null
+        },
+        {
+          "regra": "a-nivel-de",
+          "severidade": "estilo",
+          "trecho": "a nível de",
+          "fix": null
+        }
+      ]
+    }
+  }
+}

@@ -33,6 +33,15 @@ import {
 import {
   createAuditWorkerClient, AUDIT_WORKER_PROTOCOL,
 } from "./auditWorkerClient.js";
+import {
+  SPELL_FORMAT, hash2, packBloom, readBloom, createSpellChecker, findMisspellings,
+} from "./spell.js";
+import {
+  PTBR_RULES_VERSION, PT_REGISTROS, PT_REGRAS, PT_SEVERIDADES, trechosProtegidos, analisarPortugues, propostasPortugues, resumoPortugues,
+} from "./ptRevisor.js";
+import {
+  PT_SUGGESTION_SCHEMA, PT_CATEGORIES, buildPtPrompt, validatePtResponse, parsePtResponse, ptSuggestionsToProposals, createPtReviewSession,
+} from "./ptAiBridge.js";
 
 export {
   UP, NAME, titleCase, normStr, escapeHtml, paras, isLongQuote, lastSurname,
@@ -47,6 +56,9 @@ export {
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
   NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
+  SPELL_FORMAT, hash2, packBloom, readBloom, createSpellChecker, findMisspellings,
+  PTBR_RULES_VERSION, PT_REGISTROS, PT_REGRAS, PT_SEVERIDADES, trechosProtegidos, analisarPortugues, propostasPortugues, resumoPortugues,
+  PT_SUGGESTION_SCHEMA, PT_CATEGORIES, buildPtPrompt, validatePtResponse, parsePtResponse, ptSuggestionsToProposals, createPtReviewSession,
   createAuditWorkerClient, AUDIT_WORKER_PROTOCOL,
   ABNT10520_RULES_VERSION, ABNT6023_RULES_VERSION, STYLOMETRY_RULES_VERSION,
 };
@@ -65,6 +77,9 @@ export const ScriptaCore = {
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
   NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
+  SPELL_FORMAT, hash2, packBloom, readBloom, createSpellChecker, findMisspellings,
+  PTBR_RULES_VERSION, PT_REGISTROS, PT_REGRAS, PT_SEVERIDADES, trechosProtegidos, analisarPortugues, propostasPortugues, resumoPortugues,
+  PT_SUGGESTION_SCHEMA, PT_CATEGORIES, buildPtPrompt, validatePtResponse, parsePtResponse, ptSuggestionsToProposals, createPtReviewSession,
   createAuditWorkerClient, AUDIT_WORKER_PROTOCOL,
   ABNT10520_RULES_VERSION, ABNT6023_RULES_VERSION, STYLOMETRY_RULES_VERSION,
 };

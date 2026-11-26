@@ -28,12 +28,16 @@
  * O docx (jsdelivr) NÃO é cacheado pelo SW: não está no connect-src
  * da CSP, então o SW não o busca — a tag <script> da página carrega.
  *
+ * Dicionário de ortografia (data/ortografia/pt-br.bloom, ~5,4 MB) NÃO entra
+ * no APP_SHELL: é baixado só quando o usuário liga a conferência de ortografia
+ * e, por ser do mesmo domínio, fica em cache na primeira vez (cache-first).
+ *
  * Para mudar a versão: altere APP_VERSION (tem que ser igual à
  * "version" do package.json — o teste tests/sw.test.js trava isso).
  */
 'use strict';
 
-const APP_VERSION = '0.3.0';
+const APP_VERSION = '0.4.0';
 const CACHE_NAME = 'scriptalab-v' + APP_VERSION;
 
 const APP_SHELL = [
@@ -59,6 +63,9 @@ const APP_SHELL = [
   './src/core/literaryReview.js',
   './src/core/mathlabBridge.js',
   './src/core/aiBridge.js',
+  './src/core/spell.js',
+  './src/core/ptRevisor.js',
+  './src/core/ptAiBridge.js',
   './src/core/networkLog.js',
   './src/core/auditWorkerClient.js',
   './workers/auditWorker.js',
@@ -73,6 +80,7 @@ const APP_SHELL = [
   './src/core/rules/abnt10520.json',
   './src/core/rules/abnt6023.json',
   './src/core/rules/stylometry.json',
+  './src/core/rules/ptbr.json',
 ];
 
 const CDN_LIBS = [

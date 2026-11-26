@@ -67,7 +67,24 @@ test("cli regras e versao", async () => {
   assert.equal(r.abnt10520, 1);
   assert.equal(r.abnt6023, 1);
   assert.equal(r.stylometry, 1);
-  assert.match(r.pacote, /@scriptalab\/core@0\.3\.0/);
+  assert.match(r.pacote, /@scriptalab\/core@0\.4\.0/);
   const { stdout: versao } = await cli(["versao"]);
-  assert.match(versao, /@scriptalab\/core 0\.3\.0/);
+  assert.match(versao, /@scriptalab\/core 0\.4\.0/);
+});
+
+test("cli portugues: relatório em texto, JSON e ortografia offline", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "sl-cli-pt-"));
+  const file = join(dir, "pt.txt");
+  writeFileSync(file, "Eles tem razão , as vezes. A analize dos resultdos.\n");
+  const { stdout } = await cli(["portugues", file]);
+  assert.match(stdout, /achado\(s\)/);
+  assert.match(stdout, /eles-tem/);
+  assert.match(stdout, /as-vezes/);
+  const { stdout: json } = await cli(["portugues", file, "--registro", "didatico", "--ortografia", "--json"]);
+  const r = JSON.parse(json);
+  assert.equal(r.registro, "didatico");
+  assert.ok(r.achados.some((a) => a.regra === "ortografia" && a.trecho === "resultdos"));
+  await assert.rejects(cli(["portugues", file, "--registro", "inexistente"]), /registro desconhecido/);
+  const { stdout: regras } = await cli(["regras"]);
+  assert.equal(JSON.parse(regras).portugues, 1);
 });
