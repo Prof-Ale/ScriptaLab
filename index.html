@@ -14,9 +14,7 @@
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#10294B">
 <!-- Bibliotecas com versão fixa + SRI (SHA-384). Ao atualizar uma versão, recalcule com tools/sri.sh -->
-<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js" integrity="sha384-4xaIisuLEy2lo2HkB2C4rEf7v8jbTb2kuogX6TkuEt9feTWKBSFSOzsqNNbV+sKh" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js" integrity="sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<link rel="modulepreload" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" integrity="sha384-+0ti2moQlmLN7WZHE2RHIf5lV8hHxhxEalN0il3YZceG26fUPyOkR0hp9daxk1i7" crossorigin="anonymous" referrerpolicy="no-referrer">
+<!-- Bibliotecas pesadas (docx, mammoth, pdf.js) carregadas sob demanda via loadLib()/loadPdfJs() com SRI -->
 <style>
 /* ============================================================
    ScriptaLab — Design System v3 (tokens → componentes)
@@ -1076,6 +1074,40 @@ async function pdfWorkerUrl(){
   return pdfWorkerBlobUrl;
 }
 
+// ===== Lazy load das bibliotecas pesadas (só quando usadas) =====
+const LIBS = {
+  docx: { url: "https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js",
+    integrity: "sha384-4xaIisuLEy2lo2HkB2C4rEf7v8jbTb2kuogX6TkuEt9feTWKBSFSOzsqNNbV+sKh" },
+  mammoth: { url: "https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js",
+    integrity: "sha384-nFoSjZIoH3CCp8W639jJyQkuPHinJ2NHe7on1xvlUA7SuGfJAfvMldrsoAVm6ECz" },
+};
+const libPromises = {};
+function loadLib(name) {
+  if (window[name === "docx" ? "docx" : "mammoth"]) return Promise.resolve();
+  if (libPromises[name]) return libPromises[name];
+  libPromises[name] = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = LIBS[name].url; s.integrity = LIBS[name].integrity;
+    s.crossOrigin = "anonymous"; s.referrerPolicy = "no-referrer";
+    s.onload = resolve; s.onerror = () => reject(new Error("biblioteca " + name + " não carregou (verifique a conexão)"));
+    document.head.appendChild(s);
+  });
+  return libPromises[name];
+}
+
+// ===== Cliente do worker de auditoria =====
+const AUDIT_CLIENT = C.createAuditWorkerClient({
+  loadWorkerScript: () => fetch("./workers/auditWorker.js").then((r) => { if (!r.ok) throw new Error("worker indisponível"); return r.text(); }),
+  isCached: (u) => !!cacheGet(u),
+  getCached: cacheGet,
+  onRecordFetch: (url, status) => { if (typeof NETLOG !== "undefined") { NETLOG.recordFetch(url, { status }); renderNetLog(); } },
+  fallback: {
+    crossrefDOI, crossrefAuthorYear, openalexAuthorYear,
+    parseDocxMain: async (buf) => { await loadLib("mammoth"); return (await mammoth.extractRawText({ arrayBuffer: buf })).value; },
+  },
+});
+let auditAbort = null;
+
 // ===== Upload =====
 async function processFile(file){
   if(!file) return;
@@ -1087,8 +1119,10 @@ async function processFile(file){
   try{
     let t = "";
     if(ext==="txt") t = await file.text();
-    else if(ext==="docx"){ if(!window.mammoth) throw new Error("biblioteca DOCX não carregou (verifique a conexão)");
-      t = (await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value; }
+    else if(ext==="docx"){
+      try { t = await AUDIT_CLIENT.runDocx(await file.arrayBuffer()); }
+      catch(e){ if(e.cancelled) throw e; await loadLib("mammoth"); t = (await mammoth.extractRawText({arrayBuffer:await file.arrayBuffer()})).value; }
+    }
     else {
       const pdfjsLib = await loadPdfJs().catch(()=>{ throw new Error("biblioteca PDF não carregou (verifique a conexão)"); });
       pdfjsLib.GlobalWorkerOptions.workerSrc = await pdfWorkerUrl();
@@ -1597,7 +1631,7 @@ function renderSummary(counts,total){
 }
 async function audit(){
   const btn=$("btnAudit"), box=$("audit");
-  if(AUDIT.running){ AUDIT.cancel = true; btn.textContent = "Parando…"; return; }
+  if(AUDIT.running){ AUDIT.cancel = true; if(auditAbort) auditAbort.abort(); btn.textContent = "Parando…"; return; }
   const text = cleanText || $("raw").value;
   if(!text.trim()){ box.innerHTML = card("w","Nenhum texto para auditar."); return; }
   const cfg = netCfg(), dois = C.extractDois(text), refs = C.splitReferences(text);
@@ -1642,31 +1676,57 @@ async function audit(){
     }
     render();
     let step = 0;
-    for(const d of dois){
-      if(AUDIT.cancel) break; step++;
-      try{
-        const r = await crossrefDOI(d,cfg), dd = escapeHtml(d);
-        if(r.state==="found"){
-          const cmp = C.compareRef(C.refBlockFor(text,d), r.meta);
-          const cls = cmp.verdict==="coerente"?"v":cmp.verdict==="divergente"?"x":"w";
-          const ic = cmp.verdict==="coerente"?"✅":cmp.verdict==="divergente"?"🚩":"⚠️";
-          pushC(cls,`<strong>${ic} DOI <span class="doi">${dd}</span></strong> existe na CrossRef: ${escapeHtml(r.meta.title||"(sem título)")} (${r.meta.year||"s.d."}). Conferência com a referência: <b>${cmp.verdict}</b> (${escapeHtml(cmp.detail)}).`);
-        } else if(r.state==="other-agency") pushC("v",`<strong>✅ DOI <span class="doi">${dd}</span></strong> está registrado (agência: ${escapeHtml(r.agency)}); os metadados não estão na CrossRef, então não consegui comparar com a referência.`);
-        else pushC("x",`<strong>🚩 DOI <span class="doi">${dd}</span></strong> não está registrado: forte indício de referência inventada ou DOI digitado errado.`);
-      }catch(e){ pushC("w",`Erro ao consultar o DOI ${escapeHtml(d)}: ${escapeHtml(e.message)}.`); }
-      render(); setProgress(step,total); btn.textContent = `⏹ Parar (${step}/${total})`;
+    const jobs = [
+      ...dois.map(d => ({ kind: "doi", doi: d })),
+      ...cits.map(c => ({ kind: "author-year", sur: c.sur, year: c.year })),
+    ];
+    auditAbort = new AbortController();
+    let auditRes = null;
+    try {
+      auditRes = await AUDIT_CLIENT.runDoiAudit(jobs, {
+        cfg,
+        signal: auditAbort.signal,
+        onProgress: ({ done, total: tot }) => { setProgress(done, tot); btn.textContent = `⏹ Parar (${done}/${tot})`; },
+      });
+    } catch (e) {
+      if (e.cancelled) { AUDIT.cancel = true; }
+      else throw e;
     }
-    for(const c of cits){
-      if(AUDIT.cancel) break; step++;
-      try{
-        let hit = await crossrefAuthorYear(c.sur,c.year,cfg), link = hit && `https://doi.org/${hit.doi}`, title = hit && hit.title, src = "CrossRef", oaAnswered = false;
-        if(!hit){ const o = await openalexAuthorYear(c.sur,c.year,cfg); oaAnswered = o.ok; if(o.ok && o.hit){ hit=o.hit; link=o.hit.url; title=o.hit.title; src="OpenAlex"; } }
-        pushC(hit?"":"w", hit
-          ? `<strong>🔎 (${escapeHtml(c.name)}, ${c.year})</strong> há obra compatível (${src}): <a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>. É um indício; confirme manualmente.`
-          : `<strong>⚠️ (${escapeHtml(c.name)}, ${c.year})</strong> nenhuma obra compatível encontrada${oaAnswered?" na CrossRef nem no OpenAlex":" na CrossRef"}. Pode ser livro, capítulo, norma ou outro material sem DOI, ou referência inventada: verifique.`);
-      }catch(e){ pushC("w",`Erro na consulta de (${escapeHtml(c.name)}, ${c.year}): ${escapeHtml(e.message)}.`); }
-      render(); setProgress(step,total); btn.textContent = `⏹ Parar (${step}/${total})`;
+    if (auditRes) {
+      const byKey = new Map(auditRes.results.map(r => [
+        r.job.kind === "doi" ? ("doi:" + r.job.doi) : ("ay:" + r.job.sur + "/" + r.job.year), r,
+      ]));
+      for (const d of dois) {
+        if (AUDIT.cancel) break; step++;
+        const r = byKey.get("doi:" + d);
+        try {
+          if (!r || !r.ok) { pushC("w", `Erro ao consultar o DOI ${escapeHtml(d)}: ${escapeHtml((r && r.error) || "sem resposta")}.`); }
+          else if (r.data.state === "found") {
+            const cmp = C.compareRef(C.refBlockFor(text, d), r.data.meta);
+            const cls = cmp.verdict === "coerente" ? "v" : cmp.verdict === "divergente" ? "x" : "w";
+            const ic = cmp.verdict === "coerente" ? "✅" : cmp.verdict === "divergente" ? "🚩" : "⚠️";
+            pushC(cls, `<strong>${ic} DOI <span class="doi">${escapeHtml(d)}</span></strong> existe na CrossRef: ${escapeHtml(r.data.meta.title || "(sem título)")} (${r.data.meta.year || "s.d."}). Conferência com a referência: <b>${cmp.verdict}</b> (${escapeHtml(cmp.detail)}).`);
+          } else if (r.data.state === "other-agency") pushC("v", `<strong>✅ DOI <span class="doi">${escapeHtml(d)}</span></strong> está registrado (agência: ${escapeHtml(r.data.agency)}); os metadados não estão na CrossRef, então não consegui comparar com a referência.`);
+          else pushC("x", `<strong>🚩 DOI <span class="doi">${escapeHtml(d)}</span></strong> não está registrado: forte indício de referência inventada ou DOI digitado errado.`);
+        } catch (e) { pushC("w", `Erro ao consultar o DOI ${escapeHtml(d)}: ${escapeHtml(e.message)}.`); }
+        render(); setProgress(step, total); btn.textContent = `⏹ Parar (${step}/${total})`;
+      }
+      for (const c of cits) {
+        if (AUDIT.cancel) break; step++;
+        const r = byKey.get("ay:" + c.sur + "/" + c.year);
+        try {
+          if (!r || !r.ok) { pushC("w", `Erro na consulta de (${escapeHtml(c.name)}, ${c.year}): ${escapeHtml((r && r.error) || "sem resposta")}.`); }
+          else {
+            const hit = r.data.hit, link = hit && (hit.doi ? `https://doi.org/${hit.doi}` : hit.url), title = hit && hit.title, src = r.data.source;
+            pushC(hit ? "" : "w", hit
+              ? `<strong>🔎 (${escapeHtml(c.name)}, ${c.year})</strong> há obra compatível (${src}): <a href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a>. É um indício; confirme manualmente.`
+              : `<strong>⚠️ (${escapeHtml(c.name)}, ${c.year})</strong> nenhuma obra compatível encontrada${r.data.oaAnswered ? " na CrossRef nem no OpenAlex" : " na CrossRef"}. Pode ser livro, capítulo, norma ou outro material sem DOI, ou referência inventada: verifique.`);
+          }
+        } catch (e) { pushC("w", `Erro na consulta de (${escapeHtml(c.name)}, ${c.year}): ${escapeHtml(e.message)}.`); }
+        render(); setProgress(step, total); btn.textContent = `⏹ Parar (${step}/${total})`;
+      }
     }
+    if (auditRes && auditRes.cancelled) AUDIT.cancel = true;
     if(AUDIT.cancel){ pushC("","Auditoria interrompida a pedido."); }
     render(); renderSummary(counts,total); lastAudit = {counts,total,items:parts.slice()};
     if(!AUDIT.cancel) setStatus(`Auditoria concluída: ${counts.ok} coerente(s), ${counts.warn} a revisar, ${counts.bad} divergente(s). Resultados são indícios, não prova.`, counts.bad?"err":"ok");
@@ -1680,7 +1740,8 @@ function runs(text,size,italicEtAl){
 }
 async function exportToDocx(){
   if(!cleanText.trim()){ setStatus("Execute o diagnóstico e autorize as correções antes de exportar.","err"); return; }
-  if(!window.docx){ setStatus("A biblioteca de exportação (docx) não carregou. Verifique a conexão e recarregue a página.","err"); return; }
+  await loadLib("docx").catch(()=>{ setStatus("A biblioteca de exportação (docx) não carregou. Verifique a conexão e recarregue a página.","err"); });
+  if(!window.docx) return;
   const {Document,Packer,Paragraph,TextRun,Header,PageNumber,AlignmentType,convertMillimetersToTwip:mm} = window.docx;
   const T = profile.typo, L = profile.lq, M = profile.margins;
   let inRefs = false;

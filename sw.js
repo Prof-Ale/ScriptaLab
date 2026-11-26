@@ -60,6 +60,8 @@ const APP_SHELL = [
   './src/core/mathlabBridge.js',
   './src/core/aiBridge.js',
   './src/core/networkLog.js',
+  './src/core/auditWorkerClient.js',
+  './workers/auditWorker.js',
   './templates-ies/abnt-padrao-2023.json',
   './templates-ies/usp-abnt.json',
   './templates-ies/unicamp-ccpg-abnt.json',
