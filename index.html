@@ -493,6 +493,19 @@ footer a:hover{color:var(--accent);text-decoration:underline}
 .ws-tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
 .tab-badge{font-size:11px;background:var(--ok);color:#fff;border-radius:999px;padding:1px 7px;margin-left:6px;font-weight:700}
 .is-tab-hidden{display:none!important}
+.pt-find{display:grid;grid-template-columns:auto 1fr auto;gap:var(--sp-2);align-items:start;padding:var(--sp-2) var(--sp-3);border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface)}
+.pt-sev{font-size:var(--fs-12);font-weight:700;padding:2px 8px;border-radius:99px;border:1px solid var(--line);white-space:nowrap}
+.pt-sev[data-sev="erro"]{color:var(--err,#b3261e);border-color:currentColor}
+.pt-sev[data-sev="aviso"]{color:var(--warn,#8a5a00);border-color:currentColor}
+.pt-sev[data-sev="estilo"]{color:var(--ink-3)}
+.pt-find .pt-msg{font-size:var(--fs-13);color:var(--ink-1);line-height:1.45}
+.pt-find .pt-ctx{font-family:var(--font-doc);font-size:var(--fs-12);color:var(--ink-3);margin-top:3px;word-break:break-word}
+.pt-find mark{background:var(--warn-soft,#fff3cd);color:inherit;padding:0 2px;border-radius:3px}
+.pt-sug{display:inline-block;margin:4px 4px 0 0;padding:2px 8px;border:1px solid var(--line);border-radius:99px;background:var(--surface);font-size:var(--fs-12);cursor:default}
+.pt-list{display:grid;gap:var(--sp-2);margin-top:var(--sp-3);max-height:560px;overflow:auto}
+.pt-opts{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-bottom:10px;font-size:var(--fs-13)}
+.pt-opts select,.pt-opts textarea{padding:6px 10px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface);color:var(--ink-1);font-size:var(--fs-13)}
+
 .out-empty{padding:28px 20px;text-align:center;color:var(--ink-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:260px}
 .out-empty b{color:var(--ink-1);font-size:var(--fs-15)}
 .out-empty p{margin:0;font-size:var(--fs-13);max-width:38ch;line-height:1.5}
@@ -639,6 +652,7 @@ footer a:hover{color:var(--accent);text-decoration:underline}
     <button class="ws-tab" type="button" role="tab" id="tab-editor" aria-selected="true" onclick="switchTab('editor')">Editor</button>
     <button class="ws-tab" type="button" role="tab" id="tab-diag" aria-selected="false" onclick="switchTab('diag')">Diagnóstico <span class="tab-badge" id="diagBadge" hidden>0</span></button>
     <button class="ws-tab" type="button" role="tab" id="tab-estilo" aria-selected="false" onclick="switchTab('estilo')">Estilo e voz</button>
+    <button class="ws-tab" type="button" role="tab" id="tab-pt" aria-selected="false" onclick="switchTab('pt')">Português <span class="tab-badge" id="ptBadge" hidden>0</span></button>
     <button class="ws-tab" type="button" role="tab" id="tab-citacoes" aria-selected="false" onclick="switchTab('citacoes')">Citações e DOIs</button>
     <button class="ws-tab" type="button" role="tab" id="tab-ponte" aria-selected="false" onclick="switchTab('ponte')">Ponte MathLab</button>
   </nav>
@@ -826,6 +840,69 @@ footer a:hover{color:var(--accent);text-decoration:underline}
     </div>
   </section>
 
+  <section class="section is-tab-hidden" id="ptPanel">
+    <div class="sh">
+      <div class="sh-t">
+        <h2><span class="ic" aria-hidden="true">✍️</span> Revisão de português</h2>
+        <p>Regras como dados (pontuação, crase, regência, concordância, vícios e coloquialismos), medidores de estilo e, se você ligar, ortografia pt-BR offline. <b>Só sinaliza</b>: nada muda no texto sem o seu aceite item a item. Crase e concordância em contexto complexo podem ir para a IA pelo copiar-e-colar.</p>
+      </div>
+      <button class="btn btn-primary" id="btnPt" onclick="runPt()">Revisar português</button>
+    </div>
+    <div class="sb">
+      <div class="pt-opts">
+        <label>Registro
+          <select id="ptRegistro" aria-label="Registro do texto">
+            <option value="academico">Acadêmico (tese, artigo)</option>
+            <option value="didatico">Didático (apostila, aula)</option>
+            <option value="divulgacao">Divulgação (público geral)</option>
+          </select></label>
+        <label title="Baixa o dicionário pt-BR (5,4 MB) uma vez; depois funciona offline. O texto não sai da página."><input type="checkbox" id="ptOrto"> Conferir ortografia (dicionário offline, 5,4 MB)</label>
+        <label title="Aspas são citações do autor e não são revisadas, a menos que você desmarque."><input type="checkbox" id="ptAspas" checked> Não revisar o que está entre aspas</label>
+      </div>
+      <div class="pt-opts">
+        <label>Palavras a ignorar (termos técnicos, nomes) — uma por linha ou separadas por vírgula
+          <textarea id="ptIgnore" rows="2" style="width:340px" placeholder="ex.: BNCC, Hunspell, mathlab"></textarea></label>
+      </div>
+      <div id="ptSummary" class="m-note" aria-live="polite">Clique em “Revisar português”.</div>
+      <div id="ptMetrics" class="m-note"></div>
+      <div id="ptList" class="pt-list"></div>
+
+      <div id="ptDiffPanel" class="diff-panel" hidden style="margin-top:var(--sp-4)" aria-label="Correções de português item a item">
+        <div class="diff-bar">
+          <div>
+            <div class="diff-title">Correções propostas (antes → depois)</div>
+            <div class="diff-summary" id="ptDiffSummary"></div>
+          </div>
+          <div class="diff-actions">
+            <button class="btn btn-success btn-sm" type="button" onclick="ptAcceptAll()">Aceitar todas</button>
+            <button class="btn btn-quiet btn-sm" type="button" id="btnPtUndo" onclick="ptUndo()" disabled>Desfazer última</button>
+            <button class="btn btn-primary btn-sm" type="button" id="btnPtApply" onclick="ptApply()" disabled>Aplicar aceitas ao texto normatizado</button>
+          </div>
+        </div>
+        <div class="diff-list" id="ptDiffList"></div>
+      </div>
+
+      <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+      <div class="diff-bar">
+        <div>
+          <div class="diff-title">Segunda opinião da IA (copiar e colar, sem API)</div>
+          <div class="diff-summary">Gera um pedido restrito a correções de norma, com o que o revisor local já achou. A resposta volta como JSON <code>scriptalab.pt-suggestion/1</code>, passa pela trava de preservação (números, citações, DOIs, fórmulas) e entra na mesma lista, para você aceitar ou rejeitar.</div>
+        </div>
+        <div class="diff-actions">
+          <label class="m-note">Bloco <select id="ptBloco" aria-label="Bloco do texto para a IA"></select></label>
+          <button class="btn btn-primary btn-sm" type="button" onclick="ptGenPrompt()">Gerar pedido</button>
+          <button class="btn btn-quiet btn-sm" type="button" onclick="ptCopyPrompt()">Copiar pedido</button>
+        </div>
+      </div>
+      <textarea id="ptPromptOut" rows="4" readonly placeholder="O pedido para a IA aparece aqui…" aria-label="Pedido de revisão de português para a IA" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface);color:var(--ink-1);font-family:var(--font-mono);font-size:var(--fs-12)"></textarea>
+      <textarea id="ptReturnIn" rows="3" placeholder="Cole aqui a resposta JSON da IA…" aria-label="Resposta JSON da IA" style="width:100%;margin-top:8px;padding:10px;border:1px solid var(--line);border-radius:var(--r-1);background:var(--surface);color:var(--ink-1);font-family:var(--font-mono);font-size:var(--fs-12)"></textarea>
+      <div class="diff-actions" style="margin-top:8px">
+        <button class="btn btn-primary btn-sm" type="button" onclick="ptValidateReturn()">Conferir e adicionar à lista</button>
+      </div>
+      <div id="ptReturnOut" class="m-note" aria-live="polite"></div>
+    </div>
+  </section>
+
   <section class="section" id="auditSection">
     <div class="sh">
       <div class="sh-t">
@@ -974,6 +1051,7 @@ const TAB_MAP = {
   editor: "workspace",
   diag: "reportSection",
   estilo: "stylePanel",
+  pt: "ptPanel",
   citacoes: "auditSection",
   ponte: "bridgeSection"
 };
@@ -1961,6 +2039,148 @@ function gotoText(index, length){
   ta.setSelectionRange(index, index + length);
   ta.scrollIntoView({ behavior:"smooth", block:"center" });
 }
+// ===== Revisão de português (regras como dados + ortografia offline + ponte de IA) =====
+const PT = { text:"", fromRaw:false, analise:null, session:null, spell:null, spellLoading:null, blocks:[], aiProps:[] };
+function ptSourceText(){ const raw=$("raw").value; return cleanText.trim() ? {text:cleanText,fromRaw:false} : {text:raw,fromRaw:true}; }
+function ptIgnoreList(){ return ($("ptIgnore").value||"").split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean); }
+try{ const sv=localStorage.getItem("scriptalab.pt.ignore"); if(sv) $("ptIgnore").value=sv; }catch{}
+async function ptLoadSpell(){
+  if(PT.spell) return PT.spell;
+  if(!PT.spellLoading){
+    PT.spellLoading = fetch("./data/ortografia/pt-br.bloom").then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.arrayBuffer(); })
+      .then(b=>{ PT.spell = C.createSpellChecker(new Uint8Array(b)); return PT.spell; })
+      .finally(()=>{ PT.spellLoading=null; });
+  }
+  return PT.spellLoading;
+}
+function ptBlocks(text){
+  // agrupa parágrafos em blocos de até ~4500 caracteres (o texto de um pedido de IA tem que caber no chat)
+  const blocks=[]; let cur=null, pos=0;
+  for(const par of text.split(/(\n\s*\n)/)){
+    if(!cur){ cur={start:pos,body:""}; }
+    if(cur.body.length && (cur.body.length+par.length)>4500 && !/^\n\s*\n$/.test(par)){ blocks.push(cur); cur={start:pos,body:""}; }
+    cur.body += par; pos += par.length;
+  }
+  if(cur && cur.body.trim()) blocks.push(cur);
+  return blocks.map((b,i)=>({...b,blockId:"bloco-"+(i+1)}));
+}
+function ptLine(text,pos){ return text.slice(0,pos).split("\n").length; }
+async function runPt(){
+  const {text,fromRaw}=ptSourceText();
+  if(!text.trim()){ setStatus("Nada para revisar: o campo de texto está vazio.","err"); return; }
+  const btn=$("btnPt"); btn.disabled=true;
+  try{
+    try{ localStorage.setItem("scriptalab.pt.ignore",$("ptIgnore").value); }catch{}
+    let verificador=null;
+    if($("ptOrto").checked){
+      $("ptSummary").textContent="Baixando o dicionário (5,4 MB, só na primeira vez)…";
+      try{ verificador = await ptLoadSpell(); }
+      catch(e){ setStatus("Não foi possível carregar o dicionário ("+e.message+"). A revisão segue sem ortografia.","err"); }
+    }
+    const a=C.analisarPortugues(text,{registro:$("ptRegistro").value, verificador, ignorar:ptIgnoreList(), protegerCitacoes:$("ptAspas").checked});
+    PT.text=text; PT.fromRaw=fromRaw; PT.analise=a; PT.aiProps=[]; PT.blocks=ptBlocks(text);
+    $("ptBloco").innerHTML=PT.blocks.map((b,i)=>`<option value="${i}">${i+1} de ${PT.blocks.length} (${b.body.length} car.)</option>`).join("");
+    ptBuildSession();
+    renderPtFindings();
+    const badge=$("ptBadge"); badge.textContent=String(a.resumo.total); badge.hidden=!a.resumo.total;
+    setStatus(`Revisão de português: ${a.resumo.total} achado(s).`, a.resumo.total?"":"ok");
+  } finally { btn.disabled=false; }
+}
+function ptBuildSession(){
+  const local=C.propostasPortugues(PT.text,{registro:$("ptRegistro").value, protegerCitacoes:$("ptAspas").checked});
+  const all=[...local,...PT.aiProps].sort((x,y)=>x.start-y.start||y.end-x.end);
+  const out=[]; let cursor=0;
+  for(const p of all){ if(p.start>=cursor){ out.push({...p,id:"pt_"+(out.length+1),status:"pending"}); cursor=p.end; } }
+  PT.session=C.createReviewSession(PT.text,out);
+  renderPtDiff();
+}
+function renderPtFindings(){
+  const a=PT.analise; if(!a) return;
+  const r=a.resumo, m=a.metricas;
+  $("ptSummary").innerHTML=`<b>${r.total}</b> achado(s): <b>${r.porSeveridade.erro}</b> erro(s), <b>${r.porSeveridade.aviso}</b> aviso(s), <b>${r.porSeveridade.estilo}</b> de estilo · <b>${r.comCorrecaoSegura}</b> com correção mecânica segura.`;
+  $("ptMetrics").textContent=`${m.palavras} palavras · ${m.periodos} períodos · ${m.gerundios} gerúndios (${m.gerundiosPor1000} por mil). Texto analisado: ${PT.fromRaw?"original (campo de texto)":"texto normatizado"}.`;
+  const rows=a.achados.slice(0,300).map((f,i)=>{
+    const pre=escapeHtml(PT.text.slice(Math.max(0,f.start-30),f.start).replace(/\s+/g," "));
+    const post=escapeHtml(PT.text.slice(f.end,f.end+30).replace(/\s+/g," "));
+    const mid=escapeHtml((f.trecho||"").slice(0,80).replace(/\s+/g," "))||"·";
+    const sug=(f.sugestoes||[]).map(x=>`<span class="pt-sug">${escapeHtml(x)}</span>`).join("");
+    const fix=f.fix!==null?` <span class="pt-sug" title="correção mecânica segura">→ ${escapeHtml(f.fix)||"(remover)"}</span>`:"";
+    const btns=[];
+    if(PT.fromRaw && f.end>f.start) btns.push(`<button class="btn btn-quiet btn-sm" type="button" onclick="ptGoto(${i})">Ver no texto</button>`);
+    if(f.kind==="ortografia") btns.push(`<button class="btn btn-quiet btn-sm" type="button" onclick="ptIgnoreWord(${i})">Ignorar palavra</button>`);
+    return `<div class="pt-find"><span class="pt-sev" data-sev="${f.severidade}">${f.severidade}</span>
+      <div><div class="pt-msg"><b>${escapeHtml(f.regra)}</b> · ${escapeHtml(f.msg)}</div>
+      <div class="pt-ctx">L${ptLine(PT.text,f.start)}: …${pre}<mark>${mid}</mark>${post}…</div>${sug}${fix}</div>
+      <div>${btns.join("")}</div></div>`;
+  });
+  $("ptList").innerHTML=rows.join("")||`<div class="m-note">Nenhum achado neste registro. Isso não garante que o texto esteja sem erros: as regras cobrem os casos mais frequentes.</div>`;
+  if(a.achados.length>300) $("ptList").insertAdjacentHTML("beforeend",`<div class="m-note">Mostrando os 300 primeiros de ${a.achados.length}.</div>`);
+}
+function ptGoto(i){ const f=PT.analise?.achados[i]; if(f) gotoText(f.start,f.end-f.start); }
+function ptIgnoreWord(i){
+  const f=PT.analise?.achados[i]; if(!f) return;
+  const cur=ptIgnoreList(); if(!cur.includes(f.trecho)) cur.push(f.trecho);
+  $("ptIgnore").value=cur.join("\n"); runPt();
+}
+function renderPtDiff(){
+  const panel=$("ptDiffPanel"), list=$("ptDiffList");
+  if(!PT.session||!PT.session.proposals.length){ panel.hidden=true; list.innerHTML=""; return; }
+  const st=C.summarizeSession(PT.session);
+  panel.hidden=false;
+  $("ptDiffSummary").textContent=`${st.total} proposta(s): ${st.accepted} aceita(s) · ${st.rejected} rejeitada(s) · ${st.pending} pendente(s)`;
+  $("btnPtUndo").disabled=!st.canUndo; $("btnPtApply").disabled=st.accepted===0;
+  list.innerHTML=PT.session.proposals.map(p=>{
+    const lab=p.status==="accepted"?"Aceita":(p.status==="rejected"?"Rejeitada":"Pendente");
+    return `<div class="diff-item" data-status="${p.status}">
+      <div><div class="diff-meta">${escapeHtml(p.label)} · <b>${lab}</b></div>
+      <div class="diff-preview">…${escapeHtml(p.contextBefore.replace(/\r?\n/g," "))}<span class="diff-del">${escapeHtml(formatDiffToken(p.before))}</span> → <span class="diff-ins">${escapeHtml(formatDiffToken(p.after))}</span>${escapeHtml(p.contextAfter.replace(/\r?\n/g," "))}…</div></div>
+      <div class="diff-item-btns">
+        <button class="btn btn-success btn-sm" type="button" onclick="ptDecide('${p.id}',true)" ${p.status==="accepted"?"disabled":""}>Aceitar</button>
+        <button class="btn btn-quiet btn-sm" type="button" onclick="ptDecide('${p.id}',false)" ${p.status==="rejected"?"disabled":""}>Rejeitar</button>
+      </div></div>`;
+  }).join("");
+}
+function ptDecide(id,ok){ if(!PT.session) return; PT.session = ok?C.acceptProposal(PT.session,id):C.rejectProposal(PT.session,id); renderPtDiff(); }
+function ptAcceptAll(){ if(!PT.session) return; PT.session=C.acceptAllProposals(PT.session); renderPtDiff(); }
+function ptUndo(){ if(!PT.session) return; PT.session=C.undoLastAction(PT.session); renderPtDiff(); }
+function ptApply(){
+  if(!PT.session) return;
+  const st=C.summarizeSession(PT.session); if(!st.accepted) return;
+  const out=C.renderSessionText(PT.session);
+  cleanText=out;
+  syncOutputUi();
+  let h=escapeHtml(cleanText);
+  if(profile.italicEtAl) h=h.replace(C.LATIN_ITALIC,'<em class="fix" title="NBR 10520:2023">$1</em>');
+  $("out").innerHTML=h; authDone=true; updateCounters(); updateStepper();
+  setStatus(`${st.accepted} correção(ões) de português aplicada(s) ao texto normatizado. Rode a revisão de novo para conferir o que sobrou.`,"ok");
+  runPt();
+}
+function ptSelectedBlock(){ return PT.blocks[Number($("ptBloco").value)||0]; }
+function ptGenPrompt(){
+  if(!PT.analise){ setStatus("Rode “Revisar português” antes de gerar o pedido.","err"); return; }
+  const b=ptSelectedBlock(); if(!b){ setStatus("Texto vazio.","err"); return; }
+  const achados=PT.analise.achados.filter(f=>f.start>=b.start&&f.start<b.start+b.body.length&&f.kind!=="medida").map(f=>({categoria:f.categoria,trecho:f.trecho,msg:f.msg}));
+  $("ptPromptOut").value=C.buildPtPrompt({blockId:b.blockId,body:b.body},{registro:$("ptRegistro").value,achados});
+  setStatus("Pedido gerado. Copie, cole na IA que você usa e traga a resposta JSON.","ok");
+}
+async function ptCopyPrompt(){
+  const v=$("ptPromptOut").value; if(!v.trim()){ setStatus("Gere o pedido antes de copiar.","err"); return; }
+  try{ await navigator.clipboard.writeText(v); setStatus("Pedido copiado.","ok"); } catch{ setStatus("Não foi possível copiar sozinho; selecione e copie do campo.","err"); }
+}
+function ptValidateReturn(){
+  const b=ptSelectedBlock(), out=$("ptReturnOut");
+  if(!PT.analise||!b){ out.textContent="Rode a revisão e gere o pedido antes."; return; }
+  const r=C.validatePtResponse($("ptReturnIn").value,b.body,b.blockId);
+  if(!r.ok){ out.innerHTML="<b>Resposta recusada:</b><br>"+r.errors.map(e=>"• "+escapeHtml(e)).join("<br>"); return; }
+  let props;
+  try{ props=C.ptSuggestionsToProposals(r.data,b.body); }catch(e){ out.textContent="Resposta recusada: "+e.message; return; }
+  const shifted=props.map(p=>({...p,start:p.start+b.start,end:p.end+b.start}));
+  PT.aiProps=PT.aiProps.filter(p=>!(p.start>=b.start&&p.start<b.start+b.body.length)).concat(shifted);
+  ptBuildSession();
+  const bloq=r.data.suggestions.filter(s=>s.blocked).length;
+  out.innerHTML=`<b>${props.length}</b> sugestão(ões) adicionada(s) à lista de correções (pendentes).`+(bloq?` <b>${bloq}</b> bloqueada(s) pela trava de preservação: ${r.warnings.map(w=>escapeHtml(w)).join(" ")}`:"");
+}
+
 function bootstrapDemo(){ loadSample(); runDiagnostic(); runStyle(); }
 
 Object.assign(window, {
@@ -1970,7 +2190,8 @@ Object.assign(window, {
   handleSortReferences, handleUndoSortReferences,
   calibrateVoiceProfile, clearVoiceProfile, generateLiteraryPrompt, copyLiteraryPrompt,
   validateLiteraryReturn, applyValidatedLiteraryReturn,
-  switchTab, focusProfileSelect, loadSampleAndFocus, scrollToDiffProof, gotoText
+  switchTab, focusProfileSelect, loadSampleAndFocus, scrollToDiffProof, gotoText,
+  runPt, ptGoto, ptIgnoreWord, ptDecide, ptAcceptAll, ptUndo, ptApply, ptGenPrompt, ptCopyPrompt, ptValidateReturn
 });
 
 (function boot(){

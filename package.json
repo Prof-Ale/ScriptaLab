@@ -1,13 +1,18 @@
 {
   "name": "scriptalab",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "ScriptaLab | LabTech: engenharia textual e conformidade acadêmica (client-side)",
   "scripts": {
-    "test": "node --test tests/core.test.js tests/contract.test.js tests/aiBridge.test.js tests/citationLocations.test.js tests/networkLog.test.js tests/sw.test.js tests/auditWorker.test.js tests/golden.test.js tests/cli.test.js",
+    "test": "node --test tests/core.test.js tests/contract.test.js tests/aiBridge.test.js tests/citationLocations.test.js tests/networkLog.test.js tests/sw.test.js tests/auditWorker.test.js tests/golden.test.js tests/cli.test.js tests/spell.test.js tests/ptRevisor.test.js tests/ptAiBridge.test.js",
     "validate": "node tools/validate-templates.js",
     "check-contract": "node tools/conferir-contrato.mjs",
-    "check": "npm run test && npm run validate && npm run check-contract"
+    "check": "npm run test && npm run validate && npm run check-contract",
+    "dicionario": "node --max-old-space-size=6000 tools/gerar-dicionario.mjs"
   },
-  "devDependencies": { "ajv": "^8.17.1", "ajv-formats": "^3.0.1" }
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "dictionary-pt": "^4.0.0"
+  }
 }

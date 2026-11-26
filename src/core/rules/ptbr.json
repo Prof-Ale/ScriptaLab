@@ -1,0 +1,1101 @@
+{
+  "version": 1,
+  "descricao": "Regras de revisão de português do ScriptaLab: dados, não código. Cada regra tem um exemplo ruim e um bom que o teste confere (tests/ptRevisor.test.js).",
+  "avisoGeral": "As regras SINALIZAM; nada é trocado sem aceite item a item. Norma-padrão: Vocabulário Ortográfico (VOLP) e gramáticas de referência (Cegalla, Bechara, Cunha & Cintra). Quando há divergência entre autores, a severidade é 'aviso' ou 'estilo', não 'erro'.",
+  "severidades": {
+    "erro": "desvio da norma-padrão sem divergência relevante entre gramáticas",
+    "aviso": "provável problema; depende do contexto ou há divergência",
+    "estilo": "sugestão de clareza/registro; não é erro"
+  },
+  "registros": {
+    "academico": {
+      "label": "Acadêmico (tese, artigo, livro técnico)",
+      "limites": {
+        "fraseLongaEstilo": 45,
+        "fraseLongaAviso": 70,
+        "gerundiosPorPeriodo": 3,
+        "gerundiosPor1000": 12,
+        "repeticaoJanela": 10,
+        "repeticaoMinLetras": 6,
+        "passivasEmSerie": 4,
+        "pessoaMista": "aviso"
+      }
+    },
+    "didatico": {
+      "label": "Didático (apostila, material de aula)",
+      "limites": {
+        "fraseLongaEstilo": 35,
+        "fraseLongaAviso": 55,
+        "gerundiosPorPeriodo": 3,
+        "gerundiosPor1000": 10,
+        "repeticaoJanela": 9,
+        "repeticaoMinLetras": 6,
+        "passivasEmSerie": 3,
+        "pessoaMista": "estilo"
+      }
+    },
+    "divulgacao": {
+      "label": "Divulgação (texto para o grande público)",
+      "limites": {
+        "fraseLongaEstilo": 28,
+        "fraseLongaAviso": 45,
+        "gerundiosPorPeriodo": 3,
+        "gerundiosPor1000": 10,
+        "repeticaoJanela": 8,
+        "repeticaoMinLetras": 6,
+        "passivasEmSerie": 2,
+        "pessoaMista": null
+      }
+    }
+  },
+  "regras": [
+    {
+      "id": "espaco-antes-pontuacao",
+      "categoria": "pontuacao",
+      "padrao": "(?<=[\\p{L}\\p{N})\\]”\"'])[ \\t]+(?=[,;.!?](?![,;.!?]))",
+      "msg": "Espaço antes do sinal de pontuação.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "o texto , que",
+      "bom": "o texto, que",
+      "fix": "",
+      "limites": false
+    },
+    {
+      "id": "falta-espaco-apos-virgula",
+      "categoria": "pontuacao",
+      "padrao": "(?<=\\p{L}{2})([,;])(?=\\p{L}{2})",
+      "msg": "Falta espaço depois da vírgula ou do ponto e vírgula.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "dados,fontes e análises",
+      "bom": "dados, fontes e análises",
+      "fix": "$1 ",
+      "limites": false
+    },
+    {
+      "id": "espaco-duplo",
+      "categoria": "pontuacao",
+      "padrao": "(?<=\\S)[ \\t]{2,}(?=\\S)",
+      "msg": "Espaço duplo entre palavras.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "a  pesquisa",
+      "bom": "a pesquisa",
+      "fix": " ",
+      "limites": false
+    },
+    {
+      "id": "virgula-dupla",
+      "categoria": "pontuacao",
+      "padrao": ",,",
+      "msg": "Vírgula repetida.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "dados,, fontes",
+      "bom": "dados, fontes",
+      "fix": ",",
+      "limites": false
+    },
+    {
+      "id": "ponto-virgula-duplo",
+      "categoria": "pontuacao",
+      "padrao": ";;",
+      "msg": "Ponto e vírgula repetido.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "dados;; fontes",
+      "bom": "dados; fontes",
+      "fix": ";",
+      "limites": false
+    },
+    {
+      "id": "ponto-duplo",
+      "categoria": "pontuacao",
+      "padrao": "(?<![.\\d])\\.\\.(?!\\.)",
+      "msg": "Dois pontos seguidos; reticências levam três.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "a pesquisa..",
+      "bom": "a pesquisa.",
+      "fix": ".",
+      "limites": false
+    },
+    {
+      "id": "etc-reticencias",
+      "categoria": "pontuacao",
+      "padrao": "etc\\.{2,}",
+      "msg": "“etc.” já indica continuidade e não leva reticências.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "livros, artigos, etc...",
+      "bom": "livros, artigos, etc.",
+      "fix": "etc.",
+      "limites": false
+    },
+    {
+      "id": "e-etc",
+      "categoria": "pleonasmo",
+      "padrao": "e\\s+etc\\b",
+      "msg": "“e etc.” é pleonasmo: “etc.” já significa “e outras coisas”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "livros e etc.",
+      "bom": "livros etc.",
+      "fix": "etc"
+    },
+    {
+      "id": "exclamacao-multipla",
+      "categoria": "pontuacao",
+      "padrao": "[!?]{2,}",
+      "msg": "Sinais de pontuação repetidos não cabem em texto formal.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso"
+      },
+      "ruim": "Como assim??",
+      "bom": "Como assim?",
+      "limites": false
+    },
+    {
+      "id": "a-partir",
+      "categoria": "crase",
+      "padrao": "à(\\s+partir)\\b",
+      "msg": "Não há crase em “a partir de”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "à partir de 2020",
+      "bom": "a partir de 2020",
+      "fix": "a$1"
+    },
+    {
+      "id": "crase-pronome",
+      "categoria": "crase",
+      "padrao": "à(?=\\s+(?:ele|eles|ela|elas|você|vocês|nós|mim|ti|si|isto|isso|aquilo|alguém|ninguém|cada|este|estes|esta|estas|esse|esses|essa|essas|um|uns|quem)\\b)",
+      "msg": "Não há crase antes de pronome, demonstrativo, “cada” ou “um”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "entregou à ele o texto",
+      "bom": "entregou a ele o texto",
+      "fix": "a"
+    },
+    {
+      "id": "crase-antes-verbo",
+      "categoria": "crase",
+      "padrao": "à\\s+(?!(?:mar|lar|par|ar|bar)\\b)\\p{L}{3,}(?:ar|ir)\\b",
+      "msg": "Possível crase antes de verbo: não existe artigo diante de verbo. Confirme.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "à realizar a coleta",
+      "bom": "a realizar a coleta",
+      "sugestoes": [
+        "a"
+      ],
+      "nota": "Heurística: substantivos femininos terminados em -ar/-ir são raros; confirme o caso."
+    },
+    {
+      "id": "as-vezes",
+      "categoria": "crase",
+      "padrao": "(?<=(?:^|[.!?,;:]\\s+|\\b(?:e|mas|porém|pois|que|se)\\s+))as\\s+vezes\\b(?!\\s+(?:que|em|de)\\b)",
+      "msg": "“Às vezes” (locução adverbial) leva crase.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "As vezes o resultado muda.",
+      "bom": "Às vezes o resultado muda.",
+      "fix": "às vezes",
+      "flags": "gimu"
+    },
+    {
+      "id": "as-horas",
+      "categoria": "crase",
+      "padrao": "\\bas(?=\\s+\\d{1,2}(?::\\d{2}|\\s*h\\b|\\s*horas?\\b))",
+      "msg": "Horário determinado leva “às” (com crase): “às 10 horas”. Confirme se não é o artigo.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "as 10 horas",
+      "bom": "às 10 horas",
+      "sugestoes": [
+        "às"
+      ]
+    },
+    {
+      "id": "a-medida-que",
+      "categoria": "crase",
+      "padrao": "\\ba\\s+medida\\s+que\\b",
+      "msg": "No sentido de “à proporção que”, a locução é “à medida que” (com crase). Se for “a medida que (o governo adotou)”, ignore.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "a medida que o tempo passa",
+      "bom": "à medida que o tempo passa",
+      "sugestoes": [
+        "à medida que"
+      ]
+    },
+    {
+      "id": "na-medida-que",
+      "categoria": "regencia",
+      "padrao": "\\bna\\s+medida\\s+que\\b",
+      "msg": "A locução consagrada é “na medida em que”.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "na medida que cresce",
+      "bom": "na medida em que cresce",
+      "fix": "na medida em que"
+    },
+    {
+      "id": "a-fim-de",
+      "categoria": "grafia",
+      "padrao": "afim(\\s+de)(?=\\s+(?:que\\b|\\p{L}+(?:ar|er|ir|or)\\b))",
+      "msg": "Finalidade: “a fim de” (separado). “Afim” é adjetivo (semelhante).",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "afim de verificar",
+      "bom": "a fim de verificar",
+      "fix": "a fim$1"
+    },
+    {
+      "id": "ao-meu-ver",
+      "categoria": "regencia",
+      "padrao": "ao(\\s+(?:meu|nosso)\\s+ver)\\b",
+      "msg": "A forma tradicional é “a meu ver”, “a nosso ver”.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso"
+      },
+      "ruim": "ao meu ver",
+      "bom": "a meu ver",
+      "fix": "a$1"
+    },
+    {
+      "id": "apesar-que",
+      "categoria": "regencia",
+      "padrao": "apesar\\s+que\\b",
+      "msg": "A regência é “apesar de” / “apesar de que”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "apesar que chegou",
+      "bom": "apesar de que chegou",
+      "fix": "apesar de que"
+    },
+    {
+      "id": "entre-eu",
+      "categoria": "regencia",
+      "padrao": "entre\\s+eu\\b",
+      "msg": "Depois de preposição vem pronome oblíquo: “entre mim e você”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "entre eu e você",
+      "bom": "entre mim e você",
+      "fix": "entre mim"
+    },
+    {
+      "id": "para-mim-verbo",
+      "categoria": "regencia",
+      "padrao": "para\\s+mim(\\s+(?:fazer|ler|ver|dizer|ir|falar|escrever|comprar|estudar|analisar|resolver|entender|conseguir|trabalhar|pesquisar|apresentar|elaborar|explicar|responder|decidir|aprender|ensinar|participar|utilizar|usar|ter|ser|estar|poder|saber|descobrir|buscar|encontrar|verificar|testar|organizar|revisar|publicar|enviar|receber|começar|terminar|concluir|iniciar|realizar|executar|preparar))\\b",
+      "msg": "Sujeito de verbo no infinitivo pede “eu”: “para eu fazer”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "para mim fazer isso",
+      "bom": "para eu fazer isso",
+      "fix": "para eu$1"
+    },
+    {
+      "id": "mais-bom",
+      "categoria": "concordancia",
+      "padrao": "mais\\s+(?:bom|boa|bons|boas)\\b",
+      "msg": "Comparativo irregular: “melhor/melhores”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "mais bom que",
+      "bom": "melhor que",
+      "sugestoes": [
+        "melhor",
+        "melhores"
+      ]
+    },
+    {
+      "id": "menas",
+      "categoria": "concordancia",
+      "padrao": "menas",
+      "msg": "“Menos” é invariável.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "menas pessoas",
+      "bom": "menos pessoas",
+      "fix": "menos"
+    },
+    {
+      "id": "eles-tem",
+      "categoria": "concordancia",
+      "padrao": "(eles|elas)(\\s+)tem\\b",
+      "msg": "Plural de “ter”: “têm”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "eles tem razão",
+      "bom": "eles têm razão",
+      "fix": "$1$2têm"
+    },
+    {
+      "id": "eles-vem",
+      "categoria": "concordancia",
+      "padrao": "(eles|elas)(\\s+)vem\\b",
+      "msg": "Plural de “vir”: “vêm”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "eles vem aqui",
+      "bom": "eles vêm aqui",
+      "fix": "$1$2vêm"
+    },
+    {
+      "id": "houveram",
+      "categoria": "concordancia",
+      "padrao": "houveram",
+      "msg": "“Haver” no sentido de existir/ocorrer é impessoal: “houve”.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "houveram erros",
+      "bom": "houve erros",
+      "sugestoes": [
+        "houve"
+      ]
+    },
+    {
+      "id": "haviam-existencia",
+      "categoria": "concordancia",
+      "padrao": "haviam(?=\\s+(?:muit[oa]s?|vári[oa]s|poucos|poucas|alguns|algumas|diversos|diversas|inúmer[oa]s|outr[oa]s|certos|certas|tant[oa]s|dúvidas|casos|problemas|motivos|razões|pessoas|alunos|erros|estudos)\\b)",
+      "msg": "“Haver” no sentido de existir é impessoal: “havia”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "haviam muitas dúvidas",
+      "bom": "havia muitas dúvidas",
+      "fix": "havia"
+    },
+    {
+      "id": "devem-haver",
+      "categoria": "concordancia",
+      "padrao": "devem\\s+haver(?=\\s+(?!\\p{L}+[aeiíoóu]?[ai]do\\b|sido\\b|feito\\b|dito\\b|visto\\b|posto\\b|escrito\\b|aberto\\b))",
+      "msg": "“Haver” impessoal não vai ao plural: “deve haver”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "devem haver dúvidas",
+      "bom": "deve haver dúvidas",
+      "fix": "deve haver"
+    },
+    {
+      "id": "podem-haver",
+      "categoria": "concordancia",
+      "padrao": "podem\\s+haver(?=\\s+(?!\\p{L}+[aeiíoóu]?[ai]do\\b|sido\\b|feito\\b|dito\\b|visto\\b|posto\\b|escrito\\b|aberto\\b))",
+      "msg": "“Haver” impessoal não vai ao plural: “pode haver”.",
+      "sev": {
+        "academico": "erro",
+        "didatico": "erro",
+        "divulgacao": "erro"
+      },
+      "ruim": "podem haver dúvidas",
+      "bom": "pode haver dúvidas",
+      "fix": "pode haver"
+    },
+    {
+      "id": "fazem-tempo",
+      "categoria": "concordancia",
+      "padrao": "fazem(?=\\s+(?:\\S+\\s+)?(?:anos|meses|dias|semanas|décadas|séculos|horas|minutos)\\b)",
+      "msg": "“Fazer” indicando tempo decorrido é impessoal: “faz dois anos”. Confirme o sentido.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "fazem dois anos",
+      "bom": "faz dois anos",
+      "sugestoes": [
+        "faz"
+      ]
+    },
+    {
+      "id": "a-nivel-de",
+      "categoria": "vicio",
+      "padrao": "a\\s+nível\\s+de",
+      "msg": "“A nível de” é criticada nas gramáticas normativas; prefira a locução precisa.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "estilo"
+      },
+      "ruim": "a nível de pesquisa",
+      "bom": "em nível de pesquisa",
+      "sugestoes": [
+        "em nível de",
+        "no âmbito de",
+        "em termos de"
+      ]
+    },
+    {
+      "id": "atraves-de",
+      "categoria": "vicio",
+      "padrao": "através\\s+d[eoa]s?",
+      "msg": "Com sentido de “por meio de”, o uso é discutido; “através” pede ideia de atravessar. Estilo.",
+      "sev": {
+        "academico": "estilo"
+      },
+      "ruim": "através de entrevistas",
+      "bom": "por meio de entrevistas",
+      "sugestoes": [
+        "por meio de",
+        "mediante"
+      ]
+    },
+    {
+      "id": "onde-sem-lugar",
+      "categoria": "vicio",
+      "padrao": "(?<=\\b(?:o|a|os|as|no|na|nos|nas|num|numa)\\s+(?:caso|situação|momento|estudo|pesquisa|trabalho|período|época|contexto|cenário|processo|projeto|modelo|teoria|método|experimento|experiência|relatório|análise|etapa|fase|ano)\\s+)onde\\b",
+      "msg": "“Onde” indica lugar; para as demais ideias use “em que” ou “no qual”.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "estilo"
+      },
+      "ruim": "na pesquisa onde se mediu",
+      "bom": "na pesquisa em que se mediu",
+      "sugestoes": [
+        "em que",
+        "no qual",
+        "na qual"
+      ]
+    },
+    {
+      "id": "enquanto-que",
+      "categoria": "vicio",
+      "padrao": "enquanto\\s+que",
+      "msg": "“Enquanto que” é redundante; use “enquanto”.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "enquanto que ele",
+      "bom": "enquanto ele",
+      "fix": "enquanto"
+    },
+    {
+      "id": "mas-porem",
+      "categoria": "redundancia",
+      "padrao": "mas\\s+(?:porém|contudo|todavia|entretanto|no\\s+entanto)",
+      "msg": "Duas conjunções adversativas juntas; mantenha uma só.",
+      "sev": {
+        "academico": "estilo",
+        "didatico": "estilo",
+        "divulgacao": "estilo"
+      },
+      "ruim": "mas porém",
+      "bom": "mas",
+      "sugestoes": [
+        "mas",
+        "porém"
+      ]
+    },
+    {
+      "id": "pleonasmo-subir",
+      "categoria": "pleonasmo",
+      "padrao": "(subi(?:r|u|ndo)|sobe(?:m)?)\\s+para\\s+cima",
+      "msg": "Pleonasmo: subir já indica movimento para cima.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "vamos subir para cima",
+      "bom": "vamos subir",
+      "fix": "$1"
+    },
+    {
+      "id": "pleonasmo-descer",
+      "categoria": "pleonasmo",
+      "padrao": "(desc(?:er|eu|endo)|desce(?:m)?)\\s+para\\s+baixo",
+      "msg": "Pleonasmo: descer já indica movimento para baixo.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "vamos descer para baixo",
+      "bom": "vamos descer",
+      "fix": "$1"
+    },
+    {
+      "id": "pleonasmo-entrar",
+      "categoria": "pleonasmo",
+      "padrao": "(entr(?:ar|ou|ando)|entra(?:m)?)\\s+para\\s+dentro",
+      "msg": "Pleonasmo: entrar já indica movimento para dentro.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "vamos entrar para dentro",
+      "bom": "vamos entrar",
+      "fix": "$1"
+    },
+    {
+      "id": "pleonasmo-sair",
+      "categoria": "pleonasmo",
+      "padrao": "(sa(?:ir|iu|indo)|sai(?:m)?)\\s+para\\s+fora",
+      "msg": "Pleonasmo: sair já indica movimento para fora.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "vamos sair para fora",
+      "bom": "vamos sair",
+      "fix": "$1"
+    },
+    {
+      "id": "pleonasmo-elo",
+      "categoria": "pleonasmo",
+      "padrao": "elo\\s+de\\s+ligação",
+      "msg": "Pleonasmo: todo elo liga.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "elo de ligação entre os dados",
+      "bom": "elo entre os dados",
+      "fix": "elo"
+    },
+    {
+      "id": "pleonasmo-monopolio",
+      "categoria": "pleonasmo",
+      "padrao": "monopólio\\s+exclusivo",
+      "msg": "Pleonasmo: monopólio já é exclusivo.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "monopólio exclusivo",
+      "bom": "monopólio",
+      "fix": "monopólio"
+    },
+    {
+      "id": "pleonasmo-surpresa",
+      "categoria": "pleonasmo",
+      "padrao": "surpresa\\s+inesperada",
+      "msg": "Pleonasmo: toda surpresa é inesperada.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "uma surpresa inesperada",
+      "bom": "uma surpresa",
+      "fix": "surpresa"
+    },
+    {
+      "id": "pleonasmo-conviver",
+      "categoria": "pleonasmo",
+      "padrao": "(conviv(?:er|e|em|eu|endo))\\s+junt[oa]s?",
+      "msg": "Pleonasmo: conviver já implica estar junto.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "eles convivem juntos",
+      "bom": "eles convivem",
+      "fix": "$1"
+    },
+    {
+      "id": "ha-atras",
+      "categoria": "pleonasmo",
+      "padrao": "há(?=\\s+(?:\\S+\\s+)?(?:anos|meses|dias|semanas|décadas|séculos|horas)\\s+atrás\\b)",
+      "msg": "Pleonasmo: use “há dois anos” ou “dois anos atrás”, não os dois.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "há dois anos atrás",
+      "bom": "há dois anos",
+      "sugestoes": [
+        "(retire “atrás”)"
+      ]
+    },
+    {
+      "id": "a-tempo-atras",
+      "categoria": "crase",
+      "padrao": "\\ba(?=\\s+(?:\\S+\\s+)?(?:anos|meses|dias|semanas|décadas|séculos)\\s+atrás\\b)",
+      "msg": "Tempo passado: “há dois anos” ou “dois anos atrás” (o “a” sozinho indica distância futura).",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso",
+        "divulgacao": "aviso"
+      },
+      "ruim": "a dois anos atrás",
+      "bom": "dois anos atrás",
+      "sugestoes": [
+        "há"
+      ]
+    },
+    {
+      "id": "coloquial-pra",
+      "categoria": "registro",
+      "padrao": "pra",
+      "msg": "Coloquialismo: use “para”.",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "aviso"
+      },
+      "ruim": "pra análise",
+      "bom": "para análise",
+      "fix": "para"
+    },
+    {
+      "id": "coloquial",
+      "categoria": "registro",
+      "padrao": "(?:pro|né|tá|tô|cê|tipo\\s+assim|meio\\s+que|a\\s+gente|galera|bacana|maneiro)",
+      "msg": "Expressão coloquial; em texto formal use a forma culta (“nós”, “então”, “por isso”...).",
+      "sev": {
+        "academico": "aviso",
+        "didatico": "estilo"
+      },
+      "ruim": "a gente concluiu",
+      "bom": "nós concluímos",
+      "sugestoes": [
+        "nós",
+        "então",
+        "por isso"
+      ]
+    },
+    {
+      "id": "coisa-vaga",
+      "categoria": "registro",
+      "padrao": "coisas?",
+      "msg": "Termo vago; prefira o substantivo específico.",
+      "sev": {
+        "academico": "estilo"
+      },
+      "ruim": "essa coisa mostra",
+      "bom": "esse fator mostra",
+      "sugestoes": [
+        "fator",
+        "aspecto",
+        "elemento"
+      ]
+    }
+  ],
+  "gerundio": {
+    "minLetras": 6,
+    "terminacoes": [
+      "ando",
+      "endo",
+      "indo",
+      "ondo"
+    ],
+    "excecoes": [
+      "quando",
+      "grande",
+      "grandes",
+      "mundo",
+      "mundos",
+      "segundo",
+      "segundos",
+      "fundo",
+      "fundos",
+      "redondo",
+      "redondos",
+      "profundo",
+      "profundos",
+      "comando",
+      "comandos",
+      "demando",
+      "tremendo",
+      "tremenda",
+      "estupendo",
+      "horrendo",
+      "lindo",
+      "lindos",
+      "findo",
+      "infindo",
+      "vindo",
+      "brando",
+      "brandos",
+      "blando",
+      "vagabundo",
+      "moribundo",
+      "jucundo",
+      "orlando",
+      "fernando",
+      "armando",
+      "rolando",
+      "ronaldo",
+      "irlando",
+      "errando",
+      "secundo",
+      "oriundo",
+      "nefando",
+      "venerando",
+      "execrando",
+      "educando",
+      "formando",
+      "doutorando",
+      "mestrando",
+      "graduando",
+      "orientando",
+      "examinando",
+      "laureando",
+      "dividendo",
+      "quarando",
+      "quando",
+      "tendo",
+      "sendo",
+      "vendo",
+      "fazendo",
+      "dizendo",
+      "indo",
+      "pondo",
+      "vindo"
+    ],
+    "nota": "Lista de formas que terminam como gerúndio mas não são gerúndio (ou são formas de uso curto: ser, ter, ver, fazer, dizer, ir, pôr, vir). Nomes próprios e substantivos (educando, formando, orientando) ficam de fora."
+  },
+  "repeticao": {
+    "stopwords": [
+      "também",
+      "porque",
+      "quando",
+      "assim",
+      "ainda",
+      "sendo",
+      "entre",
+      "sobre",
+      "outros",
+      "outras",
+      "muito",
+      "muitos",
+      "muitas",
+      "através",
+      "segundo",
+      "desde",
+      "contudo",
+      "portanto",
+      "entanto",
+      "poderia",
+      "poderá",
+      "existem",
+      "existe",
+      "forma",
+      "formas",
+      "parte",
+      "partes",
+      "podem",
+      "deste",
+      "desta",
+      "neste",
+      "nesta",
+      "nestes",
+      "nestas",
+      "pelos",
+      "pelas",
+      "quais",
+      "aquele",
+      "aquela",
+      "aqueles",
+      "aquelas",
+      "mesmo",
+      "mesma",
+      "mesmos",
+      "mesmas",
+      "embora",
+      "enquanto",
+      "durante",
+      "contra",
+      "dentro",
+      "depois",
+      "antes",
+      "apenas",
+      "somente",
+      "sempre",
+      "nunca",
+      "todos",
+      "todas",
+      "cada",
+      "algum",
+      "alguns",
+      "alguma",
+      "algumas",
+      "qualquer",
+      "quaisquer",
+      "então",
+      "assim",
+      "logo",
+      "porém",
+      "todavia",
+      "conforme",
+      "mediante",
+      "perante",
+      "segundo",
+      "quanto",
+      "quanta",
+      "quantos",
+      "quantas",
+      "outro",
+      "outra",
+      "primeiro",
+      "primeira",
+      "segundo",
+      "terceiro",
+      "tempo",
+      "vezes",
+      "pessoas",
+      "pessoa",
+      "trabalho",
+      "estudo",
+      "estudos",
+      "pesquisa",
+      "pesquisas",
+      "análise",
+      "resultados",
+      "resultado",
+      "processo",
+      "processos",
+      "educação",
+      "ensino",
+      "aprendizagem",
+      "escola",
+      "alunos",
+      "aluno",
+      "professor",
+      "professores",
+      "conhecimento",
+      "desenvolvimento",
+      "contexto",
+      "dados",
+      "autor",
+      "autores",
+      "teoria",
+      "teorias",
+      "conceito",
+      "conceitos",
+      "sociedade",
+      "social",
+      "sociais",
+      "histórico",
+      "histórica",
+      "cultural",
+      "culturais"
+    ],
+    "nota": "Palavras de função e termos do tema que costumam se repetir de propósito. O autor também pode mandar uma lista própria (opção 'termos')."
+  },
+  "passiva": {
+    "auxiliares": [
+      "é",
+      "são",
+      "foi",
+      "foram",
+      "era",
+      "eram",
+      "será",
+      "serão",
+      "seria",
+      "seriam",
+      "sendo",
+      "sido",
+      "ser",
+      "seja",
+      "sejam",
+      "fosse",
+      "fossem"
+    ],
+    "participiosIrregulares": [
+      "feito",
+      "feitos",
+      "feita",
+      "feitas",
+      "dito",
+      "ditos",
+      "dita",
+      "ditas",
+      "escrito",
+      "escritos",
+      "escrita",
+      "escritas",
+      "aberto",
+      "abertos",
+      "aberta",
+      "abertas",
+      "posto",
+      "postos",
+      "posta",
+      "postas",
+      "visto",
+      "vistos",
+      "vista",
+      "vistas",
+      "coberto",
+      "cobertos",
+      "coberta",
+      "cobertas",
+      "descoberto",
+      "descobertos",
+      "descoberta",
+      "descobertas",
+      "impresso",
+      "impressos",
+      "impressa",
+      "impressas",
+      "exposto",
+      "expostos",
+      "exposta",
+      "expostas",
+      "proposto",
+      "propostos",
+      "proposta",
+      "propostas",
+      "composto",
+      "compostos",
+      "composta",
+      "compostas"
+    ],
+    "naoParticipios": [
+      "grande",
+      "grandes",
+      "ide",
+      "lide",
+      "ado",
+      "ido",
+      "verdade",
+      "cidade",
+      "idade",
+      "unidade",
+      "atividade",
+      "qualidade",
+      "quantidade",
+      "comunidade",
+      "necessidade",
+      "realidade",
+      "sociedade",
+      "liberdade",
+      "entidade",
+      "identidade",
+      "humanidade",
+      "possibilidade",
+      "densidade",
+      "intensidade",
+      "velocidade",
+      "diversidade",
+      "propriedade",
+      "responsabilidade",
+      "capacidade",
+      "facilidade",
+      "dificuldade",
+      "finalidade",
+      "universidade",
+      "faculdade",
+      "autoridade",
+      "prioridade",
+      "legalidade",
+      "normalidade",
+      "oportunidade",
+      "especificidade",
+      "complexidade"
+    ]
+  },
+  "pessoa": {
+    "singular": [
+      "eu",
+      "meu",
+      "minha",
+      "meus",
+      "minhas",
+      "mim",
+      "comigo"
+    ],
+    "plural": [
+      "nós",
+      "nosso",
+      "nossa",
+      "nossos",
+      "nossas",
+      "conosco"
+    ],
+    "nota": "Mistura entre 1ª pessoa do singular e do plural (ou com sujeito impessoal) é inconsistência de registro; nem sempre erro."
+  }
+}

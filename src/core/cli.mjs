@@ -13,6 +13,11 @@
  *     por bloco e emite o review (scriptalab.review/1) com só o que
  *     foi autorizado — as mesmas parseSource/proposeForBlocks/
  *     buildReview do núcleo, com a mesma trava de preservação.
+ *   scriptalab portugues <arquivo.txt> [--registro academico|didatico|divulgacao] [--ortografia] [--json]
+ *     Revisão de português local: regras como dados (pontuação, crase,
+ *     regência, concordância, vícios, pleonasmos), medidores (gerúndio,
+ *     período longo, repetição, passiva, pessoa) e, com --ortografia,
+ *     o dicionário pt-BR offline. Só sinaliza; não altera o arquivo.
  *   scriptalab regras
  *     Mostra as versões das regras como dados (rules/*.json).
  *   scriptalab versao
@@ -27,6 +32,7 @@ import pkg from "./package.json" with { type: "json" };
 const usage = `Uso:
   scriptalab auditar <arquivo.txt> [--json]
   scriptalab ponte <source.mathlab.json> [--autorizar blk_01,blk_02] [--perfil <id>] [--saida <review.json>]
+  scriptalab portugues <arquivo.txt> [--registro academico|didatico|divulgacao] [--ortografia] [--json]
   scriptalab regras
   scriptalab versao`;
 
@@ -92,6 +98,26 @@ function ponte(file, opts) {
   process.stderr.write(`ponte: ${proposals.length} proposta(s), ${authorized.length} autorizada(s), ${review.authorizedPatches.length} patch(es) no review.\n`);
 }
 
+function portugues(file, opts) {
+  let text;
+  try { text = readFileSync(file, "utf8"); } catch (e) { fail("não consegui ler " + file + ": " + e.message); }
+  if (opts.registro && !C.PT_REGISTROS[opts.registro]) fail(`registro desconhecido: ${opts.registro} (use ${Object.keys(C.PT_REGISTROS).join(", ")})`);
+  let verificador = null;
+  if (opts.ortografia) {
+    try {
+      const bytes = new Uint8Array(readFileSync(new URL("../../data/ortografia/pt-br.bloom", import.meta.url)));
+      verificador = C.createSpellChecker(bytes);
+    } catch (e) { fail("não consegui carregar o dicionário: " + e.message); }
+  }
+  const r = C.analisarPortugues(text, { registro: opts.registro || "academico", verificador });
+  if (opts.json) { process.stdout.write(JSON.stringify(r, null, 2) + "\n"); return; }
+  process.stdout.write(C.resumoPortugues(r) + "\n");
+  const linhaDe = (pos) => text.slice(0, pos).split("\n").length;
+  for (const a of r.achados) {
+    process.stdout.write(`L${linhaDe(a.start)} [${a.severidade}] ${a.regra}: ${a.msg}${a.trecho ? ` — “${a.trecho.slice(0, 50)}”` : ""}${a.fix !== null ? ` → “${a.fix}”` : ""}\n`);
+  }
+}
+
 const [cmd, ...args] = process.argv.slice(2);
 if (cmd === "auditar") {
   const file = args.find((a) => !a.startsWith("--"));
@@ -101,12 +127,17 @@ if (cmd === "auditar") {
   const file = args.find((a) => !a.startsWith("--"));
   if (!file) fail("falta o arquivo source.\n" + usage);
   ponte(file, { autorizar: flag(args, "--autorizar"), perfil: flag(args, "--perfil"), saida: flag(args, "--saida") });
+} else if (cmd === "portugues") {
+  const file = args.find((a, i) => !a.startsWith("--") && !["--registro"].includes(args[i - 1]));
+  if (!file) fail("falta o arquivo.\n" + usage);
+  portugues(file, { registro: flag(args, "--registro"), ortografia: args.includes("--ortografia"), json: args.includes("--json") });
 } else if (cmd === "regras") {
   process.stdout.write(JSON.stringify({
     pacote: pkg.name + "@" + pkg.version,
     abnt10520: C.ABNT10520_RULES_VERSION,
     abnt6023: C.ABNT6023_RULES_VERSION,
     stylometry: C.STYLOMETRY_RULES_VERSION,
+    portugues: C.PTBR_RULES_VERSION,
   }, null, 2) + "\n");
 } else if (cmd === "versao") {
   process.stdout.write(pkg.name + " " + pkg.version + "\n");

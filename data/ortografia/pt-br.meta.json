@@ -1,0 +1,14 @@
+{
+  "format": "scriptalab.bloom/1",
+  "n": 2819595,
+  "m": 45113520,
+  "k": 11,
+  "fpRate": 0.00046,
+  "fonte": "VERO 3.2 (Verificador Ortográfico Livre) via LibreOffice/dictionaries",
+  "pacote": "dictionary-pt@4.0.0",
+  "licenca": "(LGPL-3.0 OR MPL-2.0)",
+  "verbetes": 312368,
+  "formasSemHifenDePronome": 2819595,
+  "sha256formas": "d78a41e3fe344703",
+  "expansao": "sufixos, prefixos e produto cruzado; pronome após hífen por regra no verificador"
+}

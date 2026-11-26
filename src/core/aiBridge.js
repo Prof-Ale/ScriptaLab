@@ -36,6 +36,9 @@ export const AI_CATEGORIES = ["cliche", "variation"];
 export const MAX_SUGGESTIONS = 10;
 export const MAX_SUGGESTED_CHARS = 2000;
 
+/** Configuração do contrato padrão (estilo). A ponte de português passa a sua. */
+export const AI_CONTRACT_STYLE = Object.freeze({ schema: AI_SUGGESTION_SCHEMA, categories: AI_CATEGORIES });
+
 const AI_TAG_RE = new RegExp(AI_TAGS.source);
 const INVIS_RE = new RegExp(INVIS.source);
 const TOP_KEYS = ["schema", "blockId", "suggestions"];
@@ -138,7 +141,7 @@ function addedTokens(before, after) {
  * `body` é o corpo original do bloco; `expectedBlockId`, quando dado,
  * tem que ser igual ao blockId da resposta.
  */
-export function validateAiResponse(text, body, expectedBlockId) {
+export function validateAiResponse(text, body, expectedBlockId, contract = AI_CONTRACT_STYLE) {
   const errors = [];
   const warnings = [];
   const src = String(body ?? "");
@@ -152,8 +155,8 @@ export function validateAiResponse(text, body, expectedBlockId) {
   for (const k of Object.keys(raw)) {
     if (!TOP_KEYS.includes(k)) errors.push(`Campo desconhecido no topo: "${k}".`);
   }
-  if (raw.schema !== AI_SUGGESTION_SCHEMA) {
-    errors.push(`Schema esperado "${AI_SUGGESTION_SCHEMA}" e veio "${raw.schema ?? "ausente"}".`);
+  if (raw.schema !== contract.schema) {
+    errors.push(`Schema esperado "${contract.schema}" e veio "${raw.schema ?? "ausente"}".`);
   }
   if (typeof raw.blockId !== "string" || !raw.blockId.trim()) {
     errors.push("Campo \"blockId\" é obrigatório e tem que ser texto.");
@@ -182,8 +185,8 @@ export function validateAiResponse(text, body, expectedBlockId) {
     if (typeof s.id !== "string" || !s.id.trim()) errors.push(`${where}.id é obrigatório e tem que ser texto.`);
     else if (seenIds.has(s.id)) errors.push(`${where}.id duplicado: "${s.id}".`);
     else seenIds.add(s.id);
-    if (!AI_CATEGORIES.includes(s.category)) {
-      errors.push(`${where}.category tem que ser "cliche" ou "variation"; veio ${JSON.stringify(s.category)}.`);
+    if (!contract.categories.includes(s.category)) {
+      errors.push(`${where}.category tem que ser ${contract.categories.map((c) => `"${c}"`).join(", ")}; veio ${JSON.stringify(s.category)}.`);
     }
     if (typeof s.original !== "string" || !s.original.trim()) errors.push(`${where}.original é obrigatório e tem que ser texto.`);
     if (typeof s.suggested !== "string" || !s.suggested.trim()) errors.push(`${where}.suggested é obrigatório e tem que ser texto.`);
@@ -247,13 +250,13 @@ export function validateAiResponse(text, body, expectedBlockId) {
     ok: true,
     errors,
     warnings,
-    data: { schema: AI_SUGGESTION_SCHEMA, blockId: raw.blockId, suggestions },
+    data: { schema: contract.schema, blockId: raw.blockId, suggestions },
   };
 }
 
 /** Igual a validateAiResponse, mas lança Error com todos os problemas listados. */
-export function parseAiResponse(text, body, expectedBlockId) {
-  const r = validateAiResponse(text, body, expectedBlockId);
+export function parseAiResponse(text, body, expectedBlockId, contract = AI_CONTRACT_STYLE) {
+  const r = validateAiResponse(text, body, expectedBlockId, contract);
   if (!r.ok) throw new Error("Resposta da IA recusada:\n- " + r.errors.join("\n- "));
   return r.data;
 }

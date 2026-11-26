@@ -33,6 +33,7 @@ Os indicadores de estilo e as buscas bibliográficas são **apoio à revisão**:
 | 📊 **Estilometria + VoiceProfile (`src/core/stylometry.js`, `literaryReview.js`)** | ✅ pronto | Burstiness (CV = σ/μ × 100), radar de clichês PT-BR, estilometria profunda (tríades, listas `**Rótulo:**`, parágrafos gêmeos, aberturas repetidas, TTR/Guiraud), calibração de **Perfil de Voz Autoral (`VoiceProfile`)** na sessão e revisão literária cirúrgica com **trava de preservação conceitual** (citações, DOIs, fórmulas LaTeX e `[F#]`). |
 | 🔍 **Auditor (`src/core/citationAuditor.js`)** | ✅ pronto | Citações no texto × lista de referências; DOIs na CrossRef (inclui checagem de agência para DataCite) e **comparação com a referência colada ao lado do DOI**; Autor+Ano na CrossRef, com OpenAlex opcional. |
 | 📐 **Motor ABNT (`src/core/abnt10520.js`, `abnt6023.js`)** | ✅ pronto | **NBR 10520:2023:** `(SILVA, 2023)` → `(Silva, 2023)` preservando siglas, expressões latinas em itálico, uniformidade de *et al.* e alerta de ponto final. **NBR 6023:2025:** classificação de obras, auditoria de campos ausentes (sem inventar dados), duplicadas e ordenação alfabética A–Z opt-in com desfazer. |
+| ✍️ **Revisor de português (`src/core/ptRevisor.js`, `rules/ptbr.json`, `spell.js`, `ptAiBridge.js`)** | ✅ pronto (v0.4.0) | **Regras como dados** (48): pontuação e espaçamento, crase, regência, concordância, vícios, pleonasmos e coloquialismos, cada uma com exemplo *ruim*/*bom* conferido por teste. Medidores: período longo, gerúndios encadeados, repetição próxima, passiva em série, mistura de pessoa, aspas e parênteses. **Registro** selecionável (acadêmico, didático, divulgação) muda severidade e limites. **Ortografia pt-BR offline** (dicionário VERO 3.2 em filtro de Bloom, 5,4 MB, carregado só quando você liga). Só as correções mecânicas seguras viram proposta no diff; o resto é sinal. Aspas, fórmulas, URLs, DOIs, citações e a seção REFERÊNCIAS nunca são revisados. Segunda opinião da IA por copiar-e-colar (`scriptalab.pt-suggestion/1`) passa pela mesma trava de preservação. |
 | 🏛️ **Perfis de IES + DOCX NBR 14724** | ✅ pronto | JSON validado por schema em `templates-ies/`. Exportação `.docx` aplica margens, fonte, entrelinhas, recuo, citação longa, **numeração de páginas no cabeçalho**, legendas/notas em fonte menor (10pt) e referências alinhadas à esquerda em espaço simples. |
 | 🔗 **Ponte MathLab App (`src/core/mathlabBridge.js`)** | ✅ pronto | Abre o arquivo `mathlab.scriptalab-source/1` do App, propõe limpeza e ajuste `(Autor, Ano)` por bloco, bloqueia correção que perderia número, fórmula, marcador `[F#]` ou citação, e exporta o pacote `scriptalab.review/1` só com o que o autor marcou. Não toca em fórmulas e nunca leva validação humana. O `beforeHash` é o SHA-256 do corpo em UTF-8 com quebras LF, igual ao do App. |
 
@@ -102,13 +103,18 @@ ScriptaLab/
 │   ├── abnt10520.js           # Regras NBR 10520:2023 (citações, siglas, itálico, ponto final)
 │   ├── abnt6023.js            # Auditoria e ordenação A–Z NBR 6023:2025 + legendas NBR 14724
 │   ├── citationAuditor.js     # Cruzamento citação × referência, DOIs e comparação CrossRef
-│   └── mathlabBridge.js       # Ponte mathlab.scriptalab-source/1 ↔ scriptalab.review/1 (sha256)
+│   ├── mathlabBridge.js       # Ponte mathlab.scriptalab-source/1 ↔ scriptalab.review/1 (sha256)
+│   ├── ptRevisor.js           # Revisão de português: regras (rules/ptbr.json), medidores, registros
+│   ├── spell.js               # Ortografia offline: expansão Hunspell → filtro de Bloom + sugestões
+│   ├── ptAiBridge.js          # Contrato scriptalab.pt-suggestion/1 (IA por copiar-e-colar)
+│   └── rules/ptbr.json        # 48 regras de português + limites por registro (dados, não código)
 ├── docs/
 │   └── ARQUITETURA_INTEGRADA_MATHLAB_SCRIPTALAB.md
 ├── manifest.webmanifest       # Manifesto PWA
 ├── favicon.svg / favicon-*.png / icon-*.png / icon-app.svg / logo-horizontal.svg / avatar.*
 ├── data/
-│   └── cliches-ptbr.json      # Lista editável do radar de clichês (espelha o padrão embutido)
+│   ├── cliches-ptbr.json      # Lista editável do radar de clichês (espelha o padrão embutido)
+│   └── ortografia/            # pt-br.bloom (VERO 3.2, ~5,4 MB), pt-br.meta.json e LICENCA-VERO.txt
 ├── templates-ies/
 │   ├── schema.json            # JSON Schema dos perfis
 │   ├── _modelo-vazio.json     # Ponto de partida para novos perfis
@@ -125,6 +131,8 @@ ScriptaLab/
 │   └── e2e/e2e_test.py        # 33 verificações no navegador (Playwright; APIs simuladas)
 ├── tools/
 │   ├── validate-templates.js  # valida perfis contra o schema
+│   ├── gerar-dicionario.mjs   # regenera data/ortografia/ a partir do pacote dictionary-pt (devDependency)
+│   ├── gerar-dourado-pt.mjs   # regenera o corpus dourado de português
 │   └── sri.sh                 # confere/recalcula os hashes SRI contra os CDNs
 ├── .github/workflows/ci.yml   # testes + schema + SRI a cada push
 └── package.json
@@ -144,3 +152,18 @@ Desenvolvimento local: `npm install && npm run check`. Para servir a página (ne
 - [x] Diferença antes/depois e desfazer por item (`diffEngine.js` + `#diffPanel`)
 - [x] Estilometria profunda, `VoiceProfile` autoral e trava de preservação conceitual
 - [x] Ponte bidirecional com o MathLab App (`mathlab.scriptalab-source/1` ↔ `scriptalab.review/1`)
+- [x] Revisor de português formal (v0.4.0): regras como dados, registros, ortografia offline e IA por copiar-e-colar
+- [ ] Ampliar as regras de português com casos reais de teses (cada regra nova entra com exemplo ruim/bom e teste)
+- [ ] Ortografia: lista de termos técnicos por área (importável) e dicionário do usuário persistente entre sessões
+
+
+---
+
+## ✍️ Revisor de português: como funciona e o que ele não faz
+
+- **Local e sem custo.** Regras em JSON e dicionário em arquivo estático. Nada do texto sai da página.
+- **Só sinaliza.** Nada muda sem aceite item a item (Zero-Tampering). Apenas correções mecânicas de baixo risco (`fix` na regra) viram proposta no diff.
+- **Ortografia.** O dicionário vem do VERO 3.2 (Hunspell pt-BR, licença LGPL-3.0 OU MPL-2.0; cópia em `data/ortografia/LICENCA-VERO.txt`), expandido por `tools/gerar-dicionario.mjs` e guardado em um filtro de Bloom (2,8 milhões de formas). Palavras do dicionário nunca são recusadas; cerca de 0,05% de palavras erradas podem ser aceitas por acaso (falso positivo do filtro). Nomes próprios, siglas, CamelCase, números e termos que você pôr em “palavras a ignorar” não são marcados.
+- **Limites reais.** Crase, concordância à distância e regência dependem de sintaxe; as regras locais cobrem os casos de padrão fixo e a IA (copiar-e-colar) confirma o resto. Isto não substitui revisão humana de texto que vai ser publicado.
+- **CLI.** `node src/core/cli.mjs portugues texto.txt --registro academico --ortografia [--json]`.
+- **Regenerar o dicionário.** `npm install && npm run dicionario`.

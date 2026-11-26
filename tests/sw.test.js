@@ -132,7 +132,7 @@ test("versão do SW é a do package.json e o cache é versionado", () => {
 test("install pré-cacheia o app shell, sem ponte nem CrossRef", async () => {
   const sw = loadSW();
   await sw.fire("install", {});
-  const cache = sw.getCache("scriptalab-v0.3.0");
+  const cache = sw.getCache("scriptalab-v0.4.0");
   for (const u of ["./index.html", "./manifest.webmanifest", "./src/core/mathlabBridge.js", "./src/core/aiBridge.js", "./src/core/networkLog.js", "./templates-ies/usp-abnt.json", "./src/core/rules/abnt10520.json", "./src/core/rules/abnt6023.json", "./src/core/rules/stylometry.json"]) {
     assert.ok(cache.map.has(resolve(u)), "falta no pré-cache: " + u);
   }
@@ -147,14 +147,14 @@ test("activate apaga o cache antigo e mantém o atual", async () => {
   const old = await sw.sandbox.caches.open("scriptalab-v0.2.0");
   await old.put(resolve("./index.html"), new Response("velho", { status: 200 }));
   await sw.fire("activate", {});
-  assert.deepEqual([...sw.cachesByName.keys()].sort(), ["scriptalab-v0.3.0"]);
+  assert.deepEqual([...sw.cachesByName.keys()].sort(), ["scriptalab-v0.4.0"]);
   assert.equal(sw.wasClaim(), true);
 });
 
 test(".mathlab.json e scriptalab.review/1 passam direto, sem cache", async () => {
   const sw = loadSW();
   await sw.fire("install", {});
-  const cache = sw.getCache("scriptalab-v0.3.0");
+  const cache = sw.getCache("scriptalab-v0.4.0");
   const before = cache.puts.length;
   const r1 = await sw.fire("fetch", { request: req("https://exemplo.com/material.mathlab.json") });
   assert.equal(await r1.text(), "network:https://exemplo.com/material.mathlab.json");
@@ -166,7 +166,7 @@ test(".mathlab.json e scriptalab.review/1 passam direto, sem cache", async () =>
 test("CrossRef e OpenAlex nunca entram no cache", async () => {
   const sw = loadSW();
   await sw.fire("install", {});
-  const cache = sw.getCache("scriptalab-v0.3.0");
+  const cache = sw.getCache("scriptalab-v0.4.0");
   const before = cache.puts.length;
   await sw.fire("fetch", { request: req("https://api.crossref.org/works/10.1234/abcd") });
   await sw.fire("fetch", { request: req("https://api.openalex.org/works?filter=raw_author_name.search:Silva") });
@@ -177,12 +177,12 @@ test("index.html é network-first: online vem da rede, offline vem do cache", as
   const sw = loadSW();
   await sw.fire("install", {});
   // A rede agora serve uma versão NOVA, diferente do que foi pré-cacheado.
-  sw.network.set(resolve("./index.html"), new Response("index-v0.3.0-nova", { status: 200 }));
+  sw.network.set(resolve("./index.html"), new Response("index-v0.4.0-nova", { status: 200 }));
   const online = await sw.fire("fetch", { request: req("./index.html", "GET", "navigate") });
-  assert.equal(await online.text(), "index-v0.3.0-nova", "online tem que vir da rede, nunca do cache velho");
+  assert.equal(await online.text(), "index-v0.4.0-nova", "online tem que vir da rede, nunca do cache velho");
   sw.offline.add(resolve("./index.html"));
   const offlineRes = await sw.fire("fetch", { request: req("./index.html", "GET", "navigate") });
-  assert.equal(await offlineRes.text(), "index-v0.3.0-nova", "offline serve o index.html em cache (o atualizado)");
+  assert.equal(await offlineRes.text(), "index-v0.4.0-nova", "offline serve o index.html em cache (o atualizado)");
 });
 
 test("JS do núcleo offline vem do cache; POST passa direto", async () => {
@@ -191,7 +191,7 @@ test("JS do núcleo offline vem do cache; POST passa direto", async () => {
   sw.offline.add(resolve("./src/core/mathlabBridge.js"));
   const cached = await sw.fire("fetch", { request: req("./src/core/mathlabBridge.js") });
   assert.equal(await cached.text(), "network:" + resolve("./src/core/mathlabBridge.js"));
-  const cache = sw.getCache("scriptalab-v0.3.0");
+  const cache = sw.getCache("scriptalab-v0.4.0");
   const before = cache.puts.length;
   const post = await sw.fire("fetch", { request: req("./index.html", "POST") });
   assert.equal(await post.text(), "network:" + resolve("./index.html"));
@@ -206,7 +206,7 @@ test("CDN versionada (cdnjs) usa cache; jsdelivr passa direto", async () => {
   sw.offline.add(pdfUrl);
   const second = await sw.fire("fetch", { request: req(pdfUrl) });
   assert.equal(await second.text(), "network:" + pdfUrl, "offline serve o pdf.js em cache");
-  const cache = sw.getCache("scriptalab-v0.3.0");
+  const cache = sw.getCache("scriptalab-v0.4.0");
   const before = cache.puts.length;
   await sw.fire("fetch", { request: req("https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js") });
   assert.equal(cache.puts.length, before, "jsdelivr não é cacheado pelo SW (fora do connect-src)");
