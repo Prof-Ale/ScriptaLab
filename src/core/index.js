@@ -30,6 +30,9 @@ import {
 import {
   NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
 } from "./networkLog.js";
+import {
+  createAuditWorkerClient, AUDIT_WORKER_PROTOCOL,
+} from "./auditWorkerClient.js";
 
 export {
   UP, NAME, titleCase, normStr, escapeHtml, paras, isLongQuote, lastSurname,
@@ -44,6 +47,7 @@ export {
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
   NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
+  createAuditWorkerClient, AUDIT_WORKER_PROTOCOL,
 };
 
 export const ScriptaCore = {
@@ -60,6 +64,7 @@ export const ScriptaCore = {
   AI_SUGGESTION_SCHEMA, buildAiPrompt, parseAiResponse, validateAiResponse, aiSuggestionsToProposals, createAiReviewSession, aiSessionToBlockProposal,
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
   NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
+  createAuditWorkerClient, AUDIT_WORKER_PROTOCOL,
 };
 
 export default ScriptaCore;
