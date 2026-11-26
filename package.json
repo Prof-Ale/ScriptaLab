@@ -4,7 +4,7 @@
   "private": true,
   "description": "ScriptaLab | LabTech: engenharia textual e conformidade acadêmica (client-side)",
   "scripts": {
-    "test": "node --test tests/core.test.js tests/contract.test.js tests/aiBridge.test.js tests/citationLocations.test.js tests/networkLog.test.js tests/sw.test.js tests/auditWorker.test.js",
+    "test": "node --test tests/core.test.js tests/contract.test.js tests/aiBridge.test.js tests/citationLocations.test.js tests/networkLog.test.js tests/sw.test.js tests/auditWorker.test.js tests/golden.test.js tests/cli.test.js",
     "validate": "node tools/validate-templates.js",
     "check-contract": "node tools/conferir-contrato.mjs",
     "check": "npm run test && npm run validate && npm run check-contract"

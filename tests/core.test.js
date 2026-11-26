@@ -76,10 +76,10 @@ test("DOI × referência: coerente e divergente", () => {
   assert.equal(K.compareRef(bad, {title:"Quantum chromodynamics lattice simulations", family:"Nakamura", year:2011}).verdict, "divergente");
 });
 test("modelos de IES: JSON dos clichês coincide com o padrão embutido", () => {
-  const f = path.join(__dirname,"..","data","cliches-ptbr.json");
-  if(!fs.existsSync(f)) return;
+  const f = path.join(__dirname,"..","src","core","rules","stylometry.json");
+  assert.ok(fs.existsSync(f), "fonte única src/core/rules/stylometry.json deve existir");
   const j = JSON.parse(fs.readFileSync(f,"utf8"));
-  assert.deepEqual(j.items.map(x=>x.id), J(K.CLICHES_DEFAULT.map(x=>x.id)));
+  assert.deepEqual(j.cliches.map(x=>x.id), J(K.CLICHES_DEFAULT.map(x=>x.id)));
 });
 
 test("itálico: expressões latinas da NBR 10520:2023 (e Id. só dentro de citação)", () => {

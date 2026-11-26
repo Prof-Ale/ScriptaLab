@@ -133,7 +133,7 @@ test("install pré-cacheia o app shell, sem ponte nem CrossRef", async () => {
   const sw = loadSW();
   await sw.fire("install", {});
   const cache = sw.getCache("scriptalab-v0.3.0");
-  for (const u of ["./index.html", "./manifest.webmanifest", "./src/core/mathlabBridge.js", "./src/core/aiBridge.js", "./src/core/networkLog.js", "./templates-ies/usp-abnt.json", "./data/cliches-ptbr.json"]) {
+  for (const u of ["./index.html", "./manifest.webmanifest", "./src/core/mathlabBridge.js", "./src/core/aiBridge.js", "./src/core/networkLog.js", "./templates-ies/usp-abnt.json", "./src/core/rules/abnt10520.json", "./src/core/rules/abnt6023.json", "./src/core/rules/stylometry.json"]) {
     assert.ok(cache.map.has(resolve(u)), "falta no pré-cache: " + u);
   }
   assert.ok(![...cache.map.keys()].some((k) => k.includes(".mathlab.json") || k.includes("scriptalab.review") || k.includes("crossref")));

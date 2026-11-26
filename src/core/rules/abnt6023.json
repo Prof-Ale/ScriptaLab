@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "standard": "ABNT NBR 6023:2025",
+  "defaultType": "livro",
+  "referenceTypes": [
+    {
+      "type": "legislacao",
+      "patterns": [
+        { "pattern": "^(?:BRASIL|S[ÃA]O PAULO|MINAS GERAIS|RIO DE JANEIRO)\\b", "flags": "i" },
+        { "pattern": "\\b(?:Lei\\s+n[º°o]|Decreto\\s+n[º°o]|Resolu[cç][aã]o\\s+n[º°o]|Constitui[cç][aã]o|Base Nacional Comum Curricular|BNCC)\\b", "flags": "i" }
+      ]
+    },
+    {
+      "type": "capitulo",
+      "patterns": [
+        { "pattern": "\\bIn:\\s+", "flags": "i" }
+      ]
+    },
+    {
+      "type": "tese",
+      "patterns": [
+        { "pattern": "\\b(?:Tese|Disserta[cç][aã]o|Trabalho de Conclus[aã]o de Curso)\\s*\\(", "flags": "i" }
+      ]
+    },
+    {
+      "type": "artigo",
+      "patterns": [
+        { "pattern": "\\bv\\.\\s*\\d+|\\bn\\.\\s*\\d+|\\bp\\.\\s*\\d+\\s*[-–]\\s*\\d+", "flags": "i" }
+      ]
+    },
+    {
+      "type": "eletronico",
+      "patterns": [
+        { "pattern": "\\bDispon[íi]vel\\s+em:", "flags": "i" },
+        { "pattern": "https?:\\/\\/", "flags": "i" }
+      ]
+    }
+  ]
+}

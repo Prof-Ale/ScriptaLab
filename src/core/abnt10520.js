@@ -1,13 +1,10 @@
 import { UP, NAME } from "./textUtils.js";
+import abnt10520Rules from "./rules/abnt10520.json" with { type: "json" };
 
-// Siglas de instituições permanecem em maiúsculas na citação (NBR 10520:2023). Lista editável.
-export const SIGLAS = new Set([
-  "ABNT", "BNCC", "CAPES", "CNE", "CNPQ", "FGV", "FIOCRUZ", "IBGE", "IBICT", "IFSP",
-  "INEP", "INSS", "IPEA", "MEC", "OCDE", "OMS", "ONU", "SBPC", "UFSCAR", "UNESCO",
-  "UNESP", "UNICAMP", "UNICEF", "UNIVESP", "USP", "UEL", "UFMG", "UFRJ", "UFRGS",
-  "UNB", "PUC", "FAPESP", "CEP", "CONEP", "MCTI", "OIT", "OMC", "FMI", "BID",
-  "CEPAL", "IFRS", "IFSULDEMINAS"
-]);
+export const ABNT10520_RULES_VERSION = abnt10520Rules.version;
+
+// Siglas de instituições permanecem em maiúsculas na citação (NBR 10520:2023). Fonte única: rules/abnt10520.json.
+export const SIGLAS = new Set(abnt10520Rules.siglas);
 
 export const isSigla = (n) => !/\s/.test(n) && SIGLAS.has(String(n).toUpperCase());
 
@@ -15,7 +12,7 @@ export const mkCit = () => new RegExp(`\\b(${NAME})(\\s+et\\s+al\\.)?,\\s*(\\d{4
 
 // Itálico (NBR 10520:2023): et al., apud, ibid., op. cit., loc. cit., passim, et seq., cf. e Id.
 // (Id. só dentro de citação, para não pegar o "id" da psicanálise).
-export const LATIN_ITALIC = /(\bet\s+al\.|\bapud\b|\bibid\.|\bop\.\s*cit\.|\bloc\.\s*cit\.|\bpassim\b|\bet\s+seq\.|\b[Cc]f\.|(?<=[(;]\s*)Id\.)/g;
+export const LATIN_ITALIC = new RegExp(abnt10520Rules.latinItalic.pattern, abnt10520Rules.latinItalic.flags);
 
 export const REF_HEAD = /^\s*(?:\d+(?:\.\d+)*\s+)?REFER[ÊE]NCIAS(?:\s+BIBLIOGR[ÁA]FICAS)?\s*$/gim;
 export const startsRef = (l) => /^[A-ZÁÉÍÓÚÂÊÔÃÕÇ][A-ZÁÉÍÓÚÂÊÔÃÕÇ' -]{1,}[,.]/.test(String(l).trim());
