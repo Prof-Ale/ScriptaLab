@@ -1377,7 +1377,7 @@ function authorizeCorrections(){
 const fmt = (x,d=1) => x==null ? "—" : x.toFixed(d).replace(".",",");
 let styleSentences = [], CLICHES = null;
 async function loadCliches(){
-  try{ const r = await fetch("data/cliches-ptbr.json",{cache:"no-cache"}); if(r.ok){ const j = await r.json(); if(Array.isArray(j.items)&&j.items.length) CLICHES = j.items; } }catch(e){}
+  try{ const r = await fetch("src/core/rules/stylometry.json",{cache:"no-cache"}); if(r.ok){ const j = await r.json(); if(Array.isArray(j.cliches)&&j.cliches.length) CLICHES = j.cliches; } }catch(e){}
 }
 const BAR_H = 150, BAR_PAD = 26;
 const yPx = (v,max) => BAR_PAD + (v/max)*BAR_H;

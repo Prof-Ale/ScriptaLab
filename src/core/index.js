@@ -1,10 +1,10 @@
 import { UP, NAME, titleCase, normStr, escapeHtml, paras, isLongQuote, lastSurname } from "./textUtils.js";
 import { INVIS, AI_TAGS, UTM, HYPH_BREAK, scanScrubIssues, scrubText } from "./scrubber.js";
 import {
-  SIGLAS, isSigla, mkCit, LATIN_ITALIC, REF_HEAD, startsRef, splitReferences, checkEtAlUniformity, checkCitationPeriods,
+  ABNT10520_RULES_VERSION, SIGLAS, isSigla, mkCit, LATIN_ITALIC, REF_HEAD, startsRef, splitReferences, checkEtAlUniformity, checkCitationPeriods,
 } from "./abnt10520.js";
 import {
-  ABBR, splitSentences, wordsOf, countWords, sentenceStats, CV_BANDS, cvBand, CLICHES_DEFAULT, compileCliche, findCliches, highlightHtml, analyzeStyle,
+  STYLOMETRY_RULES_VERSION, ABBR, splitSentences, wordsOf, countWords, sentenceStats, CV_BANDS, cvBand, CLICHES_DEFAULT, compileCliche, findCliches, highlightHtml, analyzeStyle,
 } from "./stylometry.js";
 import {
   collectCitations, parseEntry, crossCheckRefs, extractDois, refBlockFor, compareRef,
@@ -13,7 +13,7 @@ import {
   buildProposals, createReviewSession, acceptProposal, rejectProposal, acceptAllProposals, undoLastAction, resetSession, renderSessionText, summarizeSession,
 } from "./diffEngine.js";
 import {
-  classifyReferenceType, referenceSortKey, auditReferenceEntry, sortReferencesAlphabetically, auditReferencesSection, formatReferencesSectionSorted, isCaptionOrNote,
+  ABNT6023_RULES_VERSION, classifyReferenceType, referenceSortKey, auditReferenceEntry, sortReferencesAlphabetically, auditReferencesSection, formatReferencesSectionSorted, isCaptionOrNote,
 } from "./abnt6023.js";
 import {
   detectAiSyntaxPatterns, buildVoiceProfile, compareToVoiceProfile, extractProtectedTokens, validateConceptualPreservation, buildLiteraryReviewPrompt,
@@ -48,6 +48,7 @@ export {
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
   NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
   createAuditWorkerClient, AUDIT_WORKER_PROTOCOL,
+  ABNT10520_RULES_VERSION, ABNT6023_RULES_VERSION, STYLOMETRY_RULES_VERSION,
 };
 
 export const ScriptaCore = {
@@ -65,6 +66,7 @@ export const ScriptaCore = {
   locateCrossCheck, locateMissingCitations, locateUncitedReferences,
   NETWORK_HOSTS, classifyUrl, describeOutgoing, offlineError, createNetworkLog,
   createAuditWorkerClient, AUDIT_WORKER_PROTOCOL,
+  ABNT10520_RULES_VERSION, ABNT6023_RULES_VERSION, STYLOMETRY_RULES_VERSION,
 };
 
 export default ScriptaCore;

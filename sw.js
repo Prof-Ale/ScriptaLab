@@ -70,7 +70,9 @@ const APP_SHELL = [
   './templates-ies/ifsuldeminas-carmo-tcc-artigo.json',
   './templates-ies/anhanguera-uam.json',
   './templates-ies/schema.json',
-  './data/cliches-ptbr.json',
+  './src/core/rules/abnt10520.json',
+  './src/core/rules/abnt6023.json',
+  './src/core/rules/stylometry.json',
 ];
 
 const CDN_LIBS = [

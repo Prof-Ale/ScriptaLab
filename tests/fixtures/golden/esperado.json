@@ -1,0 +1,127 @@
+[
+  {
+    "arquivo": "trecho-tese.txt",
+    "palavras": 154,
+    "periodos": 23,
+    "cv": 69.7,
+    "banda": "ritmo bem variado",
+    "cliches": [],
+    "marcasIA": {
+      "invis": 0,
+      "aiTags": 0,
+      "utm": 0,
+      "hyphBreak": 0
+    },
+    "siglasDetectadas": [
+      "USP",
+      "IBGE"
+    ],
+    "latinItalic": [
+      "et al.",
+      "cf.",
+      "apud",
+      "et al."
+    ],
+    "etAl": {
+      "etAlCount": 1,
+      "fourPlusCount": 0,
+      "mixed": false
+    },
+    "pontos": {
+      "before": 0,
+      "inside": 0,
+      "total": 0
+    },
+    "crossCheck": {
+      "has": true,
+      "entries": 6,
+      "missing": [],
+      "uncitedCount": 1
+    },
+    "tiposReferencia": [
+      "legislacao",
+      "capitulo",
+      "artigo",
+      "tese",
+      "eletronico",
+      "livro"
+    ]
+  },
+  {
+    "arquivo": "trecho-limpo.txt",
+    "palavras": 54,
+    "periodos": 6,
+    "cv": 35.14,
+    "banda": "ritmo moderado",
+    "cliches": [],
+    "marcasIA": {
+      "invis": 0,
+      "aiTags": 0,
+      "utm": 0,
+      "hyphBreak": 0
+    },
+    "siglasDetectadas": [],
+    "latinItalic": [],
+    "etAl": {
+      "etAlCount": 0,
+      "fourPlusCount": 0,
+      "mixed": false
+    },
+    "pontos": {
+      "before": 0,
+      "inside": 0,
+      "total": 0
+    },
+    "crossCheck": {
+      "has": true,
+      "entries": 1,
+      "missing": [],
+      "uncitedCount": 0
+    },
+    "tiposReferencia": [
+      "livro"
+    ]
+  },
+  {
+    "arquivo": "trecho-cliches.txt",
+    "palavras": 59,
+    "periodos": 7,
+    "cv": 48.65,
+    "banda": "ritmo moderado",
+    "cliches": [
+      "cenario-atual",
+      "e-importante",
+      "papel-fundamental",
+      "nesse-sentido",
+      "vale-ressaltar",
+      "multifacetado"
+    ],
+    "marcasIA": {
+      "invis": 0,
+      "aiTags": 1,
+      "utm": 1,
+      "hyphBreak": 0
+    },
+    "siglasDetectadas": [],
+    "latinItalic": [],
+    "etAl": {
+      "etAlCount": 0,
+      "fourPlusCount": 0,
+      "mixed": false
+    },
+    "pontos": {
+      "before": 1,
+      "inside": 0,
+      "total": 1
+    },
+    "crossCheck": {
+      "has": true,
+      "entries": 1,
+      "missing": [],
+      "uncitedCount": 0
+    },
+    "tiposReferencia": [
+      "livro"
+    ]
+  }
+]

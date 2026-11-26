@@ -1,19 +1,24 @@
 import { normStr } from "./textUtils.js";
 import { REF_HEAD, splitReferences } from "./abnt10520.js";
+import abnt6023Rules from "./rules/abnt6023.json" with { type: "json" };
+
+export const ABNT6023_RULES_VERSION = abnt6023Rules.version;
+
+const REFERENCE_TYPE_RULES = abnt6023Rules.referenceTypes.map((r) => ({
+  type: r.type,
+  regexes: r.patterns.map((p) => new RegExp(p.pattern, p.flags || "")),
+}));
 
 /**
  * Classifica uma entrada bibliográfica segundo padrões da ABNT NBR 6023:2025.
+ * Regras como dados: rules/abnt6023.json (ordem = prioridade).
  */
 export function classifyReferenceType(entry) {
   const s = String(entry || "").trim();
-  if (/^(?:BRASIL|S[ÃA]O PAULO|MINAS GERAIS|RIO DE JANEIRO)\b/i.test(s) || /\b(?:Lei\s+n[º°o]|Decreto\s+n[º°o]|Resolu[cç][aã]o\s+n[º°o]|Constitui[cç][aã]o|Base Nacional Comum Curricular|BNCC)\b/i.test(s)) {
-    return "legislacao";
+  for (const rule of REFERENCE_TYPE_RULES) {
+    if (rule.regexes.some((re) => re.test(s))) return rule.type;
   }
-  if (/\bIn:\s+/i.test(s)) return "capitulo";
-  if (/\b(?:Tese|Disserta[cç][aã]o|Trabalho de Conclus[aã]o de Curso)\s*\(/i.test(s)) return "tese";
-  if (/\bv\.\s*\d+|\bn\.\s*\d+|\bp\.\s*\d+\s*[-–]\s*\d+/i.test(s)) return "artigo";
-  if (/\bDispon[íi]vel\s+em:/i.test(s) || /https?:\/\//i.test(s)) return "eletronico";
-  return "livro";
+  return abnt6023Rules.defaultType || "livro";
 }
 
 /**

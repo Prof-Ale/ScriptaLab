@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "standard": "ABNT NBR 10520:2023",
+  "siglas": [
+    "ABNT", "BNCC", "CAPES", "CNE", "CNPQ", "FGV", "FIOCRUZ", "IBGE", "IBICT", "IFSP",
+    "INEP", "INSS", "IPEA", "MEC", "OCDE", "OMS", "ONU", "SBPC", "UFSCAR", "UNESCO",
+    "UNESP", "UNICAMP", "UNICEF", "UNIVESP", "USP", "UEL", "UFMG", "UFRJ", "UFRGS",
+    "UNB", "PUC", "FAPESP", "CEP", "CONEP", "MCTI", "OIT", "OMC", "FMI", "BID",
+    "CEPAL", "IFRS", "IFSULDEMINAS"
+  ],
+  "latinItalic": {
+    "pattern": "(\\bet\\s+al\\.|\\bapud\\b|\\bibid\\.|\\bop\\.\\s*cit\\.|\\bloc\\.\\s*cit\\.|\\bpassim\\b|\\bet\\s+seq\\.|\\b[Cc]f\\.|(?<=[(;]\\s*)Id\\.)",
+    "flags": "g"
+  }
+}

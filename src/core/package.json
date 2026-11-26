@@ -1,3 +1,22 @@
 {
-  "type": "module"
+  "name": "@scriptalab/core",
+  "version": "0.3.0",
+  "description": "Núcleo puro (ESM, zero dependências) do ScriptaLab: limpeza Zero-Tampering, ABNT NBR 10520/6023, estilometria e ponte MathLab.",
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "exports": {
+    ".": "./index.js"
+  },
+  "bin": {
+    "scriptalab": "./cli.mjs"
+  },
+  "files": [
+    "*.js",
+    "cli.mjs",
+    "rules/"
+  ],
+  "engines": {
+    "node": ">=22.0.0"
+  }
 }
