@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <!-- CSP: o texto do usuário nunca sai da página. connect-src lista só os domínios de consulta (CrossRef/OpenAlex) e do CDN do worker do PDF. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://api.crossref.org https://api.openalex.org https://cdnjs.cloudflare.com; worker-src blob:; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'unsafe-inline'; img-src 'self' data:; manifest-src 'self'; connect-src 'self' https://api.crossref.org https://api.openalex.org https://cdnjs.cloudflare.com; worker-src 'self' blob:; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <meta name="description" content="Diagnostique e normalize seu texto acadêmico em ABNT sem reescrever suas ideias. 100% local no navegador, Zero-Tampering e Zero-Retention.">
 <title>ScriptaLab | LabTech — Diagnóstico e Conformidade Acadêmica</title>
