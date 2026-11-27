@@ -127,7 +127,7 @@ ScriptaLab/
 │   ├── anhanguera-uam.json
 │   └── CONTRIBUINDO.md
 ├── tests/
-│   ├── core.test.js           # 32 testes unitários do núcleo ESM (Node, sem dependências)
+│   ├── core.test.js           # 34 testes unitários do núcleo ESM (Node, sem dependências)
 │   └── e2e/e2e_test.py        # 33 verificações no navegador (Playwright; APIs simuladas)
 ├── tools/
 │   ├── validate-templates.js  # valida perfis contra o schema
